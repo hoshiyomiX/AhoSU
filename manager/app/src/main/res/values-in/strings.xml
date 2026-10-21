@@ -149,9 +149,9 @@
     <string name="custom_settings">Pengaturan kostum</string>
     <string name="theme_color">Warna Tema</string>
     <string name="horizon_flash_complete">Flash Selesai</string>
-    <string name="horizon_preparing">Mempersiapkan…</string>
-    <string name="horizon_copying_files">Menyalin file...</string>
-    <string name="horizon_flashing">Mem-flash kernel…</string>
+    <string name="horizon_preparing">Menyiapkan…</string>
+    <string name="horizon_copying_files">Menyalin file…</string>
+    <string name="horizon_flashing">Melakukan flashing kernel…</string>
     <string name="horizon_flash_complete_status">Flash selesai</string>
     <string name="select_slot_title">Pilih Slot Flash</string>
     <string name="select_slot_description">Silakan pilih slot target untuk flash boot</string>
@@ -170,7 +170,7 @@
     <string name="no_apps_found">Aplikasi tidak ditemukan</string>
     <string name="appearance_settings">Kustomisasi toolbar</string>
     <string name="back">Kembali</string>
-    <string name="background_set_success">Set latar belakang berhasil</string>
+    <string name="background_set_success">Latar belakang berhasil diatur</string>
     <string name="background_removed">Latar belakang khusus yang dihapus</string>
     <string name="icon_switch_title">Ubah ikon</string>
     <string name="icon_switch_summary">Ubah ikon peluncur aplikasi ke ikon KernelSU</string>
@@ -553,10 +553,16 @@
     <string name="install_upload_lkm_file_summary">Gunakan berkas .ko khusus sebagai pengganti LKM bawaan</string>
     <string name="skip_ksud">Jangan menginstal ksud</string>
     <string name="skip_ksud_summary">Batalkan instalasi ksud. Jangan aktifkan ini kecuali benar-benar diperlukan.</string>
-    <string name="settings_enable_swipe_dismiss_summary">Geser dari tepi untuk kembali ke halaman sebelumnya.</string>
+    <string name="settings_enable_swipe_dismiss_summary">Geser dari tepi layar untuk kembali ke halaman sebelumnya.</string>
     <string name="settings_pager_gesture_mode">Mode gestur pager</string>
-    <string name="settings_pager_gesture_native">Bawaan</string>
+    <string name="settings_pager_gesture_native">Default</string>
     <string name="settings_pager_gesture_ios_like">Seperti iOS</string>
-    <string name="settings_enable_swipe_dismiss">Gerakan menggeser ke belakang</string>
-    <string name="settings_pager_gesture_cross_axis">Sumbu silang</string>
+    <string name="settings_enable_swipe_dismiss">Gestur geser untuk kembali</string>
+    <string name="settings_pager_gesture_cross_axis">Lintas sumbu</string>
+    <string name="about_app_icon"><![CDATA[Seluruh hak atas ikon dilindungi dan hak cipta dimiliki oleh %1$s]]></string>
+    <string name="both_kernel_and_module_files">File ZIP masukan berisi anykernel3 dan modul sekaligus</string>
+    <string name="more_than_one_kernel_file">Ditemukan lebih dari 1 file anykernel3 dalam file masukan</string>
+    <string name="module_shortcut_copy_scheme">Salin skema URL</string>
+    <string name="module_shortcut_scheme_copied">Skema URL disalin</string>
+    <string name="internal_server_error">Kesalahan Internal Server</string>
 </resources>
