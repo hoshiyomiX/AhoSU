@@ -4,11 +4,11 @@ use std::{process::Command, time::Instant};
 
 use anyhow::{Context, Result};
 use log::{info, warn};
-use rustix::cstr;
+use rustix::{cstr, process::chdir};
 
 use crate::{
     android::{
-        dynamic_manager, init_event,
+        dynamic_manager, init_event, ksucalls,
         module::{ScriptWait, handle_updated_modules, metamodule, prune_modules},
         restorecon, utils,
     },
@@ -37,15 +37,64 @@ fn dump_process_info(label: &str) {
         })
         .unwrap_or_else(|| "unknown".to_string());
 
+    // L0a: compare our mount namespace with init's (pid 1); a mismatch means we
+    // are still executing inside the caller's (e.g. an app's) mount namespace,
+    // where module mounts would stay invisible to the rest of the system.
+    let self_mnt_ns = read_link_or_unknown("/proc/self/ns/mnt");
+    let init_mnt_ns = read_link_or_unknown("/proc/1/ns/mnt");
+    let mnt_ns_state = if self_mnt_ns == init_mnt_ns {
+        "init"
+    } else {
+        "non-init (inherited from caller)"
+    };
+
     info!(
         "[{label}] pid={pid}, uid={uid}, gid={gid}, groups=[{}], selinux={}, {seccomp}",
         groups.join(","),
         selinux.trim(),
     );
+    info!("[{label}] mnt_ns: {mnt_ns_state} (self: {self_mnt_ns}, init: {init_mnt_ns})");
+
+    // L0a: actionable context verdicts for late-load troubleshooting.
+    if self_mnt_ns != init_mnt_ns {
+        warn!("[{label}] non-init mount namespace: module mounts may be invisible");
+    }
+    let seccomp_mode = seccomp.split_whitespace().last().unwrap_or("unknown");
+    if seccomp_mode == "2" {
+        warn!("[{label}] seccomp filter active (inherited from caller)");
+    }
+    let domain = selinux.trim();
+    let clean_domain = domain.starts_with("u:r:su:")
+        || domain.starts_with("u:r:ksu:")
+        || domain.starts_with("u:r:shell:")
+        || domain.starts_with("u:r:init:")
+        || domain == "unknown";
+    if !clean_domain {
+        warn!("[{label}] unexpected SELinux domain {domain} (inherited from caller)");
+    }
+}
+
+fn read_link_or_unknown(path: &str) -> String {
+    std::fs::read_link(path)
+        .map(|p| p.to_string_lossy().to_string())
+        .unwrap_or_else(|_| "unknown".to_string())
 }
 
 pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Result<()> {
-    utils::daemonize(false)?;
+    // L1: switch into init's mount namespace right after daemonizing (mirrors
+    // soft_reboot) so module mounts are applied globally instead of staying
+    // trapped inside the caller's (e.g. an app's) mount namespace. Best-effort
+    // by design: on failure we keep the caller's namespace, matching the
+    // pre-patch behavior instead of aborting a jailbreak's only root path.
+    utils::daemonize_with(false, || -> Result<()> {
+        if let Err(e) = utils::switch_mnt_ns(1) {
+            warn!("switch to init mount namespace failed: {e}");
+        }
+        if let Err(e) = chdir("/") {
+            warn!("chdir to / failed: {e}");
+        }
+        Ok(())
+    })?;
     info!("late-load command triggered!");
     dump_process_info("late-load start");
 
@@ -73,7 +122,14 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
         } else {
             cstr!("")
         };
-        ksuinit::load_module(&ko_data, params).context("Failed to load kernelsu.ko")?;
+        // L0a: point at the common jailbreak cause when module loading fails: a
+        // dirty execution context (seccomp filter / app SELinux domain) inherited
+        // from the calling app, which `--magica` avoids via a clean adb root.
+        if let Err(e) = ksuinit::load_module(&ko_data, params) {
+            warn!("Failed to load kernelsu.ko: {e:#}");
+            warn!("launched from an app? try `ksud late-load --magica` for a clean context");
+            return Err(e.context("Failed to load kernelsu.ko"));
+        }
         info!("kernelsu.ko loaded successfully!");
         dump_process_info("after load_module");
     }
@@ -119,6 +175,14 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
 
     // 8. Execute late-load stage scripts with a shared boot deadline
     let wait = ScriptWait::Until(Instant::now() + defs::BOOT_STAGE_TIMEOUT);
+
+    // L2: in jailbreak mode no init hook ever ran, so the post-fs-data stage
+    // was skipped entirely, while modules generally expect it to have completed
+    // before the late-load/service stages. Run it explicitly here, mirroring
+    // the stage ordering of init_event::on_post_fs_data.
+    ksucalls::report_post_fs_data();
+    init_event::run_stage("post-fs-data", wait);
+
     init_event::run_stage("late-load", wait);
 
     // 9. Load system.prop
@@ -129,6 +193,10 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
     // 10. Execute metamodule mount script (OverlayFS)
     if let Err(e) = metamodule::exec_mount_script(defs::MODULE_DIR) {
         warn!("execute metamodule mount failed: {e}");
+    } else if metamodule::has_metamodule() {
+        // L6: modules are mounted — notify the kernel so event-gated features
+        // become active, like the metamodule would on a normal boot.
+        ksucalls::report_module_mounted();
     }
     // 11. Execute dynamic manager booted load
     if let Err(e) = dynamic_manager::booted_load() {
@@ -139,9 +207,27 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
     init_event::run_stage("post-mount", wait);
 
     // 13. Execute service stage scripts (non-blocking)
-    init_event::run_stage("service", ScriptWait::NoWait);
+    // L6: mirror init_event::on_services — report the services event to the
+    // kernel first (it gates event-driven features); unlike on_services we
+    // still run the stage on a report error, keeping the pre-patch behavior.
+    let run_service_stage = match ksucalls::report_services() {
+        Ok(true) => true,
+        Ok(false) => {
+            info!("services already started, skipping service stage");
+            false
+        }
+        Err(e) => {
+            warn!("Failed to report services: {e:#}");
+            true
+        }
+    };
+    if run_service_stage {
+        init_event::run_stage("service", ScriptWait::NoWait);
+    }
 
     // 14. Execute boot-completed stage scripts (non-blocking)
+    // L6: mirror init_event::on_boot_completed — report boot completion first.
+    ksucalls::report_boot_complete();
     init_event::run_stage("boot-completed", ScriptWait::NoWait);
 
     // 15. Restart Manager so it gets a fresh ksu fd from the newly loaded kernel module
