@@ -196,7 +196,12 @@ jobs:
             export KSU_PACKAGE_NAME="${{ needs.prepare.outputs.spoofed_package_name }}"
             export BUILD_EXTRA_ARGS="-PKSU_PACKAGE_NAME=$KSU_PACKAGE_NAME -PIS_SPOOFED_BUILD=true"
           elif [ "${{ github.event_name }}" == "pull_request" ]; then
-            export KSU_PACKAGE_NAME="com.resukisu.resukisu.pr${{github.event.pull_request.number}}"
+            # PR builds keep the real package name (no .pr{N} suffix). Jailbreak
+            # loaders such as GhostLock resolve the manager by exact package
+            # name (and their manifest <queries> only lists the stock names),
+            # so a suffixed package is invisible to them. A PR build therefore
+            # replaces an installed manager instead of installing side-by-side.
+            export KSU_PACKAGE_NAME="com.resukisu.resukisu"
             export BUILD_EXTRA_ARGS="-PKSU_PACKAGE_NAME=$KSU_PACKAGE_NAME"
           elif [ "${{ github.ref_type }}" != "tag" ] && [ "${{ github.ref_name }}" != "main" ]; then
             export KSU_PACKAGE_NAME="com.resukisu.resukisu.dev"
