@@ -84,8 +84,12 @@ jobs:
 
       - name: Build ksud
         run: |
-          if [ "${{github.event_name}}" == "pull_request" ]; then
-            export KSU_PACKAGE_NAME="com.resukisu.resukisu.pr${{github.event.pull_request.number}}"
+          if [ "${{github.event_name}}" == "pull_request" ] || [ "${{github.ref}}" == refs/pull/* ]; then
+            # PR builds keep the real package name (no .pr{N} suffix): ksud's
+            # compiled-in default is used by `late-load` to restart the manager
+            # app, and jailbreak loaders (GhostLock) locate the manager by exact
+            # package name, so a suffixed package breaks both.
+            export KSU_PACKAGE_NAME="com.resukisu.resukisu"
           elif [ "${{github.ref_type}}" != "tag" ] && [ "${{github.ref_name}}" != "main" ]; then
             export KSU_PACKAGE_NAME="com.resukisu.resukisu.dev"
           fi
