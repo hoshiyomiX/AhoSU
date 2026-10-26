@@ -436,9 +436,13 @@ pub fn prune_modules() -> Result<()> {
             warn!("Failed to exec metamodule uninstall for {module_id}: {e}");
         }
 
-        // Then execute module's own uninstall.sh
+        // Then execute module's own uninstall.sh, unless it already ran at
+        // uninstall-request time (marked by `uninstall_executed`), e.g. from
+        // the manager while the framework was still alive.
         let uninstaller = module.join("uninstall.sh");
-        if uninstaller.exists()
+        let uninstall_executed = module.join(defs::UNINSTALL_EXECUTED_FILE_NAME).exists();
+        if !uninstall_executed
+            && uninstaller.exists()
             && let Err(e) = exec_script(uninstaller, ScriptWait::Forever)
         {
             warn!("Failed to exec uninstaller: {e}");
@@ -804,6 +808,14 @@ pub fn undo_uninstall_module(id: &str) -> Result<()> {
         info!("Removed the remove mark for module {id}");
     }
 
+    // Drop the uninstall-executed marker too: the uninstall hook already ran
+    // for this module, so a future uninstall request should run it again to
+    // keep its cleanup correct instead of being silently skipped.
+    let uninstall_executed = module_path.join(defs::UNINSTALL_EXECUTED_FILE_NAME);
+    if uninstall_executed.exists() {
+        let _ = std::fs::remove_file(&uninstall_executed);
+    }
+
     if let Err(e) = regenerate_preinit_rc() {
         warn!("regenerate preinit rc failed: {e}");
     }
@@ -817,6 +829,16 @@ pub fn uninstall_module(id: &str) -> Result<()> {
     let module_path = Path::new(defs::MODULE_DIR).join(id);
     ensure!(module_path.exists(), "Module {id} not found");
 
+    // Run the module's uninstall.sh NOW, while the caller's environment is
+    // usually a fully booted system (manager uninstall flow). Module uninstall
+    // hooks commonly depend on framework services (`pm`, `cmd package`, `am`)
+    // which are unavailable in the post-fs-data stage where the hook would
+    // otherwise run: the framework is intentionally stopped during an emulated
+    // soft reboot, and zygote has not started yet on a real boot. Executing the
+    // hook here makes those framework-dependent cleanups work for every module
+    // without module-specific knowledge.
+    exec_uninstall_script_at_request_time(&module_path, id);
+
     // Mark for removal
     let remove_file = module_path.join(defs::REMOVE_FILE_NAME);
     File::create(remove_file).with_context(|| "Failed to create remove file")?;
@@ -828,6 +850,39 @@ pub fn uninstall_module(id: &str) -> Result<()> {
     }
 
     Ok(())
+}
+
+/// Execute a module's `uninstall.sh` at uninstall-request time and record a
+/// marker on success so [`prune_modules`] will not execute it a second time.
+///
+/// Failure is intentionally non-fatal: when the request happens in an
+/// environment without the framework (recovery, early boot, emulated soft
+/// reboot already in flight) the hook gets its legacy chance at the
+/// post-fs-data prune stage instead.
+fn exec_uninstall_script_at_request_time(module_path: &Path, id: &str) {
+    let uninstaller = module_path.join("uninstall.sh");
+    if !uninstaller.exists() {
+        return;
+    }
+
+    info!("exec uninstall.sh of module {id} at uninstall request");
+    match exec_script(&uninstaller, ScriptWait::Forever) {
+        Ok(()) => {
+            let marker = module_path.join(defs::UNINSTALL_EXECUTED_FILE_NAME);
+            if let Err(e) = File::create(&marker) {
+                warn!(
+                    "failed to create uninstall-executed marker {}: {e}",
+                    marker.display()
+                );
+            }
+        }
+        Err(e) => {
+            warn!(
+                "uninstall.sh of module {id} failed at request time, \
+                 it will be retried at the post-fs-data stage: {e:#}"
+            );
+        }
+    }
 }
 
 pub fn run_action(id: &str) -> Result<()> {

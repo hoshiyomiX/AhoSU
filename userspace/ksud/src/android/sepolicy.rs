@@ -723,6 +723,108 @@ fn serialize_atomic_statements(statements: &[AtomicStatement]) -> Result<Vec<u8>
     Ok(payload)
 }
 
+/// Render a single policy object back to its textual form for diagnostics.
+fn describe_policy_object(object: &PolicyObject) -> &str {
+    match object {
+        PolicyObject::All => "*",
+        // An empty object should never be part of a *failed* rule that we
+        // want to report, it is only a placeholder for unused argument slots.
+        PolicyObject::None => "-",
+        PolicyObject::One(value) => std::str::from_utf8(value).unwrap_or("<non-utf8>"),
+    }
+}
+
+/// Render an atomic statement back into a human-readable policy line, e.g.
+/// `allow untrusted_app shell_data_file:dir search`.
+fn describe_atomic_statement(statement: &AtomicStatement) -> String {
+    let op = match statement.cmd {
+        uapi::KSU_SEPOLICY_CMD_NORMAL_PERM => match statement.subcmd {
+            uapi::KSU_SEPOLICY_SUBCMD_NORMAL_PERM_ALLOW => "allow",
+            uapi::KSU_SEPOLICY_SUBCMD_NORMAL_PERM_DENY => "deny",
+            uapi::KSU_SEPOLICY_SUBCMD_NORMAL_PERM_AUDITALLOW => "auditallow",
+            uapi::KSU_SEPOLICY_SUBCMD_NORMAL_PERM_DONTAUDIT => "dontaudit",
+            _ => "perm?",
+        },
+        uapi::KSU_SEPOLICY_CMD_XPERM => match statement.subcmd {
+            uapi::KSU_SEPOLICY_SUBCMD_XPERM_ALLOW => "allowxperm",
+            uapi::KSU_SEPOLICY_SUBCMD_XPERM_AUDITALLOW => "auditallowxperm",
+            uapi::KSU_SEPOLICY_SUBCMD_XPERM_DONTAUDIT => "dontauditxperm",
+            _ => "xperm?",
+        },
+        uapi::KSU_SEPOLICY_CMD_TYPE_STATE => match statement.subcmd {
+            uapi::KSU_SEPOLICY_SUBCMD_TYPE_STATE_PERMISSIVE => "permissive",
+            uapi::KSU_SEPOLICY_SUBCMD_TYPE_STATE_ENFORCE => "enforce",
+            _ => "type_state?",
+        },
+        uapi::KSU_SEPOLICY_CMD_TYPE => "type",
+        uapi::KSU_SEPOLICY_CMD_TYPE_ATTR => "typeattr",
+        uapi::KSU_SEPOLICY_CMD_ATTR => "attribute",
+        uapi::KSU_SEPOLICY_CMD_TYPE_TRANSITION => "type_transition",
+        uapi::KSU_SEPOLICY_CMD_TYPE_CHANGE => match statement.subcmd {
+            uapi::KSU_SEPOLICY_SUBCMD_TYPE_CHANGE_CHANGE => "type_change",
+            uapi::KSU_SEPOLICY_SUBCMD_TYPE_CHANGE_MEMBER => "type_member",
+            _ => "type_change?",
+        },
+        uapi::KSU_SEPOLICY_CMD_GENFSCON => "genfscon",
+        _ => "unknown",
+    };
+
+    let expected_argc = cmd_expected_argc(statement.cmd).unwrap_or(0);
+    let args = [
+        &statement.sepol1,
+        &statement.sepol2,
+        &statement.sepol3,
+        &statement.sepol4,
+        &statement.sepol5,
+        &statement.sepol6,
+        &statement.sepol7,
+    ];
+    let rendered: Vec<&str> = args
+        .iter()
+        .take(expected_argc)
+        .map(|object| describe_policy_object(object))
+        .collect();
+    format!("{op} {}", rendered.join(" "))
+}
+
+/// Re-apply every atomic statement individually to find out exactly which
+/// rules the kernel rejects, and log them.
+///
+/// This only runs after a batch partially succeeded, which is rare. Re-applying
+/// already-applied rules is safe: the kernel's rule insertion is idempotent for
+/// existing entries, so a rule that applied cleanly in the batch applies
+/// cleanly again here and stays silent. Only genuinely rejected rules (unknown
+/// types/classes, malformed names, kernel-side constraints) are logged, which
+/// turns an opaque `20/22` count into actionable diagnostics for any module's
+/// `sepolicy.rule`.
+fn identify_failed_sepolicy_rules(policies: &[AtomicStatement]) {
+    for policy in policies {
+        let payload = match serialize_atomic_statements(std::slice::from_ref(policy)) {
+            Ok(payload) => payload,
+            Err(e) => {
+                log::warn!(
+                    "failed to serialize sepolicy rule for diagnostics: {e:#} ({})",
+                    describe_atomic_statement(policy)
+                );
+                continue;
+            }
+        };
+        let applied = crate::android::ksucalls::set_sepolicy(
+            payload.as_ptr(),
+            payload.len() as u64,
+        );
+        match applied {
+            Ok(count) if usize::try_from(count).unwrap_or(0) == 1 => {}
+            Ok(_) | Err(_) => {
+                log::warn!(
+                    "sepolicy rule NOT applied by kernel: {}",
+                    describe_atomic_statement(policy)
+                );
+            }
+        }
+    }
+}
+
 fn flatten_atomic_statements<'a>(
     statements: &'a [PolicyStatement<'a>],
 ) -> Result<Vec<AtomicStatement>> {
@@ -755,6 +857,9 @@ fn apply_rules_batch<'a>(statements: &'a [PolicyStatement<'a>], strict: bool) ->
                     return Err(err);
                 }
                 log::warn!("{err}");
+                // Identify and log the exact rules the kernel rejected so a
+                // partial failure is actionable instead of an opaque count.
+                identify_failed_sepolicy_rules(&policies);
             }
         }
         Err(e) => {

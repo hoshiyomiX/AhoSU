@@ -42,6 +42,10 @@ mod android {
     pub const DISABLE_FILE_NAME: &str = "disable";
     pub const UPDATE_FILE_NAME: &str = "update";
     pub const REMOVE_FILE_NAME: &str = "remove";
+    // Marker written when a module's uninstall.sh was already executed at
+    // uninstall-request time (e.g. from the manager while the framework was
+    // still alive), so the post-fs-data prune stage does not run it twice.
+    pub const UNINSTALL_EXECUTED_FILE_NAME: &str = "uninstall_executed";
     pub const MODULE_INIT_RC_DIR: &str = "initrc";
 
     // Module config system
