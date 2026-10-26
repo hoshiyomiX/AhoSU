@@ -1,14 +1,14 @@
-# BakaSU
+# AhoSU
 <img align='right' src='BakaSU_Full.svg' width='220px' alt="BakaSU Icon">
 
-Formerly known as: ReSukiSU
+Formerly known as: BakaSU (ReSukiSU)
 
 **English** | [简体中文](./zh/README.md)
 
-A [`tiann/KernelSU`](https://github.com/tiann/KernelSU)'s downstream, added some personal changes.
+A [`Baka-SU/BakaSU`](https://github.com/Baka-SU/BakaSU)'s downstream (KernelSU lineage), tracking upstream with a local patch series.
 
-[![Latest release](https://img.shields.io/github/v/release/Baka-SU/BakaSU?label=Release&logo=github)](https://github.com/Baka-SU/BakaSU/releases/latest)
-[![Latest CI build (nightly.link)](https://img.shields.io/badge/nightly.link-Latest%20CI%20Build-800080)](https://nightly.link/Baka-SU/BakaSU/workflows/build-manager/main)
+[![Latest release](https://img.shields.io/github/v/release/hoshiyomiX/AhoSU?label=Release&logo=github)](https://github.com/hoshiyomiX/AhoSU/releases/latest)
+[![Latest CI build (nightly.link)](https://img.shields.io/badge/nightly.link-Latest%20CI%20Build-800080)](https://nightly.link/hoshiyomiX/AhoSU/workflows/build-manager/main)
 [![Channel](https://img.shields.io/badge/Follow-Telegram-blue.svg?logo=telegram)](https://t.me/BakaSU_Grp)
 [![Kernel License: GPL v2](https://img.shields.io/badge/License-GPL%20v2-orange.svg?logo=gnu)](https://www.gnu.org/licenses/old-licenses/gpl-2.0.en.html)
 [![Other part License：GPL v3](https://img.shields.io/github/license/Baka-SU/BakaSU?logo=gnu)](../LICENSE)
