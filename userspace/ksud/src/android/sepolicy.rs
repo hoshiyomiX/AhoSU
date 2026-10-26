@@ -809,10 +809,8 @@ fn identify_failed_sepolicy_rules(policies: &[AtomicStatement]) {
                 continue;
             }
         };
-        let applied = crate::android::ksucalls::set_sepolicy(
-            payload.as_ptr(),
-            payload.len() as u64,
-        );
+        let applied =
+            crate::android::ksucalls::set_sepolicy(payload.as_ptr(), payload.len() as u64);
         match applied {
             Ok(count) if usize::try_from(count).unwrap_or(0) == 1 => {}
             Ok(_) | Err(_) => {
