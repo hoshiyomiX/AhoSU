@@ -50,25 +50,48 @@ jobs:
           echo "keystore=$(base64 -w 0 pr-key.jks)" >> $GITHUB_OUTPUT
 
       - name: Extract certificate hash and size
-        if: github.event_name == 'pull_request'
         id: extract
         env:
           STORE_PASS: ${{ steps.gen.outputs.keystore_password }}
+          PROD_KEYSTORE: ${{ secrets.KEYSTORE }}
+          PROD_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          PROD_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
         run: |
-          # Export DER certificate
-          keytool -exportcert \
-            -alias pr-key \
-            -keystore pr-key.jks \
-            -storepass "$STORE_PASS" \
-            -file pr-cert.der
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            # PR builds: derive the expected manager signature from the
+            # temporary key generated above (legacy behavior, unchanged).
+            keytool -exportcert \
+              -alias pr-key \
+              -keystore pr-key.jks \
+              -storepass "$STORE_PASS" \
+              -file cert.der
+          elif [ -n "$PROD_KEYSTORE" ]; then
+            # Production builds (push to main / tags / dispatch): derive the
+            # expected manager signature from the persistent release keystore,
+            # so the LKM built in the same run accepts the release-signed
+            # manager APK. This reuses the same slot the PR flow fills with
+            # its throwaway key, but with a key that never changes, keeping
+            # manager upgrades crown-compatible across builds.
+            echo "$PROD_KEYSTORE" | base64 -d > prod-key.jks
+            keytool -exportcert \
+              -alias "$PROD_KEY_ALIAS" \
+              -keystore prod-key.jks \
+              -storepass "$PROD_KEYSTORE_PASSWORD" \
+              -file cert.der
+          else
+            # No keystore configured (e.g. forks without repo secrets):
+            # keep the legacy behavior of building without the extra slot.
+            echo "No keystore available; skipping expected signature outputs."
+            exit 0
+          fi
 
           # Calculate size in hex
-          SIZE_DEC=$(stat -c%s pr-cert.der)
+          SIZE_DEC=$(stat -c%s cert.der)
           SIZE_HEX=$(printf '0x%04x' "$SIZE_DEC")
           echo "expected_size=$SIZE_HEX" >> $GITHUB_OUTPUT
 
           # Calculate SHA256 hash
-          HASH=$(sha256sum pr-cert.der | awk '{print $1}')
+          HASH=$(sha256sum cert.der | awk '{print $1}')
           echo "expected_hash=$HASH" >> $GITHUB_OUTPUT
 
           echo "Certificate size: $SIZE_HEX ($SIZE_DEC bytes)"
