@@ -1124,6 +1124,13 @@ void ksu_stop_input_hook_runtime(void)
         return;
     }
     input_hook_stopped = true;
+    if (ksu_late_loaded) {
+        // Late load skips ksu_ksud_init(): the input kprobe was never
+        // registered and stop_input_hook_work was never INIT_WORK'd.
+        // Scheduling the zeroed work struct only triggers a kernel WARN
+        // in __queue_work() plus a misleading success print.
+        return;
+    }
     stop_input_hook();
 }
 
