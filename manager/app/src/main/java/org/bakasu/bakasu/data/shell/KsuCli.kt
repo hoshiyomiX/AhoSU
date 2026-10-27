@@ -173,6 +173,20 @@ class KsuCliRepository(context: Context) {
             .orEmpty() == "size: 0x377, hash: d3469712b6214462764a1d8d3e5cbe1d6819a0b629791b9f4101867821f1df64"
     }
 
+    /**
+     * SELinux mode via the root shell. A plain non-root shell executes
+     * `getenforce` in the app domain, which is denied on selinuxfs and only
+     * produces AVC noise; the root shell reads it cleanly.
+     */
+    suspend fun isSELinuxPermissive(): Boolean = withContext(Dispatchers.IO) {
+        val out = ArrayList<String>()
+        val result = getRootShell().newJob()
+            .add("getenforce")
+            .to(out, null)
+            .exec()
+        result.isSuccess && out.joinToString("").trim() == "Permissive"
+    }
+
     suspend fun getFeatureStatus(feature: String): String = withContext(Dispatchers.IO) {
         val shell = getRootShell()
         val out = shell.newJob()
