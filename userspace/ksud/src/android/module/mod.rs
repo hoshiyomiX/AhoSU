@@ -17,7 +17,7 @@ use crate::{
         ksucalls,
         module::ModuleType::{Active, All},
         restorecon::{restore_syscon, setsyscon},
-        sepolicy,
+        sepolicy::{self, SepolicyApplyReport},
         utils::{
             detach_process_group, ensure_clean_dir, ensure_dir_exists, ensure_file_exists,
             get_zip_uncompressed_size, getprop, switch_cgroups,
@@ -168,15 +168,26 @@ fn foreach_active_module(f: impl FnMut(&Path) -> Result<()>) -> Result<()> {
 
 pub fn load_sepolicy_rule() -> Result<()> {
     foreach_active_module(|path| {
+        let Some(module_id) = path.file_name().and_then(|name| name.to_str()) else {
+            return Ok(());
+        };
         let rule_file = path.join("sepolicy.rule");
         if !rule_file.exists() {
+            sepolicy::clear_status(module_id);
             return Ok(());
         }
         info!("load policy: {}", rule_file.display());
 
-        if sepolicy::apply_file(&rule_file).is_err() {
-            warn!("Failed to load sepolicy.rule for {}", rule_file.display());
-        }
+        // Persist the outcome so the manager can surface rejected rules in
+        // the module detail UI instead of leaving them buried in the boot log.
+        let report = match sepolicy::apply_file(&rule_file) {
+            Ok(report) => report,
+            Err(e) => {
+                warn!("Failed to load sepolicy.rule for {}: {e:#}", rule_file.display());
+                SepolicyApplyReport::from_error(&format!("{e:#}"))
+            }
+        };
+        sepolicy::save_status(module_id, &report);
         Ok(())
     })?;
 
@@ -1094,6 +1105,19 @@ fn list_module(path: &str) -> Vec<HashMap<String, String>> {
         module_prop_map.insert("web".to_owned(), web.to_string());
         module_prop_map.insert("action".to_owned(), action.to_string());
         module_prop_map.insert("mount".to_owned(), need_mount.to_string());
+
+        // Surface the last sepolicy.rule apply outcome (written at the boot
+        // module stage) so managers can warn about rules the kernel rejected.
+        if let Some(dir_name) = entry.file_name().to_str()
+            && let Some(report) = sepolicy::load_status(dir_name)
+            && report.applied < report.total
+        {
+            module_prop_map.insert(
+                "sepolicyApplied".to_owned(),
+                format!("{}/{}", report.applied, report.total),
+            );
+            module_prop_map.insert("sepolicyFailedRules".to_owned(), report.failed.join("; "));
+        }
 
         resolve_module_icon_path(&mut module_prop_map, "actionIcon", &path);
         resolve_module_icon_path(&mut module_prop_map, "webuiIcon", &path);

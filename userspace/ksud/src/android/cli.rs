@@ -725,8 +725,16 @@ pub fn run() -> Result<()> {
         Commands::Unload => crate::android::unload::unload(),
         Commands::Uninstall { package_name } => utils::uninstall(&package_name),
         Commands::Sepolicy { command } => match command {
-            Sepolicy::Patch { sepolicy } => sepolicy::live_patch(&sepolicy),
-            Sepolicy::Apply { file } => sepolicy::apply_file(file),
+            Sepolicy::Patch { sepolicy } => {
+                let report = sepolicy::live_patch(&sepolicy)?;
+                print_sepolicy_report(&report);
+                Ok(())
+            }
+            Sepolicy::Apply { file } => {
+                let report = sepolicy::apply_file(file)?;
+                print_sepolicy_report(&report);
+                Ok(())
+            }
             Sepolicy::Check { sepolicy } => sepolicy::check_rule(&sepolicy),
         },
         Commands::LateLoad {
@@ -939,4 +947,18 @@ pub fn run() -> Result<()> {
         log::error!("Error: {e:?}");
     }
     result
+}
+
+/// Print which rules the kernel rejected after a live patch / rule file apply.
+fn print_sepolicy_report(report: &sepolicy::SepolicyApplyReport) {
+    if report.applied >= report.total {
+        return;
+    }
+    println!(
+        "sepolicy: {}/{} rules applied",
+        report.applied, report.total
+    );
+    for rule in &report.failed {
+        println!("sepolicy rule NOT applied by kernel: {rule}");
+    }
 }

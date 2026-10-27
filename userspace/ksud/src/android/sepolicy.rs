@@ -9,10 +9,67 @@ use nom::{
     character::complete::{space0, space1},
     combinator::map,
 };
+use serde::{Deserialize, Serialize};
 
-use crate::android::uapi;
+use crate::{android::uapi, defs};
+
+const SEPOLICY_STATUS_DIR: &str = const_format::concatcp!(defs::WORKING_DIR, "sepolicy_status");
 
 type SeObject<'a> = Vec<&'a str>;
+
+/// Outcome of applying one batch of sepolicy rules.
+///
+/// `failed` carries the human-readable rendering of every rule the kernel
+/// rejected (unknown types/classes, malformed names, kernel-side
+/// constraints) so managers can surface "N of M rules not applied" instead
+/// of an opaque count buried in the boot log.
+#[derive(Debug, Clone, new, Serialize, Deserialize)]
+pub struct SepolicyApplyReport {
+    pub total: usize,
+    pub applied: usize,
+    pub failed: Vec<String>,
+}
+
+impl SepolicyApplyReport {
+    /// Report for a rule file that could not be read or parsed at all.
+    pub fn from_error(error: &str) -> Self {
+        Self {
+            total: 0,
+            applied: 0,
+            failed: vec![format!("error: {error}")],
+        }
+    }
+}
+
+/// Persist the last apply outcome for a module so the manager can surface
+/// rejected rules in the module detail UI (written at boot module stage).
+pub fn save_status(module_id: &str, report: &SepolicyApplyReport) {
+    crate::android::utils::ensure_dir_exists(Path::new(SEPOLICY_STATUS_DIR)).ok();
+    let path = Path::new(SEPOLICY_STATUS_DIR).join(format!("{module_id}.json"));
+    match serde_json::to_string(report) {
+        Ok(json) => {
+            if let Err(e) = std::fs::write(&path, json) {
+                log::warn!("failed to write sepolicy status {}: {e}", path.display());
+            }
+        }
+        Err(e) => log::warn!("failed to serialize sepolicy status: {e}"),
+    }
+}
+
+/// Drop a stale status file (module no longer ships a sepolicy.rule).
+pub fn clear_status(module_id: &str) {
+    let path = Path::new(SEPOLICY_STATUS_DIR).join(format!("{module_id}.json"));
+    if path.exists() {
+        let _ = std::fs::remove_file(path);
+    }
+}
+
+/// Read the persisted apply outcome for a module, if any.
+pub fn load_status(module_id: &str) -> Option<SepolicyApplyReport> {
+    let path = Path::new(SEPOLICY_STATUS_DIR).join(format!("{module_id}.json"));
+    let json = std::fs::read_to_string(path).ok()?;
+    serde_json::from_str(&json).ok()
+}
 
 fn is_sepolicy_char(c: char) -> bool {
     c.is_alphanum() || c == '_' || c == '-'
@@ -788,16 +845,17 @@ fn describe_atomic_statement(statement: &AtomicStatement) -> String {
 }
 
 /// Re-apply every atomic statement individually to find out exactly which
-/// rules the kernel rejects, and log them.
+/// rules the kernel rejects, log them, and return their renderings.
 ///
 /// This only runs after a batch partially succeeded, which is rare. Re-applying
 /// already-applied rules is safe: the kernel's rule insertion is idempotent for
 /// existing entries, so a rule that applied cleanly in the batch applies
 /// cleanly again here and stays silent. Only genuinely rejected rules (unknown
-/// types/classes, malformed names, kernel-side constraints) are logged, which
+/// types/classes, malformed names, kernel-side constraints) are returned, which
 /// turns an opaque `20/22` count into actionable diagnostics for any module's
 /// `sepolicy.rule`.
-fn identify_failed_sepolicy_rules(policies: &[AtomicStatement]) {
+fn identify_failed_sepolicy_rules(policies: &[AtomicStatement]) -> Vec<String> {
+    let mut failed = Vec::new();
     for policy in policies {
         let payload = match serialize_atomic_statements(std::slice::from_ref(policy)) {
             Ok(payload) => payload,
@@ -814,13 +872,13 @@ fn identify_failed_sepolicy_rules(policies: &[AtomicStatement]) {
         match applied {
             Ok(count) if usize::try_from(count).unwrap_or(0) == 1 => {}
             Ok(_) | Err(_) => {
-                log::warn!(
-                    "sepolicy rule NOT applied by kernel: {}",
-                    describe_atomic_statement(policy)
-                );
+                let rendered = describe_atomic_statement(policy);
+                log::warn!("sepolicy rule NOT applied by kernel: {rendered}");
+                failed.push(rendered);
             }
         }
     }
+    failed
 }
 
 fn flatten_atomic_statements<'a>(
@@ -834,22 +892,25 @@ fn flatten_atomic_statements<'a>(
     Ok(policies)
 }
 
-fn apply_rules_batch<'a>(statements: &'a [PolicyStatement<'a>], strict: bool) -> Result<()> {
+fn apply_rules_batch<'a>(
+    statements: &'a [PolicyStatement<'a>],
+    strict: bool,
+) -> Result<SepolicyApplyReport> {
     let policies = flatten_atomic_statements(statements)?;
     if policies.is_empty() {
-        return Ok(());
+        return Ok(SepolicyApplyReport::new(0, 0, Vec::new()));
     }
 
+    let total = policies.len();
     let payload = serialize_atomic_statements(&policies)?;
 
     match crate::android::ksucalls::set_sepolicy(payload.as_ptr(), payload.len() as u64) {
         Ok(applied_count) => {
             let applied_count = usize::try_from(applied_count)
                 .context("kernel returned negative sepolicy applied count")?;
-            if applied_count < policies.len() {
+            if applied_count < total {
                 let err = anyhow::anyhow!(
-                    "apply sepolicy batch partially succeeded: {applied_count}/{}",
-                    policies.len()
+                    "apply sepolicy batch partially succeeded: {applied_count}/{total}"
                 );
                 if strict {
                     return Err(err);
@@ -857,7 +918,10 @@ fn apply_rules_batch<'a>(statements: &'a [PolicyStatement<'a>], strict: bool) ->
                 log::warn!("{err}");
                 // Identify and log the exact rules the kernel rejected so a
                 // partial failure is actionable instead of an opaque count.
-                identify_failed_sepolicy_rules(&policies);
+                let failed = identify_failed_sepolicy_rules(&policies);
+                Ok(SepolicyApplyReport::new(total, applied_count, failed))
+            } else {
+                Ok(SepolicyApplyReport::new(total, applied_count, Vec::new()))
             }
         }
         Err(e) => {
@@ -865,22 +929,20 @@ fn apply_rules_batch<'a>(statements: &'a [PolicyStatement<'a>], strict: bool) ->
             if strict {
                 return Err(anyhow::anyhow!("apply sepolicy batch failed: {e}"));
             }
+            Ok(SepolicyApplyReport::new(total, 0, Vec::new()))
         }
     }
-
-    Ok(())
 }
 
-pub fn live_patch(policy: &str) -> Result<()> {
+pub fn live_patch(policy: &str) -> Result<SepolicyApplyReport> {
     let result = parse_sepolicy(policy.trim(), false)?;
     for statement in &result {
         println!("{statement:?}");
     }
-    apply_rules_batch(&result, false)?;
-    Ok(())
+    apply_rules_batch(&result, false)
 }
 
-pub fn apply_file<P: AsRef<Path>>(path: P) -> Result<()> {
+pub fn apply_file<P: AsRef<Path>>(path: P) -> Result<SepolicyApplyReport> {
     let input = std::fs::read_to_string(path)?;
     live_patch(&input)
 }
