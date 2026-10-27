@@ -337,6 +337,7 @@ private fun GuardPendingCard(guardLoader: String) {
     val scope = rememberCoroutineScope()
     val reboot = koinInject<RebootUseCase>()
     val softRebootLabel = stringResource(R.string.reboot_soft)
+    val guardPendingConfirm = stringResource(R.string.susfs_guard_pending_confirm)
     val softRebootDialog = rememberConfirmDialog(
         onConfirm = {
             // Same path as the reboot menu on the home screen: `ksud
@@ -363,7 +364,7 @@ private fun GuardPendingCard(guardLoader: String) {
         onClick = {
             softRebootDialog.showConfirm(
                 title = softRebootLabel,
-                content = stringResource(R.string.susfs_guard_pending_confirm),
+                content = guardPendingConfirm,
                 confirm = softRebootLabel,
             )
         },
