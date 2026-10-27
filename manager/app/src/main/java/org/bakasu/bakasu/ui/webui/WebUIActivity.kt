@@ -25,7 +25,7 @@ import org.bakasu.bakasu.data.AppSettingsRepository
 import org.bakasu.bakasu.data.packageinfo.AppIconDataSource
 import org.bakasu.bakasu.data.packageinfo.InstalledPackageRepository
 import org.bakasu.bakasu.data.webui.WebUiRepository
-import org.bakasu.bakasu.ui.theme.KernelSUTheme
+import org.bakasu.bakasu.ui.theme.AhoSUTheme
 import org.bakasu.bakasu.ui.viewmodel.SuperUserViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -44,7 +44,7 @@ class WebUIActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
 
         setContent {
-            KernelSUTheme {
+            AhoSUTheme {
                 MainContent(activity = this, onFinish = { finish() })
             }
         }

@@ -24,7 +24,7 @@ import org.bakasu.bakasu.domain.usecase.ApplyLanguageUseCase
 import org.bakasu.bakasu.domain.usecase.EnsureManagerInstalledUseCase
 import org.bakasu.bakasu.domain.usecase.ObserveStartupStateUseCase
 import org.bakasu.bakasu.ui.activity.util.ThemeUtils
-import org.bakasu.bakasu.ui.theme.KernelSUTheme
+import org.bakasu.bakasu.ui.theme.AhoSUTheme
 import org.bakasu.bakasu.ui.viewmodel.HomeUiAction
 import org.bakasu.bakasu.ui.viewmodel.HomeViewModel
 import org.bakasu.bakasu.ui.viewmodel.ModuleUiAction
@@ -109,7 +109,7 @@ class MainActivity : ComponentActivity() {
             if (savedInstanceState == null) intent?.let { intentChannel.trySend(it) }
 
             setContent {
-                KernelSUTheme {
+                AhoSUTheme {
                     when (val state = startupState.collectAsStateWithLifecycle().value) {
                         is StartupState.Failed -> StartupFailureContent(state.message)
                         else -> NavContainer(settingsViewModel, intentChannel)

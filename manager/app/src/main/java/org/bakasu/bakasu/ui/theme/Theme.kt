@@ -27,6 +27,8 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialExpressiveTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MotionScheme
+import androidx.compose.material3.darkColorScheme as materialDarkColorScheme
+import androidx.compose.material3.lightColorScheme as materialLightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -88,7 +90,6 @@ import coil.compose.AsyncImagePainter
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.materialkolor.PaletteStyle
-import com.materialkolor.dynamicColorScheme
 import com.materialkolor.dynamiccolor.ColorSpec
 import com.materialkolor.quantize.QuantizerCelebi
 import com.materialkolor.score.Score
@@ -119,6 +120,10 @@ import top.yukonga.miuix.kmp.blur.drawBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
 import top.yukonga.miuix.kmp.blur.runtimeShaderEffect
 import top.yukonga.miuix.kmp.blur.textureBlurEffect
+import top.yukonga.miuix.kmp.theme.Colors
+import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.theme.darkColorScheme as miuixDarkColorScheme
+import top.yukonga.miuix.kmp.theme.lightColorScheme as miuixLightColorScheme
 
 @Stable
 class ThemeConfig(
@@ -342,10 +347,9 @@ class BackgroundManager(
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
-fun KernelSUTheme(
+fun AhoSUTheme(
     dpi: Int = 0,
     darkTheme: Boolean? = null,
-    dynamicColor: Boolean? = null,
     content: @Composable () -> Unit,
 ) {
     val themeConfig = koinInject<ThemeConfig>()
@@ -355,7 +359,6 @@ fun KernelSUTheme(
     val settings = koinInject<AppSettingsRepository>()
     val backgroundRenderState = remember { BackgroundRenderState() }
     val resolvedDarkTheme = darkTheme ?: isInDarkTheme(themeConfig.forceDarkMode)
-    val resolvedDynamicColor = dynamicColor ?: themeConfig.useDynamicColor
     val context = LocalContext.current
     val systemIsDark = isSystemInDarkTheme()
 
@@ -370,13 +373,11 @@ fun KernelSUTheme(
         settings = settings,
     )
 
-    // 创建颜色方案
-    val colorScheme = createColorScheme(
-        resolvedDarkTheme,
-        resolvedDynamicColor,
-        themeConfig,
-        backgroundRenderState,
-    )
+    // Miuix color core — pure light/dark. The Monet engine (materialkolor /
+    // dynamic wallpaper seed) is pruned from the active path in miuix
+    // migration increment #1 (see PR #7 roadmap).
+    val miuixColors = if (resolvedDarkTheme) miuixDarkColorScheme() else miuixLightColorScheme()
+    val colorScheme = miuixMaterialColorScheme(resolvedDarkTheme, miuixColors)
 
     // 系统栏样式
     SystemBarController(resolvedDarkTheme)
@@ -396,40 +397,128 @@ fun KernelSUTheme(
         LocalDensity provides density,
         LocalBackgroundRenderState provides backgroundRenderState,
     ) {
-        MaterialExpressiveTheme(
-            colorScheme = colorScheme,
-            motionScheme = MotionScheme.expressive(),
-            typography = generateTypography(themeConfig),
+        MiuixTheme(
+            colors = miuixColors,
         ) {
-            val backgroundMotionConnection = remember(backgroundRenderState) {
-                object : NestedScrollConnection {
-                    override fun onPostScroll(
-                        consumed: Offset,
-                        available: Offset,
-                        source: NestedScrollSource,
-                    ): Offset {
-                        backgroundRenderState.scrollActive = true
-                        return Offset.Zero
-                    }
+            MaterialExpressiveTheme(
+                colorScheme = colorScheme,
+                motionScheme = MotionScheme.expressive(),
+                typography = generateTypography(themeConfig),
+            ) {
+                val backgroundMotionConnection = remember(backgroundRenderState) {
+                    object : NestedScrollConnection {
+                        override fun onPostScroll(
+                            consumed: Offset,
+                            available: Offset,
+                            source: NestedScrollSource,
+                        ): Offset {
+                            backgroundRenderState.scrollActive = true
+                            return Offset.Zero
+                        }
 
-                    override suspend fun onPostFling(
-                        consumed: Velocity,
-                        available: Velocity,
-                    ): Velocity {
-                        backgroundRenderState.scrollActive = false
-                        return Velocity.Zero
+                        override suspend fun onPostFling(
+                            consumed: Velocity,
+                            available: Velocity,
+                        ): Velocity {
+                            backgroundRenderState.scrollActive = false
+                            return Velocity.Zero
+                        }
                     }
                 }
-            }
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .nestedScroll(backgroundMotionConnection),
-            ) {
-                BackgroundLayer(themeConfig, settings, backgroundRenderState)
-                content()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .nestedScroll(backgroundMotionConnection),
+                ) {
+                    BackgroundLayer(themeConfig, settings, backgroundRenderState)
+                    content()
+                }
             }
         }
+    }
+}
+
+/**
+ * Bridges the miuix palette into a Material 3 [ColorScheme] so screens that are
+ * still built with Material components keep rendering while the miuix
+ * migration advances (increments #2-#5 rewrite the screens on top of
+ * [MiuixTheme]; increment #6 removes this bridge together with the legacy
+ * theme stack).
+ */
+@Composable
+private fun miuixMaterialColorScheme(darkTheme: Boolean, colors: Colors): ColorScheme {
+    return if (darkTheme) {
+        materialDarkColorScheme(
+            primary = colors.primary,
+            onPrimary = colors.onPrimary,
+            primaryContainer = colors.primaryContainer,
+            onPrimaryContainer = colors.onPrimaryContainer,
+            secondary = colors.secondary,
+            onSecondary = colors.onSecondary,
+            secondaryContainer = colors.secondaryContainer,
+            onSecondaryContainer = colors.onSecondaryContainer,
+            tertiary = colors.primaryVariant,
+            onTertiary = colors.onPrimaryVariant,
+            tertiaryContainer = colors.tertiaryContainer,
+            onTertiaryContainer = colors.onTertiaryContainer,
+            background = colors.background,
+            onBackground = colors.onBackground,
+            surface = colors.surface,
+            onSurface = colors.onSurface,
+            surfaceVariant = colors.surfaceVariant,
+            onSurfaceVariant = colors.onSurfaceSecondary,
+            surfaceTint = colors.primary,
+            inverseSurface = colors.surfaceContainerHighest,
+            inverseOnSurface = colors.onSurfaceContainerHighest,
+            error = colors.error,
+            onError = colors.onError,
+            errorContainer = colors.errorContainer,
+            onErrorContainer = colors.onErrorContainer,
+            outline = colors.outline,
+            outlineVariant = colors.dividerLine,
+            scrim = colors.windowDimming,
+            surfaceContainer = colors.surfaceContainer,
+            surfaceContainerHigh = colors.surfaceContainerHigh,
+            surfaceContainerHighest = colors.surfaceContainerHighest,
+            surfaceContainerLow = colors.surfaceVariant,
+            surfaceContainerLowest = colors.background,
+        )
+    } else {
+        materialLightColorScheme(
+            primary = colors.primary,
+            onPrimary = colors.onPrimary,
+            primaryContainer = colors.primaryContainer,
+            onPrimaryContainer = colors.onPrimaryContainer,
+            secondary = colors.secondary,
+            onSecondary = colors.onSecondary,
+            secondaryContainer = colors.secondaryContainer,
+            onSecondaryContainer = colors.onSecondaryContainer,
+            tertiary = colors.primaryVariant,
+            onTertiary = colors.onPrimaryVariant,
+            tertiaryContainer = colors.tertiaryContainer,
+            onTertiaryContainer = colors.onTertiaryContainer,
+            background = colors.background,
+            onBackground = colors.onBackground,
+            surface = colors.surface,
+            onSurface = colors.onSurface,
+            surfaceVariant = colors.surfaceVariant,
+            onSurfaceVariant = colors.onSurfaceSecondary,
+            surfaceTint = colors.primary,
+            inverseSurface = colors.surfaceContainerHighest,
+            inverseOnSurface = colors.onSurfaceContainerHighest,
+            error = colors.error,
+            onError = colors.onError,
+            errorContainer = colors.errorContainer,
+            onErrorContainer = colors.onErrorContainer,
+            outline = colors.outline,
+            outlineVariant = colors.dividerLine,
+            scrim = colors.windowDimming,
+            surfaceContainer = colors.surfaceContainer,
+            surfaceContainerHigh = colors.surfaceContainerHigh,
+            surfaceContainerHighest = colors.surfaceContainerHighest,
+            surfaceContainerLow = colors.surfaceVariant,
+            surfaceContainerLowest = colors.background,
+        )
     }
 }
 
@@ -2041,40 +2130,6 @@ private fun generateTypography(themeConfig: ThemeConfig): androidx.compose.mater
         labelLargeEmphasized = typography.labelLargeEmphasized.applyShadow(),
         labelMediumEmphasized = typography.labelMediumEmphasized.applyShadow(),
         labelSmallEmphasized = typography.labelSmallEmphasized.applyShadow(),
-    )
-}
-
-@Composable
-private fun createColorScheme(
-    darkTheme: Boolean,
-    dynamicColor: Boolean,
-    themeConfig: ThemeConfig,
-    renderState: BackgroundRenderState,
-): ColorScheme {
-    val seedColor =
-        when {
-            dynamicColor && themeConfig.isUseBackgroundSeedColor && renderState.seedColor != 0 -> {
-                renderState.seedColor
-            }
-
-            dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-                colorResource(id = android.R.color.system_accent1_500).toArgb()
-            }
-
-            dynamicColor -> {
-                themeConfig.monetCompatSeedColor
-            }
-
-            else -> {
-                themeConfig.seedColor
-            }
-        }
-
-    return dynamicColorScheme(
-        seedColor = Color(seedColor),
-        isDark = darkTheme,
-        style = themeConfig.dynamicPaletteStyle,
-        specVersion = themeConfig.dynamicColorSpec,
     )
 }
 

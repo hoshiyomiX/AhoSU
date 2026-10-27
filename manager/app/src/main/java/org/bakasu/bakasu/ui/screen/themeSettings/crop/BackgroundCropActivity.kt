@@ -79,7 +79,7 @@ import kotlin.math.max
 import kotlin.math.min
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.ui.component.KeyPointSlider
-import org.bakasu.bakasu.ui.theme.KernelSUTheme
+import org.bakasu.bakasu.ui.theme.AhoSUTheme
 import org.bakasu.bakasu.ui.util.adaptiveScaffoldWindowInsets
 
 class BackgroundCropActivity : ComponentActivity() {
@@ -102,7 +102,7 @@ class BackgroundCropActivity : ComponentActivity() {
         val sourceImageAspectRatio = resolveImageAspectRatio(inputUri)
 
         setContent {
-            KernelSUTheme {
+            AhoSUTheme {
                 BackgroundCropScreen(
                     inputUri = inputUri,
                     outputUri = outputUri,
