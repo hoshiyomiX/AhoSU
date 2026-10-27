@@ -183,7 +183,10 @@ pub fn load_sepolicy_rule() -> Result<()> {
         let report = match sepolicy::apply_file(&rule_file) {
             Ok(report) => report,
             Err(e) => {
-                warn!("Failed to load sepolicy.rule for {}: {e:#}", rule_file.display());
+                warn!(
+                    "Failed to load sepolicy.rule for {}: {e:#}",
+                    rule_file.display()
+                );
                 SepolicyApplyReport::from_error(&format!("{e:#}"))
             }
         };
