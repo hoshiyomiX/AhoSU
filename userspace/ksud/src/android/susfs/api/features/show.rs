@@ -1,3 +1,5 @@
+use std::sync::OnceLock;
+
 use anyhow::Result;
 
 use crate::android::susfs::{
@@ -28,6 +30,25 @@ struct SusfsVariant {
 struct SusfsVersion {
     susfs_version: [u8; SUSFS_MAX_VERSION_BUFSIZE],
     err: i32,
+}
+
+/// Whether the running kernel recognises SuSFS supercalls at all.
+///
+/// An LKM built without `CONFIG_KSU_SUSFS` answers every SuSFS command with
+/// `ERR_CMD_NOT_SUPPORTED`. Without this probe, ksud used to retry that dead
+/// path on every manager launch (the SHOW_* trio) and on every boot stage
+/// (`init_event` config apply), flooding the logs with errors that can never
+/// succeed. The answer is probed once and cached for the process lifetime.
+pub fn supercall_supported() -> bool {
+    static SUPPORTED: OnceLock<bool> = OnceLock::new();
+    *SUPPORTED.get_or_init(|| {
+        let mut info = SusfsVersion {
+            susfs_version: [0; SUSFS_MAX_VERSION_BUFSIZE],
+            err: ERR_CMD_NOT_SUPPORTED,
+        };
+        susfsctl(CMD_SUSFS_SHOW_VERSION, &mut info);
+        info.err != ERR_CMD_NOT_SUPPORTED
+    })
 }
 
 pub fn version() -> Result<String> {

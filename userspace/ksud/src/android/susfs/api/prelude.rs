@@ -2,7 +2,7 @@ pub use crate::android::susfs::api::features::{
     avc_spoofing::enable_avc_log_spoofing,
     enable_log::enable_log,
     open_redirect::add_open_redirect,
-    show::{enabled_features, variant, version},
+    show::{enabled_features, supercall_supported, variant, version},
     spoof_cmdline_or_bootconfig::set_cmdline_or_bootconfig,
     spoof_uname::set_uname,
     sus_kstat::{add_sus_kstat, add_sus_kstat_statically, update_sus_kstat},
