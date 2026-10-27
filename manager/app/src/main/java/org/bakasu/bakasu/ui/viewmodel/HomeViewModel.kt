@@ -152,6 +152,9 @@ class HomeViewModel(
                                 },
                                 susfsEnabled = susfsInfo.enabled,
                                 susfsVersionSupported = susfsInfo.enabled,
+                                susfsGuardPending = !susfsInfo.supercallSupported &&
+                                    susfsInfo.guardModule == null &&
+                                    susfsInfo.guardLoader != null,
                                 susfsVersion = susfsInfo.version,
                                 susfsFeatures = susfsInfo.enabledFeatures,
                                 managersList = managerInfo,

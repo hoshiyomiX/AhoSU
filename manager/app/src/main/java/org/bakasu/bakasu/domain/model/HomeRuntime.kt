@@ -25,6 +25,7 @@ data class HomeSystemInfo(
     val selinuxStatus: String = "",
     val susfsEnabled: Boolean = false,
     val susfsVersionSupported: Boolean = false,
+    val susfsGuardPending: Boolean = false,
     val susfsVersion: String = "",
     val susfsFeatures: String = "",
     val superuserCount: Int = 0,

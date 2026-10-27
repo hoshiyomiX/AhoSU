@@ -476,6 +476,8 @@
     <string name="susfs_config_disable_warning">Built-in SUSFS manager is disabled. Enable it or install a third-party module to use SUSFS features.</string>
     <string name="susfs_supercall_unsupported">Kernel SuSFS supercalls are not available (the kernel was built without CONFIG_KSU_SUSFS). Configuration set here cannot be applied to the kernel, so changes are blocked.</string>
     <string name="susfs_supercall_unsupported_guard">Kernel SuSFS supercalls are not available (the kernel was built without CONFIG_KSU_SUSFS). %1$s is active out-of-band with its own defaults; configuration set here does not apply to it, so changes are blocked.</string>
+    <string name="susfs_guard_pending">Kernel SuSFS supercalls are not available and no guard module is loaded yet. The enabled %1$s module loads the guard during the module stage — a soft restart re-runs that stage, so a full reboot is not required. Tap to soft restart now.</string>
+    <string name="susfs_guard_pending_confirm">Restart the framework now? Running apps will be closed, and the SuSFS guard will load while the module stage re-runs.</string>
     <string name="susfs_standard_logging">Logging</string>
     <string name="susfs_standard_logging_desc">Enables SUSFS kernel log. Enable it before reporting bugs related to SUSFS.</string>
     <string name="susfs_standard_avc_log_spoofing">AVC Log Spoofing</string>

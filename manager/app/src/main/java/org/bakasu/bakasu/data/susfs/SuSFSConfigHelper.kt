@@ -42,6 +42,7 @@ class SuSFSConfigHelper(
     data class SuSFSCapability(
         val supercallSupported: Boolean,
         val guardModule: String?,
+        val guardLoader: String? = null,
     )
 
     private data class CommandResult(
@@ -111,6 +112,7 @@ class SuSFSConfigHelper(
                         variant = "",
                         supercallSupported = false,
                         guardModule = capability.guardModule,
+                        guardLoader = capability.guardLoader,
                     )
                 }
 
@@ -125,6 +127,7 @@ class SuSFSConfigHelper(
                     variant = variant.stdout.takeIf { variant.success }.orEmpty(),
                     supercallSupported = true,
                     guardModule = capability.guardModule,
+                    guardLoader = capability.guardLoader,
                 )
             }
 
@@ -158,11 +161,16 @@ class SuSFSConfigHelper(
                     ?.substringAfter(':')
                     ?.trim()
                     ?.takeIf { it.isNotEmpty() && it != "none" }
+                val guardLoader = result.stdout.lineSequence()
+                    .firstOrNull { it.startsWith("guard_loader:") }
+                    ?.substringAfter(':')
+                    ?.trim()
+                    ?.takeIf { it.isNotEmpty() && it != "none" }
 
                 if (supercall == "unsupported") {
-                    SuSFSCapability(supercallSupported = false, guardModule = guardModule)
+                    SuSFSCapability(supercallSupported = false, guardModule = guardModule, guardLoader = guardLoader)
                 } else {
-                    SuSFSCapability(supercallSupported = true, guardModule = guardModule)
+                    SuSFSCapability(supercallSupported = true, guardModule = guardModule, guardLoader = guardLoader)
                 }
             } else {
                 SuSFSCapability(supercallSupported = true, guardModule = null)
@@ -498,6 +506,7 @@ data class SuSFSStatusInfo(
     val variant: String,
     val supercallSupported: Boolean = true,
     val guardModule: String? = null,
+    val guardLoader: String? = null,
 )
 
 data class SusKstatStatically(

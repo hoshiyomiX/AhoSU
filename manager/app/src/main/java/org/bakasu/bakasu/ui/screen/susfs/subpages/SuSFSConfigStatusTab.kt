@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Info
@@ -20,6 +21,8 @@ import androidx.compose.material.icons.twotone.TaskAlt
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -37,7 +40,9 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.model.SuSFSStatusInfo
+import org.bakasu.bakasu.domain.usecase.RebootUseCase
 import org.bakasu.bakasu.ui.component.WarningCard
+import org.bakasu.bakasu.ui.component.rememberConfirmDialog
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
 import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
 import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
@@ -50,6 +55,7 @@ import org.bakasu.bakasu.ui.viewmodel.SuSFSUiAction
 import org.bakasu.bakasu.ui.viewmodel.SuSFSViewModel
 import org.bakasu.bakasu.ui.viewmodel.awaitSuSFSBoolean
 import org.bakasu.bakasu.ui.viewmodel.awaitSuSFSStatusInfo
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
@@ -96,14 +102,24 @@ fun StatusTab(
                 visible = !statusInfo.supercallSupported,
             ) {
                 val guardModule = statusInfo.guardModule
-                WarningCard(
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                    message = if (guardModule != null) {
-                        stringResource(R.string.susfs_supercall_unsupported_guard, guardModule)
-                    } else {
-                        stringResource(R.string.susfs_supercall_unsupported)
-                    },
-                )
+                val guardLoader = statusInfo.guardLoader
+                if (guardModule != null) {
+                    WarningCard(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        message = stringResource(R.string.susfs_supercall_unsupported_guard, guardModule),
+                    )
+                } else if (guardLoader != null) {
+                    // A known guard loader module is enabled but its guard LKM
+                    // is not in the kernel yet: offer the one-tap fix (soft
+                    // restart re-runs the module stage) instead of only
+                    // stating that changes are blocked.
+                    GuardPendingCard(guardLoader)
+                } else {
+                    WarningCard(
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        message = stringResource(R.string.susfs_supercall_unsupported),
+                    )
+                }
             }
         }
 
@@ -312,6 +328,44 @@ private fun RestoreDefaultRow(
                 }
                 snackbarHost.showReplacingSnackbar(if (ok) operationSuccessMsg else operationFailedMsg)
             }
+        },
+    )
+}
+
+@Composable
+private fun GuardPendingCard(guardLoader: String) {
+    val scope = rememberCoroutineScope()
+    val reboot = koinInject<RebootUseCase>()
+    val softRebootLabel = stringResource(R.string.reboot_soft)
+    val softRebootDialog = rememberConfirmDialog(
+        onConfirm = {
+            // Same path as the reboot menu on the home screen: `ksud
+            // soft-reboot` stops the framework, re-runs the module stage
+            // (post-fs-data) which loads the guard LKM, then restarts the
+            // framework — a full reboot is not required.
+            scope.launch {
+                reboot("soft_reboot")
+            }
+        },
+    )
+
+    WarningCard(
+        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        message = stringResource(R.string.susfs_guard_pending, guardLoader),
+        icon = {
+            Icon(
+                imageVector = Icons.TwoTone.RestartAlt,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onErrorContainer,
+                modifier = Modifier.size(18.dp),
+            )
+        },
+        onClick = {
+            softRebootDialog.showConfirm(
+                title = softRebootLabel,
+                content = stringResource(R.string.susfs_guard_pending_confirm),
+                confirm = softRebootLabel,
+            )
         },
     )
 }

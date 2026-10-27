@@ -6,4 +6,5 @@ data class SuSFSStatus(
     val enabledFeatures: String,
     val supercallSupported: Boolean = true,
     val guardModule: String? = null,
+    val guardLoader: String? = null,
 )

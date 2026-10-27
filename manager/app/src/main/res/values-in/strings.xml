@@ -507,6 +507,8 @@
     <string name="susfs_config_disable_warning">Manajer SUSFS bawaan dinonaktfikan. Aktifkan manajer atau pasang modul pihak ketiga untuk menggunakan fitur SUSFS.</string>
     <string name="susfs_supercall_unsupported">Supercall SuSFS kernel tidak tersedia (kernel dibangun tanpa CONFIG_KSU_SUSFS). Konfigurasi di sini tidak bisa diterapkan ke kernel, sehingga perubahan diblokir.</string>
     <string name="susfs_supercall_unsupported_guard">Supercall SuSFS kernel tidak tersedia (kernel dibangun tanpa CONFIG_KSU_SUSFS). %1$s aktif secara out-of-band dengan pengaturan bawaannya; konfigurasi di sini tidak berlaku untuknya, sehingga perubahan diblokir.</string>
+    <string name="susfs_guard_pending">Supercall SuSFS kernel tidak tersedia dan guard belum termuat. Module %1$s yang aktif memuat guard saat tahap modul — Mulai ulang cepat menjalankan ulang tahap tersebut, jadi reboot penuh tidak diperlukan. Ketuk untuk mulai ulang cepat sekarang.</string>
+    <string name="susfs_guard_pending_confirm">Mulai ulang framework sekarang? Aplikasi yang sedang berjalan akan ditutup, dan guard SuSFS akan termuat saat tahap modul dijalankan ulang.</string>
     <string name="susfs_standard_logging">Logging</string>
     <string name="susfs_standard_cmdline_or_bootconfig">Cmdline / Bootconfig</string>
     <string name="susfs_standard_current_value">Saat ini: %1$s</string>

@@ -12,6 +12,7 @@ use crate::android::susfs::{
     enums::UidScheme,
     slot_info,
 };
+use crate::defs;
 
 #[derive(Debug, Args)]
 pub struct SusfsArgs {
@@ -214,12 +215,15 @@ pub enum SuSFSSubCommands {
         info_type: ShowType,
     },
 
-    /// Report whether the kernel supports SuSFS supercalls, and whether an
-    /// out-of-band guard module (e.g. susfs_guard_lkm) is loaded instead.
+    /// Report whether the kernel supports SuSFS supercalls, whether an
+    /// out-of-band guard module (e.g. susfs_guard_lkm) is loaded instead,
+    /// and whether a module known to load such a guard is installed and
+    /// enabled (while the guard itself is not loaded yet).
     ///
     /// Output (machine-readable, one key per line):
     ///   supercall: supported|unsupported
     ///   guard_module: <module name>|none
+    ///   guard_loader: <module id>|none
     #[command(name = "capability")]
     Capability,
 
@@ -296,6 +300,25 @@ fn detect_guard_module() -> Option<&'static str> {
         .iter()
         .copied()
         .find(|name| std::path::Path::new("/sys/module").join(name).exists())
+}
+
+/// Modules known to load an out-of-band SuSFS guard LKM during the module
+/// stage. When one of them is installed and enabled while the guard itself
+/// is not loaded yet, a soft reboot (`ksud soft-reboot`) re-runs the module
+/// stage and loads the guard — no full reboot is required. Guidance only:
+/// this never gates functionality; it lets the manager offer the soft-reboot
+/// action at the right moment.
+const KNOWN_GUARD_LOADER_MODULES: &[&str] = &["susfs_lkm_loader"];
+
+fn detect_guard_loader_module() -> Option<&'static str> {
+    KNOWN_GUARD_LOADER_MODULES.iter().copied().find(|id| {
+        let dir = std::path::Path::new(defs::MODULE_DIR).join(id);
+        // Skip disabled or removal-pending modules: a soft reboot would not
+        // load a guard from them, so there is nothing actionable to offer.
+        dir.exists()
+            && !dir.join(defs::DISABLE_FILE_NAME).exists()
+            && !dir.join(defs::REMOVE_FILE_NAME).exists()
+    })
 }
 
 pub fn run_main(args: SusfsArgs) -> Result<()> {
@@ -395,6 +418,10 @@ pub fn run_main(args: SusfsArgs) -> Result<()> {
             match detect_guard_module() {
                 Some(name) => println!("guard_module: {name}"),
                 None => println!("guard_module: none"),
+            }
+            match detect_guard_loader_module() {
+                Some(id) => println!("guard_loader: {id}"),
+                None => println!("guard_loader: none"),
             }
         }
         SuSFSSubCommands::SlotInfo { boot_image } => {

@@ -34,6 +34,7 @@ class SuSFSRepository(
                     enabledFeatures = "",
                     supercallSupported = false,
                     guardModule = guardModule,
+                    guardLoader = statusInfo.guardLoader,
                 )
             } else {
                 SuSFSStatus(
@@ -42,6 +43,7 @@ class SuSFSRepository(
                     enabledFeatures = "",
                     supercallSupported = false,
                     guardModule = null,
+                    guardLoader = statusInfo.guardLoader,
                 )
             }
         }
@@ -56,6 +58,7 @@ class SuSFSRepository(
             },
             supercallSupported = true,
             guardModule = statusInfo.guardModule,
+            guardLoader = statusInfo.guardLoader,
         )
     }
 
@@ -137,6 +140,7 @@ class SuSFSRepository(
         variant,
         supercallSupported,
         guardModule,
+        guardLoader,
     )
 
     private fun SuSFSSlotInfo.toDomain(): DomainSuSFSSlotInfo = DomainSuSFSSlotInfo(slotName, uname, buildTime)
