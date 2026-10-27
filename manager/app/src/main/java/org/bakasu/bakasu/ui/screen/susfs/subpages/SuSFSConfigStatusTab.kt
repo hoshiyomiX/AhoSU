@@ -92,6 +92,22 @@ fun StatusTab(
         }
 
         item {
+            AnimatedVisibility(
+                visible = !statusInfo.supercallSupported,
+            ) {
+                val guardModule = statusInfo.guardModule
+                WarningCard(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    message = if (guardModule != null) {
+                        stringResource(R.string.susfs_supercall_unsupported_guard, guardModule)
+                    } else {
+                        stringResource(R.string.susfs_supercall_unsupported)
+                    },
+                )
+            }
+        }
+
+        item {
             SegmentedColumn {
                 item {
                     SettingsSwitchWidget(

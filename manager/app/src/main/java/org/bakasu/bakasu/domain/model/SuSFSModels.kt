@@ -32,6 +32,8 @@ data class SuSFSStatusInfo(
     val version: String,
     val enabledFeatures: String,
     val variant: String,
+    val supercallSupported: Boolean = true,
+    val guardModule: String? = null,
 )
 
 data class SusKstatStatically(

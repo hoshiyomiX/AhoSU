@@ -19,15 +19,43 @@ class SuSFSRepository(
     private val helper: SuSFSConfigHelper,
 ) {
     suspend fun getStatus(): SuSFSStatus {
-        val version = runCatching { helper.showVersion() }.getOrDefault("")
+        val statusInfo = runCatching { helper.loadStatusInfo() }.getOrNull()
+            ?: return SuSFSStatus(enabled = false, version = "", enabledFeatures = "")
+
+        if (!statusInfo.supercallSupported) {
+            val guardModule = statusInfo.guardModule
+            return if (guardModule != null) {
+                // An out-of-band guard module implements SuSFS hiding on its
+                // own; surface it honestly instead of pretending the kernel
+                // supercall path works.
+                SuSFSStatus(
+                    enabled = true,
+                    version = "$guardModule (out-of-band)",
+                    enabledFeatures = "",
+                    supercallSupported = false,
+                    guardModule = guardModule,
+                )
+            } else {
+                SuSFSStatus(
+                    enabled = false,
+                    version = "",
+                    enabledFeatures = "",
+                    supercallSupported = false,
+                    guardModule = null,
+                )
+            }
+        }
+
         return SuSFSStatus(
-            enabled = version.isNotEmpty(),
-            version = version,
-            enabledFeatures = if (version.isEmpty()) {
+            enabled = statusInfo.version.isNotEmpty(),
+            version = statusInfo.version,
+            enabledFeatures = if (statusInfo.version.isEmpty()) {
                 ""
             } else {
-                runCatching { helper.showEnabledFeatures() }.getOrDefault("")
+                statusInfo.enabledFeatures
             },
+            supercallSupported = true,
+            guardModule = statusInfo.guardModule,
         )
     }
 
@@ -103,7 +131,13 @@ class SuSFSRepository(
         sus_map = sus_map,
     )
 
-    private fun SuSFSStatusInfo.toDomain(): DomainSuSFSStatusInfo = DomainSuSFSStatusInfo(version, enabledFeatures, variant)
+    private fun SuSFSStatusInfo.toDomain(): DomainSuSFSStatusInfo = DomainSuSFSStatusInfo(
+        version,
+        enabledFeatures,
+        variant,
+        supercallSupported,
+        guardModule,
+    )
 
     private fun SuSFSSlotInfo.toDomain(): DomainSuSFSSlotInfo = DomainSuSFSSlotInfo(slotName, uname, buildTime)
 
