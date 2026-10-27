@@ -26,6 +26,7 @@ data class HomeSystemInfo(
     val susfsEnabled: Boolean = false,
     val susfsVersionSupported: Boolean = false,
     val susfsGuardPending: Boolean = false,
+    val susfsGuardLoader: String? = null,
     val susfsVersion: String = "",
     val susfsFeatures: String = "",
     val superuserCount: Int = 0,

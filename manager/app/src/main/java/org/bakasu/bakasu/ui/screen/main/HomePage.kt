@@ -17,8 +17,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,6 +37,7 @@ import androidx.compose.material.icons.twotone.Group
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.Memory
 import androidx.compose.material.icons.twotone.PowerSettingsNew
+import androidx.compose.material.icons.twotone.RestartAlt
 import androidx.compose.material.icons.twotone.Security
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Smartphone
@@ -49,21 +48,9 @@ import androidx.compose.material.icons.twotone.VolunteerActivism
 import androidx.compose.material.icons.twotone.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -119,13 +106,20 @@ import org.bakasu.bakasu.ui.viewmodel.HomeUiState
 import org.bakasu.bakasu.ui.viewmodel.HomeViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import top.yukonga.miuix.kmp.basic.ListPopupColumn
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
+import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 
 /**
  * @author ShirkNeko
  * @date 2025/9/29.
  */
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun HomePage(
     bottomPadding: Dp,
@@ -150,18 +144,23 @@ fun HomePage(
 
     ReportDrawnWhen { uiState.isInitialDataLoaded }
 
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        rememberTopAppBarState(
-            initialHeightOffset = -154f,
-            initialHeightOffsetLimit = -154f, // from debugger
-        ),
-    )
+    val scrollBehavior = MiuixScrollBehavior()
     val scrollState = rememberScrollState()
     val navigator = LocalNavigator.current
     val loadingDialog = rememberLoadingDialog()
     val scope = rememberCoroutineScope()
 
-    Scaffold(
+    // Strings and dialog for the pending SuSFS guard card: a soft restart
+    // re-runs the module stage and loads the guard without a full reboot.
+    val softRebootLabel = stringResource(R.string.reboot_soft)
+    val guardPendingConfirm = stringResource(R.string.susfs_guard_pending_confirm)
+    val softRebootDialog = rememberConfirmDialog(
+        onConfirm = {
+            viewModel.dispatch(HomeUiAction.Reboot("soft_reboot"))
+        },
+    )
+
+    MiuixScaffold(
         topBar = {
             TopBar(
                 uiState = uiState,
@@ -170,7 +169,6 @@ fun HomePage(
             )
         },
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
         contentWindowInsets = adaptiveScaffoldWindowInsets(includeBottom = false),
         snackbarHost = {
             SwipeableSnackbarHost(
@@ -316,6 +314,34 @@ fun HomePage(
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onErrorContainer,
                                 modifier = Modifier.size(18.dp),
+                            )
+                        },
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+
+                // The SuSFS guard loader module is enabled but its guard LKM
+                // is not in the kernel yet: one tap re-runs the module stage
+                // (soft restart) and loads the guard — no full reboot needed.
+                if (uiState.systemInfo.susfsGuardPending) {
+                    WarningCard(
+                        message = stringResource(
+                            R.string.susfs_guard_pending,
+                            uiState.systemInfo.susfsGuardLoader.orEmpty(),
+                        ),
+                        icon = {
+                            Icon(
+                                imageVector = Icons.TwoTone.RestartAlt,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onErrorContainer,
+                                modifier = Modifier.size(18.dp),
+                            )
+                        },
+                        onClick = {
+                            softRebootDialog.showConfirm(
+                                title = softRebootLabel,
+                                content = guardPendingConfirm,
+                                confirm = softRebootLabel,
                             )
                         },
                     )
@@ -468,85 +494,76 @@ private fun ManagerUpdateCardContent(updateInfo: ManagerUpdateInfo) {
     Spacer(modifier = Modifier.height(10.dp))
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun RebootDropdownItems(
     items: Map<Int, String>,
     onReboot: (String) -> Unit,
+    onDismiss: () -> Unit = {},
 ) {
-    items.onEachIndexed { index, (id, reason) ->
-        DropdownMenuItem(
-            shape = MenuDefaults.itemShape(index, items.size).shape,
-            text = { Text(stringResource(id)) },
-            onClick = { onReboot(reason) },
+    items.onEachIndexed { _, (id, reason) ->
+        BasicComponent(
+            title = stringResource(id),
+            onClick = {
+                onDismiss()
+                onReboot(reason)
+            },
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TopBar(
     uiState: HomeUiState,
     onReboot: (String) -> Unit,
-    scrollBehavior: TopAppBarScrollBehavior? = null,
+    scrollBehavior: ScrollBehavior? = null,
 ) {
     val themeConfig: ThemeConfig = koinInject()
     val cardConfig: CardConfig = koinInject()
     val navigator = LocalNavigator.current
 
-    LargeFlexibleTopAppBar(
+    MiuixTopAppBar(
         modifier = Modifier.blurEffect(),
-        title = {
-            Text(
-                text = stringResource(R.string.app_name),
-            )
+        title = stringResource(R.string.app_name),
+        color = if (themeConfig.isEnableBlur) {
+            Color.Transparent
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
         },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor =
-                if (themeConfig.isEnableBlur) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                },
-            scrolledContainerColor =
-                if (themeConfig.isEnableBlur) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                },
-        ),
         actions = {
             if (uiState.isCoreDataLoaded) {
-                // SuSFS 配置按钮
-                if (uiState.systemInfo.susfsVersionSupported) {
-                    IconButton(onClick = {
+                // SuSFS config entry — also reachable while the guard is
+                // pending, so the status tab and its soft-reboot action stay
+                // reachable before the guard ever loads.
+                if (uiState.systemInfo.susfsVersionSupported || uiState.systemInfo.susfsGuardPending) {
+                    MiuixIconButton(onClick = {
                         navigator.push(Route.SuSFSConfig)
                     }) {
                         Icon(
                             imageVector = Icons.TwoTone.Tune,
                             contentDescription = stringResource(R.string.susfs_config_setting_title),
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
 
-                // 重启按钮
+                // Reboot menu
                 var showDropdown by remember { mutableStateOf(false) }
                 KsuIsValid(uiState.systemStatus) {
                     if (uiState.systemStatus.isRootAvailable) {
-                        IconButton(onClick = {
+                        MiuixIconButton(onClick = {
                             showDropdown = true
                         }) {
                             Icon(
                                 imageVector = Icons.TwoTone.PowerSettingsNew,
                                 contentDescription = stringResource(id = R.string.reboot),
+                                tint = MaterialTheme.colorScheme.onSurface,
                             )
 
-                            DropdownMenuPopup(expanded = showDropdown, onDismissRequest = {
-                                showDropdown = false
-                            }) {
-                                DropdownMenuGroup(
-                                    shapes = MenuDefaults.groupShapes(),
-                                ) {
+                            OverlayListPopup(
+                                show = showDropdown,
+                                onDismissRequest = { showDropdown = false },
+                            ) {
+                                ListPopupColumn {
                                     val pm =
                                         LocalContext.current.getSystemService(Context.POWER_SERVICE) as PowerManager?
                                     var methods = mapOf(
@@ -563,7 +580,7 @@ private fun TopBar(
                                         methods = methods + (R.string.reboot_userspace to "userspace")
                                     }
 
-                                    RebootDropdownItems(methods, onReboot)
+                                    RebootDropdownItems(methods, onReboot) { showDropdown = false }
                                 }
                             }
                         }
@@ -571,7 +588,6 @@ private fun TopBar(
                 }
             }
         },
-        windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
         scrollBehavior = scrollBehavior,
     )
 }
