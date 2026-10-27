@@ -1410,6 +1410,23 @@ fun ModuleItem(
                 textDecoration = textDecoration,
             )
 
+            val sepolicyFailedRules = module.sepolicyFailedRules
+            if (sepolicyFailedRules != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // The kernel rejected part of this module's sepolicy.rule at
+                // the last boot (e.g. the ROM policy lacks the nsfs type);
+                // surface it instead of leaving it buried in the boot log.
+                WarningCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    message = stringResource(
+                        R.string.module_sepolicy_incomplete,
+                        module.sepolicyApplied.orEmpty(),
+                        sepolicyFailedRules,
+                    ),
+                )
+            }
+
             Spacer(modifier = Modifier.height(12.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
