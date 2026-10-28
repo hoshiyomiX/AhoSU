@@ -88,7 +88,7 @@ class SettingsPlatformRepository(
             useBuiltinMonoFont = themeConfig.useBuiltinMonoFont,
             useSoftReboot = settings.getBoolean("use_soft_reboot", false),
             enableSwipeDismiss = settings.getBoolean("enable_swipe_dismiss", true),
-            pagerInterceptionMode = settings.getInt("pager_interception_mode", 1).coerceIn(0, 2),
+            pagerInterceptionMode = settings.getInt("pager_interception_mode", 2).coerceIn(0, 2),
         )
     }
 

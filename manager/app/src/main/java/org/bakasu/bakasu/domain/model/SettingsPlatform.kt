@@ -25,7 +25,7 @@ data class SettingsPlatformSnapshot(
     val useBuiltinMonoFont: Boolean = false,
     val useSoftReboot: Boolean = false,
     val enableSwipeDismiss: Boolean = true,
-    val pagerInterceptionMode: Int = 1,
+    val pagerInterceptionMode: Int = 2,
 )
 
 data class PlatformFeatureStatus(

@@ -46,7 +46,7 @@ data class HomeDashboardState(
     val isBetaManagerUpdateCheckFailed: Boolean = false,
     val isSimpleMode: Boolean = false,
     val showNavigationBarBadge: Boolean = true,
-    val showHomeCardIcons: Boolean = false,
+    val showHomeCardIcons: Boolean = true,
     val isInitialDataLoaded: Boolean = false,
     val isCoreDataLoaded: Boolean = false,
     val isExtendedDataLoaded: Boolean = false,
