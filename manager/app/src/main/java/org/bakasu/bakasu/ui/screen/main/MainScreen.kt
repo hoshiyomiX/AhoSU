@@ -55,7 +55,7 @@ import top.yukonga.miuix.kmp.utils.pagerGestureOverride
 
 @Composable
 fun MainScreen(
-    pagerInterceptionMode: Int = PagerInterceptionMode.CrossAxisInterceptor.ordinal,
+    pagerInterceptionMode: Int = PagerInterceptionMode.TapToHalt.ordinal,
 ) {
     val themeConfig: ThemeConfig = koinInject()
     val homeViewModel = koinViewModel<HomeViewModel>()

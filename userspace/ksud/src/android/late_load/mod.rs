@@ -37,47 +37,11 @@ fn dump_process_info(label: &str) {
         })
         .unwrap_or_else(|| "unknown".to_string());
 
-    // L0a: compare our mount namespace with init's (pid 1); a mismatch means we
-    // are still executing inside the caller's (e.g. an app's) mount namespace,
-    // where module mounts would stay invisible to the rest of the system.
-    let self_mnt_ns = read_link_or_unknown("/proc/self/ns/mnt");
-    let init_mnt_ns = read_link_or_unknown("/proc/1/ns/mnt");
-    let mnt_ns_state = if self_mnt_ns == init_mnt_ns {
-        "init"
-    } else {
-        "non-init (inherited from caller)"
-    };
-
     info!(
         "[{label}] pid={pid}, uid={uid}, gid={gid}, groups=[{}], selinux={}, {seccomp}",
         groups.join(","),
         selinux.trim(),
     );
-    info!("[{label}] mnt_ns: {mnt_ns_state} (self: {self_mnt_ns}, init: {init_mnt_ns})");
-
-    // L0a: actionable context verdicts for late-load troubleshooting.
-    if self_mnt_ns != init_mnt_ns {
-        warn!("[{label}] non-init mount namespace: module mounts may be invisible");
-    }
-    let seccomp_mode = seccomp.split_whitespace().last().unwrap_or("unknown");
-    if seccomp_mode == "2" {
-        warn!("[{label}] seccomp filter active (inherited from caller)");
-    }
-    let domain = selinux.trim();
-    let clean_domain = domain.starts_with("u:r:su:")
-        || domain.starts_with("u:r:ksu:")
-        || domain.starts_with("u:r:shell:")
-        || domain.starts_with("u:r:init:")
-        || domain == "unknown";
-    if !clean_domain {
-        warn!("[{label}] unexpected SELinux domain {domain} (inherited from caller)");
-    }
-}
-
-fn read_link_or_unknown(path: &str) -> String {
-    std::fs::read_link(path)
-        .map(|p| p.to_string_lossy().to_string())
-        .unwrap_or_else(|_| "unknown".to_string())
 }
 
 pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Result<()> {
@@ -122,14 +86,7 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
         } else {
             cstr!("")
         };
-        // L0a: point at the common jailbreak cause when module loading fails: a
-        // dirty execution context (seccomp filter / app SELinux domain) inherited
-        // from the calling app, which `--magica` avoids via a clean adb root.
-        if let Err(e) = ksuinit::load_module(&ko_data, params) {
-            warn!("Failed to load kernelsu.ko: {e:#}");
-            warn!("launched from an app? try `ksud late-load --magica` for a clean context");
-            return Err(e.context("Failed to load kernelsu.ko"));
-        }
+        ksuinit::load_module(&ko_data, params).context("Failed to load kernelsu.ko")?;
         info!("kernelsu.ko loaded successfully!");
         dump_process_info("after load_module");
     }
@@ -181,6 +138,12 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
     // before the late-load/service stages. Run it explicitly here, mirroring
     // the stage ordering of init_event::on_post_fs_data.
     ksucalls::report_post_fs_data();
+    // B1: apply the persisted SuSFS config that must capture metadata before
+    // mounts and overlays, exactly like init_event::on_post_fs_data does on
+    // the normal/soft-reboot paths. Without this, the jailbreak boot only
+    // picked the config up after the first soft reboot, when
+    // init_event::on_boot_completed finally ran the susfs handlers.
+    crate::android::susfs::init_event::on_post_fs_data();
     init_event::run_stage("post-fs-data", wait);
 
     init_event::run_stage("late-load", wait);
@@ -197,6 +160,13 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
         // L6: modules are mounted — notify the kernel so event-gated features
         // become active, like the metamodule would on a normal boot.
         ksucalls::report_module_mounted();
+    }
+
+    // B1: load the manager umount config after the mounts are in place,
+    // mirroring init_event::on_post_fs_data (applied right after the
+    // metamodule mount script on normal/soft-reboot boots).
+    if let Err(e) = crate::android::umount_config::load_umount_config() {
+        warn!("load umount config failed: {e}");
     }
     // 11. Execute dynamic manager booted load
     if let Err(e) = dynamic_manager::booted_load() {
@@ -229,15 +199,84 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
     // L6: mirror init_event::on_boot_completed — report boot completion first.
     ksucalls::report_boot_complete();
     init_event::run_stage("boot-completed", ScriptWait::NoWait);
+    // B1: apply the SuSFS boot-completed config (sus_cmdline, sus_map,
+    // sus_path, ...) on the jailbreak boot path too — previously this only
+    // ran via init_event::on_boot_completed on normal/soft-reboot boots, so a
+    // jailbreak boot stayed unconfigured until the first soft reboot. The
+    // safe-mode guard mirrors init_event::on_boot_completed.
+    if !utils::is_safe_mode() {
+        crate::android::susfs::init_event::on_boot_completed();
+    }
 
     // 15. Restart Manager so it gets a fresh ksu fd from the newly loaded kernel module
     info!("Restarting KernelSU Manager {package_name}...");
     let _ = Command::new("am")
         .args(["force-stop", package_name])
         .status();
-    let _ = Command::new("am")
-        .args(["start", "-n", &format!("{package_name}/.ui.MainActivity")])
-        .status();
+    relaunch_manager(package_name);
 
     Ok(())
+}
+
+/// Relaunch the manager after the kernel module has been loaded.
+///
+/// The manifest namespace can differ from the application id (AhoSU ships
+/// namespace `org.bakasu.bakasu` while the package stays
+/// `com.resukisu.resukisu`, and PR builds can override the package entirely),
+/// and the enabled launcher may be the icon alias instead of MainActivity.
+/// Starting the legacy `{package}/.ui.MainActivity` component therefore hits
+/// a class that does not exist, silently leaving the manager force-stopped
+/// (the "failed to restart PID" seen after every late-load). Ask the package
+/// manager for the currently enabled LAUNCHER-category activity first, then
+/// fall back to `monkey` (launches by package, no activity class needed), and
+/// only keep the legacy relative component as the last resort.
+fn relaunch_manager(package_name: &str) {
+    if let Some(component) = resolve_launch_component(package_name) {
+        info!("Relaunching manager as {component}");
+        let _ = Command::new("am")
+            .args(["start", "-n", &component])
+            .status();
+        return;
+    }
+
+    let monkey = Command::new("monkey")
+        .args([
+            "-p",
+            package_name,
+            "-c",
+            "android.intent.category.LAUNCHER",
+            "1",
+        ])
+        .status();
+    if monkey.is_ok_and(|s| s.success()) {
+        return;
+    }
+
+    let legacy = format!("{package_name}/.ui.MainActivity");
+    info!("Relaunching manager as {legacy} (legacy fallback)");
+    let _ = Command::new("am").args(["start", "-n", &legacy]).status();
+}
+
+/// Query the package manager for the manager's enabled launcher activity.
+fn resolve_launch_component(package_name: &str) -> Option<String> {
+    let output = Command::new("cmd")
+        .args([
+            "package",
+            "resolve-activity",
+            "--brief",
+            "-c",
+            "android.intent.category.LAUNCHER",
+            package_name,
+        ])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let text = String::from_utf8_lossy(&output.stdout);
+    text.lines()
+        .rev()
+        .map(str::trim)
+        .find(|line| line.starts_with(package_name) && line.contains('/'))
+        .map(ToString::to_string)
 }

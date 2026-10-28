@@ -1,17 +1,7 @@
 package org.bakasu.bakasu.ui.screen.themeSettings
 
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Context
-import android.content.Intent
-import android.net.Uri
 import android.os.Build
-import android.provider.MediaStore
-import android.util.Log
-import android.widget.Toast
-import androidx.activity.compose.ManagedActivityResultLauncher
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,8 +9,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -28,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Android
@@ -37,83 +24,52 @@ import androidx.compose.material.icons.twotone.Badge
 import androidx.compose.material.icons.twotone.BlurOn
 import androidx.compose.material.icons.twotone.Brush
 import androidx.compose.material.icons.twotone.Check
-import androidx.compose.material.icons.twotone.ColorLens
 import androidx.compose.material.icons.twotone.Contrast
 import androidx.compose.material.icons.twotone.DarkMode
-import androidx.compose.material.icons.twotone.DesignServices
 import androidx.compose.material.icons.twotone.Dock
 import androidx.compose.material.icons.twotone.Draw
-import androidx.compose.material.icons.twotone.FormatColorFill
 import androidx.compose.material.icons.twotone.FormatSize
 import androidx.compose.material.icons.twotone.Info
-import androidx.compose.material.icons.twotone.LightMode
-import androidx.compose.material.icons.twotone.Opacity
-import androidx.compose.material.icons.twotone.Palette
 import androidx.compose.material.icons.twotone.Pin
-import androidx.compose.material.icons.twotone.Style
 import androidx.compose.material.icons.twotone.SwapHoriz
 import androidx.compose.material.icons.twotone.Swipe
 import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.material.icons.twotone.ViewCarousel
-import androidx.compose.material.icons.twotone.Wallpaper
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.core.content.FileProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.materialkolor.PaletteStyle
-import com.materialkolor.dynamiccolor.ColorSpec
-import com.yalantis.ucrop.UCrop
-import java.io.File
-import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
-import org.bakasu.bakasu.domain.model.availablePaletteStyles
 import org.bakasu.bakasu.ui.component.ConfirmResult
 import org.bakasu.bakasu.ui.component.KeyPointSlider
 import org.bakasu.bakasu.ui.component.rememberConfirmDialog
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SegmentedColumnScope
 import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsChooseDialog
 import org.bakasu.bakasu.ui.component.settings.SettingsChooseWidget
 import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
 import org.bakasu.bakasu.ui.component.settings.SettingsSwitchWidget
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.screen.themeSettings.component.LanguageSelectionDialog
-import org.bakasu.bakasu.ui.screen.themeSettings.component.ThemeSettingsDialogs
-import org.bakasu.bakasu.ui.screen.themeSettings.crop.BackgroundCropActivity
 import org.bakasu.bakasu.ui.theme.BackgroundManager
-import org.bakasu.bakasu.ui.theme.BottomBarStyle
 import org.bakasu.bakasu.ui.theme.CardConfig
 import org.bakasu.bakasu.ui.theme.ThemeConfig
 import org.bakasu.bakasu.ui.theme.blurEffect
@@ -133,13 +89,16 @@ import org.bakasu.bakasu.ui.viewmodel.SettingsViewModel
 import org.bakasu.bakasu.ui.viewmodel.dpiFriendlyNameRes
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
 
 @SuppressLint(
     "LocalContextConfigurationRead",
     "LocalContextResourcesRead",
     "ObsoleteSdkInt",
 )
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ThemeSettingsScreen(
     settingsViewModel: SettingsViewModel,
@@ -147,8 +106,7 @@ fun ThemeSettingsScreen(
     val themeConfig: ThemeConfig = koinInject()
     val cardConfig: CardConfig = koinInject()
     // 顶部滚动行为
-    val topAppBarState = rememberTopAppBarState()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+    val scrollBehavior = MiuixScrollBehavior()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     // 创建设置状态管理器
@@ -160,138 +118,7 @@ fun ThemeSettingsScreen(
     val moduleViewModel = koinViewModel<ModuleViewModel>()
     val moduleUiState by moduleViewModel.uiState.collectAsStateWithLifecycle()
 
-    // Image selection and cropping
-    var pendingBackgroundImageUri by remember { mutableStateOf<Uri?>(null) }
-    var pendingExternalCropOutputUri by remember { mutableStateOf<Uri?>(null) }
-    var showCropMethodDialog by remember { mutableStateOf(false) }
-
-    val externalCropUnavailable = stringResource(R.string.background_external_crop_unavailable)
-    val backgroundCropFailed = stringResource(R.string.background_crop_failed)
-
-    val uCropLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            result.data?.let { data ->
-                UCrop.getOutput(data)?.let {
-                    settingsViewModel.dispatch(
-                        SettingsUiAction.SetCustomBackground(it.toString()),
-                    )
-                }
-            }
-        } else if (result.resultCode == UCrop.RESULT_ERROR) {
-            Toast.makeText(
-                context,
-                backgroundCropFailed,
-                Toast.LENGTH_SHORT,
-            ).show()
-        }
-    }
-
-    val externalCropLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.StartActivityForResult(),
-    ) { result ->
-        if (result.resultCode == Activity.RESULT_OK) {
-            val outputUri = pendingExternalCropOutputUri ?: result.data?.data
-            outputUri?.let {
-                settingsViewModel.dispatch(
-                    SettingsUiAction.SetCustomBackground(it.toString()),
-                )
-            }
-        }
-        pendingExternalCropOutputUri = null
-    }
-
-    val launchInAppCrop = { sourceUri: Uri ->
-        val outputUri = createBackgroundCropOutputUri(context, "background_crop_ucrop")
-        val (screenWidth, screenHeight) = context.backgroundCropSize()
-        val intent = Intent(context, BackgroundCropActivity::class.java).apply {
-            putExtra(UCrop.EXTRA_INPUT_URI, sourceUri)
-            putExtra(UCrop.EXTRA_OUTPUT_URI, outputUri)
-            putExtra(UCrop.EXTRA_ASPECT_RATIO_X, screenWidth.toFloat())
-            putExtra(UCrop.EXTRA_ASPECT_RATIO_Y, screenHeight.toFloat())
-            putExtra(UCrop.EXTRA_MAX_SIZE_X, screenWidth)
-            putExtra(UCrop.EXTRA_MAX_SIZE_Y, screenHeight)
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-        }
-
-        uCropLauncher.launch(intent)
-    }
-
-    val launchExternalCrop = { sourceUri: Uri ->
-        val uri = createBackgroundCropOutputUri(context, "background_crop_external")
-        context.contentResolver.openInputStream(sourceUri)?.use { inputStream ->
-            context.contentResolver.openOutputStream(uri)?.use { outputStream ->
-                inputStream.copyTo(outputStream)
-            }
-        }
-
-        val (screenWidth, screenHeight) = context.backgroundCropSize()
-        val intent = Intent("com.android.camera.action.CROP").apply {
-            setDataAndType(uri, "image/*")
-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-            putExtra("crop", "true")
-            putExtra("aspectX", screenWidth)
-            putExtra("aspectY", screenHeight)
-            putExtra("outputX", screenWidth)
-            putExtra("outputY", screenHeight)
-            putExtra("return-data", false)
-            putExtra(MediaStore.EXTRA_OUTPUT, uri)
-        }
-
-        try {
-            pendingExternalCropOutputUri = uri
-            externalCropLauncher.launch(intent)
-        } catch (t: Throwable) {
-            Log.e("ThemeSettings", "External Crop failed, fallback to in-app crop", t)
-            pendingExternalCropOutputUri = null
-            Toast.makeText(
-                context,
-                externalCropUnavailable,
-                Toast.LENGTH_SHORT,
-            ).show()
-            launchInAppCrop(sourceUri)
-        }
-    }
-
-    val pickImageLauncher = rememberLauncherForActivityResult(
-        ActivityResultContracts.GetContent(),
-    ) { uri: Uri? ->
-        uri?.let {
-            pendingBackgroundImageUri = it
-            showCropMethodDialog = true
-        }
-    }
-
-    SettingsChooseDialog(
-        show = showCropMethodDialog,
-        title = stringResource(R.string.background_crop_method_title),
-        items = listOf(
-            stringResource(R.string.background_crop_method_in_app),
-            stringResource(R.string.background_crop_method_external),
-        ),
-        selectedIndex = 0,
-        onDismiss = {
-            showCropMethodDialog = false
-            pendingBackgroundImageUri = null
-        },
-        onSelectedIndexChange = { index ->
-            pendingBackgroundImageUri?.let { sourceUri ->
-                when (index) {
-                    0 -> launchInAppCrop(sourceUri)
-                    1 -> launchExternalCrop(sourceUri)
-                }
-            }
-        },
-    )
-
-    // 各种设置对话框
-    ThemeSettingsDialogs(
-        state = settingsState,
-        viewModel = settingsViewModel,
-    )
+    // 各种设置对话框（语言选择器由 LanguageSetting 直接渲染）
 
     val navigator = LocalNavigator.current
 
@@ -299,18 +126,14 @@ fun ThemeSettingsScreen(
         scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffsetLimit
     }
 
-    Scaffold(
+    MiuixScaffold(
         contentWindowInsets = adaptiveScaffoldWindowInsets(),
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
+            MiuixTopAppBar(
                 modifier = Modifier
                     .blurEffect(),
-                title = {
-                    Text(
-                        text = stringResource(R.string.theme_settings),
-                    )
-                },
+                title = stringResource(R.string.theme_settings),
                 navigationIcon = {
                     AppBackButton(
                         onClick = {
@@ -318,26 +141,16 @@ fun ThemeSettingsScreen(
                         },
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor =
-                        if (themeConfig.isEnableBlur) {
-                            Color.Transparent
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                        },
-                    scrolledContainerColor =
-                        if (themeConfig.isEnableBlur) {
-                            Color.Transparent
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                        },
-                ),
-                windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
+                color =
+                    if (themeConfig.isEnableBlur) {
+                        Color.Transparent
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
+                    },
                 scrollBehavior = scrollBehavior,
             )
         },
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
@@ -354,7 +167,6 @@ fun ThemeSettingsScreen(
                 AppearanceSettings(
                     state = settingsState,
                     viewModel = settingsViewModel,
-                    pickImageLauncher = pickImageLauncher,
                     coroutineScope = coroutineScope,
                 )
             }
@@ -440,43 +252,6 @@ fun ThemeSettingsScreen(
     }
 }
 
-private fun PaletteStyle.displayName(): String = when (this) {
-    PaletteStyle.TonalSpot -> "Tonal Spot"
-    PaletteStyle.Neutral -> "Neutral"
-    PaletteStyle.Vibrant -> "Vibrant"
-    PaletteStyle.Expressive -> "Expressive"
-    PaletteStyle.Rainbow -> "Rainbow"
-    PaletteStyle.FruitSalad -> "Fruit Salad"
-    PaletteStyle.Monochrome -> "Monochrome"
-    PaletteStyle.Fidelity -> "Fidelity"
-    PaletteStyle.Content -> "Content"
-}
-
-private fun ColorSpec.SpecVersion.displayName(): String = when (this) {
-    ColorSpec.SpecVersion.SPEC_2021 -> "Spec 2021"
-    ColorSpec.SpecVersion.SPEC_2025 -> "Spec 2025"
-}
-
-private fun Context.backgroundCropSize(): Pair<Int, Int> {
-    val displayMetrics = resources.displayMetrics
-    return displayMetrics.widthPixels to displayMetrics.heightPixels
-}
-
-private fun createBackgroundCropOutputUri(context: Context, prefix: String): Uri {
-    val outputFile = File(context.cacheDir, "${prefix}_${System.currentTimeMillis()}.jpg").apply {
-        parentFile?.mkdirs()
-        delete()
-        createNewFile()
-        deleteOnExit()
-    }
-
-    return FileProvider.getUriForFile(
-        context,
-        "${context.packageName}.fileprovider",
-        outputFile,
-    )
-}
-
 @Composable
 fun PredictiveBackAnimationWidget(
     uiState: SettingsUiState,
@@ -513,16 +288,11 @@ fun PredictiveBackAnimationDirectionWidget(
 private fun AppearanceSettings(
     state: SettingsUiState,
     viewModel: SettingsViewModel,
-    pickImageLauncher: ManagedActivityResultLauncher<String, Uri?>,
     coroutineScope: CoroutineScope,
 ) {
     val themeConfig: ThemeConfig = koinInject()
     val cardConfig: CardConfig = koinInject()
     val backgroundManager: BackgroundManager = koinInject()
-    val paletteStyles = state.dynamicColorSpec.availablePaletteStyles()
-    val configuration = LocalConfiguration.current
-    val isPortrait = configuration.screenWidthDp < configuration.screenHeightDp ||
-        (configuration.screenHeightDp.toFloat() / configuration.screenWidthDp > 1.4f)
     SegmentedColumn(title = stringResource(R.string.appearance_settings)) {
         item {
             // 语言设置
@@ -538,63 +308,6 @@ private fun AppearanceSettings(
                 selectedIndex = state.themeMode,
                 onSelectedIndexChange = { index ->
                     viewModel.dispatch(SettingsUiAction.SetThemeMode(index))
-                },
-            )
-        }
-
-        expandableItem(
-            expanded = !state.useDynamicColor,
-            topContent = {
-                SettingsSwitchWidget(
-                    icon = Icons.TwoTone.ColorLens,
-                    title = stringResource(R.string.dynamic_color_title),
-                    description = stringResource(R.string.dynamic_color_summary),
-                    checked = state.useDynamicColor,
-                    onCheckedChange = { enabled ->
-                        viewModel.dispatch(SettingsUiAction.SetDynamicColor(enabled))
-                    },
-                )
-            },
-        ) {
-            item(
-                visible = !state.useDynamicColor,
-                topPadding = 1.dp,
-            ) {
-                // 主题色选择
-                ThemeColorSelection(viewModel = viewModel)
-            }
-        }
-
-        item {
-            SettingsChooseWidget(
-                icon = Icons.TwoTone.Style,
-                title = stringResource(R.string.dynamic_palette_style),
-                items = paletteStyles.map { it.displayName() },
-                selectedIndex = paletteStyles.indexOf(state.dynamicPaletteStyle).coerceAtLeast(0),
-                onSelectedIndexChange = { index ->
-                    viewModel.dispatch(
-                        SettingsUiAction.SetDynamicPaletteStyle(
-                            paletteStyles.getOrElse(index) { PaletteStyle.TonalSpot },
-                        ),
-                    )
-                },
-            )
-        }
-
-        item {
-            SettingsChooseWidget(
-                icon = Icons.TwoTone.DesignServices,
-                title = stringResource(R.string.dynamic_color_spec),
-                items = ColorSpec.SpecVersion.entries.map { it.displayName() },
-                selectedIndex = ColorSpec.SpecVersion.entries.indexOf(state.dynamicColorSpec),
-                onSelectedIndexChange = { index ->
-                    viewModel.dispatch(
-                        SettingsUiAction.SetDynamicColorSpec(
-                            ColorSpec.SpecVersion.entries.getOrElse(index) {
-                                ColorSpec.SpecVersion.SPEC_2021
-                            },
-                        ),
-                    )
                 },
             )
         }
@@ -656,38 +369,33 @@ private fun AppearanceSettings(
             )
         }
 
-        item(visible = isPortrait) {
+        item(visible = themeConfig.isEnableBlur, topPadding = 1.dp) {
             SettingsSwitchWidget(
-                icon = Icons.TwoTone.Dock,
-                title = stringResource(R.string.enable_floating_bottom_bar),
-                description = stringResource(R.string.enable_floating_bottom_bar_summary),
-                checked = themeConfig.bottomBarStyle == BottomBarStyle.FLOATING,
-                onCheckedChange = { enabled ->
-                    val style = if (enabled) BottomBarStyle.FLOATING else BottomBarStyle.MATERIAL3_EXPRESSIVE
-                    backgroundManager.saveBottomBarStyle(style)
+                icon = Icons.TwoTone.Draw,
+                title = stringResource(id = R.string.settings_exp_draw_background_to_blur),
+                description = stringResource(id = R.string.settings_exp_draw_background_to_blur_description),
+                isError = true,
+                checked = themeConfig.isEnableBlurExp,
+                onCheckedChange = { isChecked ->
+                    backgroundManager.saveEnableBlurExp(isChecked)
                 },
             )
         }
 
-        expandableItem(
-            expanded = state.isCustomBackgroundEnabled,
-            topContent = {
-                CustomBackgroundSettings(
-                    state = state,
-                    viewModel = viewModel,
-                    pickImageLauncher = pickImageLauncher,
-                )
-            },
-            bottomContent = {
-                backgroundAdjustmentControls(
-                    state,
-                    viewModel,
-                    coroutineScope,
-                    themeConfig,
-                    backgroundManager,
-                )
-            },
-        )
+        item(
+            visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
+            topPadding = 1.dp,
+        ) {
+            SettingsSwitchWidget(
+                icon = Icons.TwoTone.Contrast,
+                title = stringResource(id = R.string.settings_custom_enable_high_contrast),
+                description = stringResource(id = R.string.settings_custom_enable_high_contrast_summary),
+                checked = themeConfig.isHighContrastMode,
+                onCheckedChange = { isChecked ->
+                    backgroundManager.saveEnableHighContrastMode(isChecked)
+                },
+            )
+        }
     }
 }
 
@@ -776,28 +484,6 @@ private fun CustomizationSettings(
         }
     }
 }
-
-@Composable
-private fun ThemeColorSelection(viewModel: SettingsViewModel) {
-    val themeConfig: ThemeConfig = koinInject()
-    SettingsBaseWidget(
-        icon = Icons.TwoTone.Palette,
-        title = stringResource(R.string.theme_color),
-        description = themeConfig.seedColor.toSeedColorHex(),
-        onClick = {
-            viewModel.dispatch(SettingsUiAction.SetThemeColorDialogVisible(true))
-        },
-    ) {
-        Box(
-            modifier = Modifier
-                .size(20.dp)
-                .clip(CircleShape)
-                .background(Color(themeConfig.seedColor)),
-        )
-    }
-}
-
-private fun Int.toSeedColorHex(): String = "#%06X".format(this and 0x00FFFFFF)
 
 @Composable
 private fun DpiSliderControls(
@@ -905,189 +591,6 @@ private fun DpiSliderControls(
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(stringResource(R.string.dpi_apply_settings))
-    }
-}
-
-@Composable
-private fun CustomBackgroundSettings(
-    state: SettingsUiState,
-    viewModel: SettingsViewModel,
-    pickImageLauncher: ManagedActivityResultLauncher<String, Uri?>,
-) {
-    // TODO Portrait/Landscape wallpaper split
-
-    SettingsSwitchWidget(
-        icon = Icons.TwoTone.Wallpaper,
-        title = stringResource(id = R.string.settings_custom_background),
-        description = stringResource(id = R.string.settings_custom_background_summary),
-        checked = state.isCustomBackgroundEnabled,
-        onCheckedChange = { isChecked ->
-            if (isChecked) {
-                pickImageLauncher.launch("image/*")
-            } else {
-                viewModel.dispatch(SettingsUiAction.RemoveCustomBackground)
-            }
-        },
-    )
-}
-
-private fun SegmentedColumnScope.backgroundAdjustmentControls(
-    state: SettingsUiState,
-    viewModel: SettingsViewModel,
-    coroutineScope: CoroutineScope,
-    themeConfig: ThemeConfig,
-    backgroundManager: BackgroundManager,
-) {
-    item(
-        topPadding = 1.dp,
-    ) {
-        AlphaSlider(
-            state = state,
-            viewModel = viewModel,
-            coroutineScope = coroutineScope,
-        )
-    }
-
-    item(
-        topPadding = 1.dp,
-    ) {
-        DimSlider(
-            state = state,
-            viewModel = viewModel,
-            coroutineScope = coroutineScope,
-        )
-    }
-
-    item(visible = themeConfig.isEnableBlur, topPadding = 1.dp) {
-        SettingsSwitchWidget(
-            icon = Icons.TwoTone.Draw,
-            title = stringResource(id = R.string.settings_exp_draw_background_to_blur),
-            description = stringResource(id = R.string.settings_exp_draw_background_to_blur_description),
-            isError = true,
-            checked = themeConfig.isEnableBlurExp,
-            onCheckedChange = { isChecked ->
-                backgroundManager.saveEnableBlurExp(isChecked)
-            },
-        )
-    }
-
-    item(
-        visible = state.useDynamicColor,
-        topPadding = 1.dp,
-    ) {
-        SettingsSwitchWidget(
-            icon = Icons.TwoTone.FormatColorFill,
-            title = stringResource(id = R.string.settings_config_use_custom_background_seed_color),
-            description = stringResource(id = R.string.settings_config_use_custom_background_seed_color_summary),
-            checked = themeConfig.isUseBackgroundSeedColor,
-            onCheckedChange = { isChecked ->
-                backgroundManager.saveUseBackgroundSeedColor(isChecked)
-            },
-        )
-    }
-
-    item(
-        visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
-        topPadding = 1.dp,
-    ) {
-        SettingsSwitchWidget(
-            icon = Icons.TwoTone.Contrast,
-            title = stringResource(id = R.string.settings_custom_enable_high_contrast),
-            description = stringResource(id = R.string.settings_custom_enable_high_contrast_summary),
-            checked = themeConfig.isHighContrastMode,
-            onCheckedChange = { isChecked ->
-                backgroundManager.saveEnableHighContrastMode(isChecked)
-            },
-        )
-    }
-}
-
-@Composable
-private fun AlphaSlider(
-    state: SettingsUiState,
-    viewModel: SettingsViewModel,
-    coroutineScope: CoroutineScope,
-) {
-    SettingsBaseWidget(
-        icon = Icons.TwoTone.Opacity,
-        title = stringResource(R.string.settings_card_alpha),
-        descriptionColumnContent = {
-            val alphaSliderValue by animateFloatAsState(
-                targetValue = state.cardAlpha,
-                label = "Alpha Slider Animation",
-            )
-
-            KeyPointSlider(
-                value = alphaSliderValue,
-                onValueChange = { newValue ->
-                    viewModel.dispatch(SettingsUiAction.SetCardAlpha(newValue))
-                },
-                onValueChangeFinished = {
-                    coroutineScope.launch(Dispatchers.IO) {
-                        viewModel.dispatch(SettingsUiAction.SaveCardConfig)
-                    }
-                },
-                valueRange = 0f..1f,
-                keyPoints = listOf(0.25f, 0.5f, 0.75f),
-            )
-        },
-    ) {
-        Box(contentAlignment = Alignment.CenterEnd) {
-            Text( // Some stupid way to solve measure problem
-                text = "100%",
-                style = MaterialTheme.typography.labelMediumEmphasized,
-                modifier = Modifier.alpha(0f),
-            )
-            Text(
-                text = "${(state.cardAlpha * 100).roundToInt()}%",
-                style = MaterialTheme.typography.labelMediumEmphasized,
-            )
-        }
-    }
-}
-
-@Composable
-private fun DimSlider(
-    state: SettingsUiState,
-    viewModel: SettingsViewModel,
-    coroutineScope: CoroutineScope,
-) {
-    SettingsBaseWidget(
-        icon = Icons.TwoTone.LightMode,
-        title = stringResource(R.string.settings_background_dim),
-        descriptionColumnContent = {
-            val dimSliderValue by animateFloatAsState(
-                targetValue = state.backgroundDim,
-                label = "Dim Slider Animation",
-            )
-
-            KeyPointSlider(
-                value = dimSliderValue,
-                onValueChange = { newValue ->
-                    viewModel.dispatch(SettingsUiAction.SetBackgroundDim(newValue))
-                },
-                onValueChangeFinished = {
-                    coroutineScope.launch(Dispatchers.IO) {
-                        viewModel.dispatch(SettingsUiAction.SaveCardConfig)
-                    }
-                },
-                valueRange = 0f..1f,
-                keyPoints = listOf(0.25f, 0.5f, 0.75f),
-            )
-        },
-    ) {
-        Box(contentAlignment = Alignment.CenterEnd) {
-            Text( // Some stupid way to solve measure problem
-                text = "100%",
-                style = MaterialTheme.typography.labelMediumEmphasized,
-                modifier = Modifier.alpha(0f),
-            )
-
-            Text(
-                text = "${(state.backgroundDim * 100).roundToInt()}%",
-                style = MaterialTheme.typography.labelMediumEmphasized,
-            )
-        }
     }
 }
 

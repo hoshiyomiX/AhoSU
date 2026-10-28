@@ -29,8 +29,21 @@ class SuSFSConfigHelper(
     @Volatile
     private var cachedStatusInfo: SuSFSStatusInfo? = null
 
+    @Volatile
+    private var cachedCapability: SuSFSCapability? = null
+
     private val configMutex = Mutex()
     private val statusInfoMutex = Mutex()
+
+    /**
+     * Kernel-side SuSFS supercall capability, probed once via
+     * `ksud susfs capability` and cached for the process lifetime.
+     */
+    data class SuSFSCapability(
+        val supercallSupported: Boolean,
+        val guardModule: String?,
+        val guardLoader: String? = null,
+    )
 
     private data class CommandResult(
         val success: Boolean,
@@ -88,6 +101,21 @@ class SuSFSConfigHelper(
             }
 
             val statusInfo = withContext(Dispatchers.IO) {
+                val capability = loadCapability(forceRefresh)
+                if (!capability.supercallSupported) {
+                    // The kernel has no SuSFS supercall surface (an LKM built
+                    // without CONFIG_KSU_SUSFS): skip the SHOW_* trio, which
+                    // can only fail, and report the capability instead.
+                    return@withContext SuSFSStatusInfo(
+                        version = "",
+                        enabledFeatures = "",
+                        variant = "",
+                        supercallSupported = false,
+                        guardModule = capability.guardModule,
+                        guardLoader = capability.guardLoader,
+                    )
+                }
+
                 val version = executeSusfsCommand("show version")
                 val enabledFeatures = executeSusfsCommand("show enabled_features")
                 val variant = executeSusfsCommand("show variant")
@@ -97,11 +125,59 @@ class SuSFSConfigHelper(
                     enabledFeatures = enabledFeatures.stdout.takeIf { enabledFeatures.success }
                         .orEmpty(),
                     variant = variant.stdout.takeIf { variant.success }.orEmpty(),
+                    supercallSupported = true,
+                    guardModule = capability.guardModule,
+                    guardLoader = capability.guardLoader,
                 )
             }
 
             cachedStatusInfo = statusInfo
             statusInfo
+        }
+    }
+
+    /**
+     * Probe whether the kernel supports SuSFS supercalls, and whether an
+     * out-of-band guard module (e.g. susfs_guard_lkm) provides SuSFS
+     * behaviour through its own hooks instead. Unknown or failed output
+     * falls back to "supported" so older daemons keep the legacy behavior.
+     */
+    suspend fun loadCapability(forceRefresh: Boolean = false): SuSFSCapability {
+        if (!forceRefresh) {
+            cachedCapability?.let { return it }
+        }
+
+        return withContext(Dispatchers.IO) {
+            val result = runCatching { executeSusfsCommand("capability") }
+                .getOrNull()
+
+            val capability = if (result?.success == true) {
+                val supercall = result.stdout.lineSequence()
+                    .firstOrNull { it.startsWith("supercall:") }
+                    ?.substringAfter(':')
+                    ?.trim()
+                val guardModule = result.stdout.lineSequence()
+                    .firstOrNull { it.startsWith("guard_module:") }
+                    ?.substringAfter(':')
+                    ?.trim()
+                    ?.takeIf { it.isNotEmpty() && it != "none" }
+                val guardLoader = result.stdout.lineSequence()
+                    .firstOrNull { it.startsWith("guard_loader:") }
+                    ?.substringAfter(':')
+                    ?.trim()
+                    ?.takeIf { it.isNotEmpty() && it != "none" }
+
+                if (supercall == "unsupported") {
+                    SuSFSCapability(supercallSupported = false, guardModule = guardModule, guardLoader = guardLoader)
+                } else {
+                    SuSFSCapability(supercallSupported = true, guardModule = guardModule, guardLoader = guardLoader)
+                }
+            } else {
+                SuSFSCapability(supercallSupported = true, guardModule = null)
+            }
+
+            cachedCapability = capability
+            capability
         }
     }
 
@@ -327,6 +403,13 @@ class SuSFSConfigHelper(
         command: String,
         currentKernelCommands: List<String>,
     ): Boolean {
+        if (!loadCapability().supercallSupported) {
+            // The kernel has no SuSFS supercall surface: persisted config can
+            // never reach it, so block mutations instead of silently no-op'ing.
+            Log.w(TAG, "SUSFS config mutation blocked: kernel has no SuSFS supercall support")
+            return false
+        }
+
         currentKernelCommands.forEach { currentKernelCommand ->
             val result = executeSusfsCommand(currentKernelCommand)
             if (!result.success) {
@@ -421,6 +504,9 @@ data class SuSFSStatusInfo(
     val version: String,
     val enabledFeatures: String,
     val variant: String,
+    val supercallSupported: Boolean = true,
+    val guardModule: String? = null,
+    val guardLoader: String? = null,
 )
 
 data class SusKstatStatically(

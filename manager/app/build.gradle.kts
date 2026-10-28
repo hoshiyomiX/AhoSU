@@ -180,7 +180,7 @@ baselineProfile {
 
 base {
     archivesName.set(
-        "BakaSU_${managerVersionName}_$managerVersionCode",
+        "AhoSU_${managerVersionName}_$managerVersionCode",
     )
 }
 
@@ -230,6 +230,8 @@ dependencies {
 
     implementation(libs.miuix.blur)
     implementation(libs.miuix.nav)
+    implementation(libs.miuix.preference)
+    implementation(libs.miuix.ui)
 
     implementation(libs.aboutlibraries.core)
     implementation(libs.aboutlibraries.compose.m3)
@@ -238,16 +240,12 @@ dependencies {
     implementation(libs.com.github.topjohnwu.libsu.service)
     implementation(libs.com.github.topjohnwu.libsu.io)
 
-    implementation(libs.material.kolor)
-    implementation(libs.monet.compat)
     implementation(libs.material.components)
-    implementation(libs.androidx.palette.ktx)
     implementation(libs.capsule)
 
     implementation(libs.dev.rikka.rikkax.parcelablelist)
 
     implementation(libs.io.coil.kt.coil.compose)
-    implementation(libs.ucrop)
 
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.serialization.json)

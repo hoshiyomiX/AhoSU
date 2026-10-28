@@ -6,7 +6,6 @@ import kotlinx.coroutines.withContext
 import org.bakasu.bakasu.Natives
 import org.bakasu.bakasu.Natives.KernelPatchImplementation
 import org.bakasu.bakasu.data.shell.KsuCliRepository
-import org.bakasu.bakasu.data.system.isSELinuxPermissive
 import org.bakasu.bakasu.domain.model.KernelFeatureSettings
 import org.bakasu.bakasu.domain.model.KernelStatus
 import org.bakasu.bakasu.domain.model.ManagerRecord
@@ -36,7 +35,9 @@ class KernelRepository(
             isRootAvailable = isRootAvailable,
             isFullFeatured = isRootAvailable && runCatching { Natives.isFullFeatured() }
                 .getOrDefault(false),
-            isSELinuxPermissive = runCatching { isSELinuxPermissive() }.getOrDefault(false),
+            isSELinuxPermissive = runCatching {
+                ksuCliRepository.isSELinuxPermissive()
+            }.getOrDefault(false),
             isOfficialSignature = runCatching {
                 ksuCliRepository.isOfficialSignature(application.packageResourcePath)
             }.getOrDefault(false),
@@ -55,8 +56,11 @@ class KernelRepository(
             managers = runCatching { Natives.getManagersList()?.managers.orEmpty() }
                 .getOrDefault(emptyList())
                 .map { ManagerRecord(it.uid, it.signatureIndex) },
+            // Route through the root shell: the in-process JNI ioctl
+            // (KSU_IOCTL_DYNAMIC_MANAGER) is root-only and logs EPERM denials
+            // on every manager launch when called from the app context.
             dynamicSignatureEnabled = runCatching {
-                Natives.getDynamicManager()?.isValid() == true
+                ksuCliRepository.getDynamicManagerConfig()?.isValid() == true
             }.getOrDefault(false),
         )
     }

@@ -54,7 +54,6 @@ import org.bakasu.bakasu.data.susfs.SuSFSRepository
 import org.bakasu.bakasu.data.system.HomeRuntimeRepository
 import org.bakasu.bakasu.data.system.HomeStateRepository
 import org.bakasu.bakasu.data.text.HanziToPinyin
-import org.bakasu.bakasu.data.theme.MonetCompatColorSource
 import org.bakasu.bakasu.data.theme.ThemeRepository
 import org.bakasu.bakasu.data.update.ManagerUpdateRepository
 import org.bakasu.bakasu.data.webui.WebUiRepository
@@ -300,12 +299,8 @@ val repositoryModule = module {
     singleOf(::ProfileTemplateRepository)
     singleOf(::SuSFSConfigHelper)
     singleOf(::SuSFSRepository)
-    singleOf(::MonetCompatColorSource)
     singleOf(::ThemeRepository)
-    single {
-        val themeRepository = get<ThemeRepository>()
-        ThemeConfig(themeRepository::defaultSeedColor)
-    }
+    singleOf(::ThemeConfig)
     singleOf(::CardConfig)
     singleOf(::BackgroundManager)
     singleOf(::ThemeUtils)

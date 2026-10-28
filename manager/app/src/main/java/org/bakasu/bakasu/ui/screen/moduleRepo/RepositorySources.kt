@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -28,26 +26,9 @@ import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.DeleteOutline
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.MoreVert
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuPopup
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -99,23 +80,32 @@ import org.bakasu.bakasu.ui.util.adaptiveScaffoldWindowInsets
 import org.bakasu.bakasu.ui.viewmodel.RepositorySourcesViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.HorizontalDivider as MiuixHorizontalDivider
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.ListPopupColumn
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField as MiuixTextField
+import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.overlay.OverlayListPopup
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 internal fun RepositorySource.shortUrl() = url.toHttpUrlOrNull()?.let {
     it.host + it.encodedPath.trimEnd('/')
 } ?: url
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AddRepositoryScreen() {
     val viewModel = koinViewModel<RepositorySourcesViewModel>(key = "add-repository")
     val state by viewModel.state.collectAsStateWithLifecycle()
     val customScroll = rememberLazyListState()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        rememberTopAppBarState(
-            initialHeightOffset = -154f,
-            initialHeightOffsetLimit = -154f, // from debugger
-        ),
-    )
+    val scrollBehavior = MiuixScrollBehavior()
     val apiTypes = listOf(RepositoryApiType.KERNEL_SU, RepositoryApiType.MMRL)
     val apiTypeLabels = apiTypes.map { stringResource(it.resId) }
     val addForm = rememberCustomDialog { dismiss ->
@@ -131,10 +121,12 @@ fun AddRepositoryScreen() {
                 dismiss()
             }
         }
-        AlertDialog(
+        OverlayDialog(
+            show = true,
             onDismissRequest = dismissAddForm,
-            title = { Text(stringResource(R.string.repo_add_repository)) },
-            text = {
+            title = stringResource(R.string.repo_add_repository),
+        ) {
+            Column {
                 CompositionLocalProvider(LocalBackgroundBlurProvided provides true) {
                     SegmentedColumn(
                         modifier = Modifier.verticalScroll(rememberScrollState()),
@@ -168,26 +160,35 @@ fun AddRepositoryScreen() {
                         }
                     }
                 }
-            },
-            confirmButton = {
-                val loading = state.addingUrl == state.url
-                FilledTonalButton(onClick = { viewModel.add() }, modifier = Modifier, enabled = state.url.isNotBlank() && !state.busy && !loading) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Text(text = stringResource(R.string.add), modifier = Modifier.alpha(if (loading) 0f else 1f))
-                        if (loading) {
-                            Box(Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
-                                LoadingIndicator(Modifier.size(20.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                ) {
+                    val loading = state.addingUrl == state.url
+                    Button(
+                        onClick = { viewModel.add() },
+                        enabled = state.url.isNotBlank() && !state.busy && !loading,
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Text(text = stringResource(R.string.add), modifier = Modifier.alpha(if (loading) 0f else 1f))
+                            if (loading) {
+                                Box(Modifier.matchParentSize(), contentAlignment = Alignment.Center) {
+                                    InfiniteProgressIndicator(
+                                        modifier = Modifier.size(20.dp),
+                                        color = MiuixTheme.colorScheme.primary,
+                                    )
+                                }
                             }
                         }
                     }
+                    TextButton(
+                        text = stringResource(R.string.cancel),
+                        onClick = dismissAddForm,
+                        enabled = !state.busy,
+                    )
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = dismissAddForm, enabled = !state.busy) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
+            }
+        }
     }
     LaunchedEffect(state.added?.url) {
         if (state.added != null) {
@@ -207,29 +208,18 @@ fun AddRepositoryScreen() {
         MaterialTheme.colorScheme.surfaceContainer.copy(cards.cardAlpha)
     }
     val layoutDirection = LocalLayoutDirection.current
-    Scaffold(
+    MiuixScaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
+            MiuixTopAppBar(
                 modifier = Modifier.blurEffect(),
-                title = {
-                    Text(
-                        text = stringResource(R.string.repo_configure),
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                },
+                title = stringResource(R.string.repo_configure),
+                color = barColor,
                 navigationIcon = { AppBackButton(onClick = { navigator.pop() }) },
-                windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
                 scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = barColor,
-                    scrolledContainerColor = barColor,
-                ),
             )
         },
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
         contentWindowInsets = adaptiveScaffoldWindowInsets(),
         snackbarHost = { SwipeableSnackbarHost(hostState = LocalSnackbarHost.current) },
     ) { padding ->
@@ -254,7 +244,7 @@ fun AddRepositoryScreen() {
                         )
                     }
                 }
-                FilledTonalButton(
+                Button(
                     onClick = {
                         viewModel.clearError()
                         addForm.show()
@@ -320,7 +310,7 @@ internal fun RepositorySourceItem(
         }
         if (source.moduleCount != null || source.isBuiltIn) {
             Spacer(Modifier.height(8.dp))
-            HorizontalDivider(thickness = Dp.Hairline)
+            MiuixHorizontalDivider(thickness = Dp.Hairline)
             Row(
                 modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -347,7 +337,6 @@ internal fun RepositorySourceItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun RepositoryActions(
     source: RepositorySource,
@@ -364,45 +353,70 @@ private fun RepositoryActions(
     val cancel = stringResource(R.string.cancel)
     var name by rememberSaveable(source.url) { mutableStateOf(source.displayName) }
     val edit = rememberCustomDialog { dismiss ->
-        AlertDialog(
+        OverlayDialog(
+            show = true,
             onDismissRequest = { if (!busy) dismiss() },
-            title = { Text(stringResource(R.string.repo_edit_name)) },
-            text = {
-                OutlinedTextField(
+            title = stringResource(R.string.repo_edit_name),
+        ) {
+            Column {
+                MiuixTextField(
                     value = name,
                     onValueChange = { name = it.take(100) },
-                    label = { Text(stringResource(R.string.repo_display_name)) },
-                    supportingText = { Text(stringResource(R.string.repo_display_name_hint)) },
+                    label = stringResource(R.string.repo_display_name),
                     singleLine = true,
                     enabled = !busy,
                     modifier = Modifier.fillMaxWidth(),
                 )
-            },
-            confirmButton = {
-                TextButton(onClick = { onRename(name, dismiss) }, enabled = !busy) { Text(stringResource(R.string.repo_save_name)) }
-            },
-            dismissButton = {
-                TextButton(onClick = dismiss, enabled = !busy) { Text(cancel) }
-            },
-        )
+                Text(
+                    text = stringResource(R.string.repo_display_name_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp, start = 4.dp),
+                )
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                ) {
+                    TextButton(
+                        text = stringResource(R.string.repo_save_name),
+                        onClick = { onRename(name, dismiss) },
+                        enabled = !busy,
+                    )
+                    TextButton(
+                        text = cancel,
+                        onClick = dismiss,
+                        enabled = !busy,
+                    )
+                }
+            }
+        }
     }
-    IconButton(onClick = { expanded = true }, enabled = !busy, modifier = Modifier.size(48.dp)) {
+    MiuixIconButton(onClick = { expanded = true }, enabled = !busy, modifier = Modifier.size(48.dp)) {
         Icon(Icons.TwoTone.MoreVert, contentDescription = stringResource(R.string.repo_actions))
-        DropdownMenuPopup(expanded = expanded, onDismissRequest = { expanded = false }) {
-            DropdownMenuGroup(shapes = MenuDefaults.groupShapes()) {
-                SelectableDropdownMenuItem(
-                    selected = false,
+        OverlayListPopup(show = expanded, onDismissRequest = { expanded = false }) {
+            ListPopupColumn {
+                BasicComponent(
+                    title = stringResource(R.string.repo_edit_name),
+                    startAction = {
+                        Icon(Icons.TwoTone.Edit, contentDescription = null, modifier = Modifier.size(24.dp))
+                    },
                     onClick = {
                         expanded = false
                         name = source.displayName
                         edit.show()
                     },
-                    text = { Text(stringResource(R.string.repo_edit_name)) },
-                    leadingIcon = { Icon(Icons.TwoTone.Edit, contentDescription = null) },
-                    shapes = MenuDefaults.itemShape(0, 2),
                 )
-                SelectableDropdownMenuItem(
-                    selected = false,
+                BasicComponent(
+                    title = removeAction,
+                    titleColor = BasicComponentDefaults.titleColor(color = MaterialTheme.colorScheme.error),
+                    startAction = {
+                        Icon(
+                            Icons.TwoTone.DeleteOutline,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    },
                     onClick = {
                         expanded = false
                         scope.launch {
@@ -411,9 +425,6 @@ private fun RepositoryActions(
                             if (result == ConfirmResult.Confirmed) onRemove()
                         }
                     },
-                    text = { Text(removeAction, color = MaterialTheme.colorScheme.error) },
-                    leadingIcon = { Icon(Icons.TwoTone.DeleteOutline, contentDescription = null, tint = MaterialTheme.colorScheme.error) },
-                    shapes = MenuDefaults.itemShape(1, 2),
                 )
             }
         }

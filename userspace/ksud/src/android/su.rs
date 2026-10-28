@@ -364,6 +364,11 @@ pub fn root_shell() -> Result<()> {
 fn add_path_to_env(path: &str) -> Result<()> {
     let mut paths =
         env::var_os("PATH").map_or(Vec::new(), |val| env::split_paths(&val).collect::<Vec<_>>());
+    // Drop CTS-only entries the caller's domain cannot search. ROMs and test
+    // harnesses occasionally leak /data/local/tests into PATH; every shell
+    // spawn then traverses it and logs an AVC denial even though nothing
+    // useful can ever be resolved there.
+    paths.retain(|entry| !entry.starts_with("/data/local/tests"));
     let new_path = PathBuf::from(path.trim_end_matches('/'));
     paths.push(new_path);
     let new_path_env = env::join_paths(paths)?;

@@ -1,63 +1,38 @@
 package org.bakasu.bakasu.ui.activity.component
 
-import android.annotation.SuppressLint
-import android.os.Build
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.WindowInsetsSides
-import androidx.compose.foundation.layout.asPaddingValues
-import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.only
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.windowInsetsPadding
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FlexibleBottomAppBar
-import androidx.compose.material3.Icon
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
-import androidx.compose.material3.WideNavigationRail
-import androidx.compose.material3.WideNavigationRailColors
-import androidx.compose.material3.WideNavigationRailDefaults
-import androidx.compose.material3.WideNavigationRailItem
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import org.bakasu.bakasu.ui.component.FloatingBottomBar
-import org.bakasu.bakasu.ui.component.FloatingBottomBarItem
 import org.bakasu.bakasu.ui.screen.BottomBarDestination
-import org.bakasu.bakasu.ui.theme.BottomBarStyle
 import org.bakasu.bakasu.ui.theme.CardConfig
 import org.bakasu.bakasu.ui.theme.ThemeConfig
 import org.bakasu.bakasu.ui.theme.blurEffect
-import org.bakasu.bakasu.ui.util.LocalBlurState
 import org.bakasu.bakasu.ui.util.LocalHandlePageChange
-import org.bakasu.bakasu.ui.util.LocalPagerState
 import org.bakasu.bakasu.ui.util.LocalSelectedPage
 import org.bakasu.bakasu.ui.viewmodel.HomeViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.Badge as MiuixBadge
+import top.yukonga.miuix.kmp.basic.NavigationBar as MiuixNavigationBar
+import top.yukonga.miuix.kmp.basic.NavigationBarDisplayMode
+import top.yukonga.miuix.kmp.basic.NavigationBarItem as MiuixNavigationBarItem
+import top.yukonga.miuix.kmp.basic.NavigationRail as MiuixNavigationRail
+import top.yukonga.miuix.kmp.basic.NavigationRailItem as MiuixNavigationRailItem
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
-@SuppressLint("ContextCastToActivity")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun NavigationBar(
     modifier: Modifier = Modifier,
@@ -73,65 +48,9 @@ fun NavigationBar(
     val showNavigationBarBadge = uiState.showNavigationBarBadge
     val page = LocalSelectedPage.current
     val handlePageChange = LocalHandlePageChange.current
-    val pagerState = LocalPagerState.current
 
-    if (isBottomBar && themeConfig.bottomBarStyle == BottomBarStyle.FLOATING) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .windowInsetsPadding(
-                    WindowInsets.navigationBars.only(WindowInsetsSides.Horizontal),
-                )
-                .padding(
-                    bottom = 12.dp + WindowInsets.navigationBars.asPaddingValues()
-                        .calculateBottomPadding(),
-                ),
-            contentAlignment = Alignment.Center,
-        ) {
-            FloatingBottomBar(
-                selectedIndex = pagerState.targetPage,
-                onSelected = { handlePageChange(it) },
-                tabsCount = destinations.size,
-                isBlurEnabled = LocalBlurState.current != null,
-            ) { activateTab ->
-                destinations.forEachIndexed { index, destination ->
-                    FloatingBottomBarItem(
-                        selected = index == pagerState.targetPage,
-                        onClick = { activateTab(index) },
-                        modifier = Modifier.defaultMinSize(minWidth = 76.dp),
-                    ) {
-                        val contentColor = LocalContentColor.current
-                        BadgedBox(
-                            badge = {
-                                DestinationBadge(
-                                    dest = destination,
-                                    superUser = superuserCount,
-                                    module = moduleCount,
-                                    show = showNavigationBarBadge,
-                                )
-                            },
-                        ) {
-                            Icon(
-                                imageVector = destination.iconSelected,
-                                contentDescription = stringResource(destination.label),
-                                tint = contentColor,
-                            )
-                        }
-                        Text(
-                            text = stringResource(destination.label),
-                            color = contentColor,
-                            fontSize = 11.sp,
-                            lineHeight = 14.sp,
-                            maxLines = 1,
-                            softWrap = false,
-                            overflow = TextOverflow.Visible,
-                        )
-                    }
-                }
-            }
-        }
-    } else if (isBottomBar) {
-        FlexibleBottomAppBar(
+    if (isBottomBar) {
+        MiuixNavigationBar(
             modifier = modifier
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
@@ -141,29 +60,36 @@ fun NavigationBar(
                     compensateVerticalOverscroll = true,
                     useFixedSurfaceBoundsForOverscroll = true,
                 ),
-            containerColor =
-                if (themeConfig.isEnableBlur) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                },
-            contentColor = MaterialTheme.colorScheme.onSurface,
+            color = if (themeConfig.isEnableBlur) {
+                Color.Transparent
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
+            },
+            mode = NavigationBarDisplayMode.IconWithSelectedLabel,
         ) {
             destinations.forEachIndexed { index, destination ->
-                BottomBarNavigationItem(
-                    isSelected = index == page,
-                    destination = destination,
-                    onClick = {
-                        handlePageChange(index)
+                MiuixNavigationBarItem(
+                    selected = index == page,
+                    onClick = { handlePageChange(index) },
+                    icon = if (index == page) {
+                        destination.iconSelected
+                    } else {
+                        destination.iconNotSelected
                     },
-                    superuserCount = superuserCount,
-                    moduleCount = moduleCount,
-                    showNavigationBarBadge = showNavigationBarBadge,
+                    label = stringResource(destination.label),
+                    badge = {
+                        DestinationBadge(
+                            dest = destination,
+                            superUser = superuserCount,
+                            module = moduleCount,
+                            show = showNavigationBarBadge,
+                        )
+                    },
                 )
             }
         }
     } else {
-        WideNavigationRail(
+        MiuixNavigationRail(
             modifier = modifier
                 .windowInsetsPadding(
                     WindowInsets.safeDrawing.only(WindowInsetsSides.Horizontal),
@@ -173,119 +99,34 @@ fun NavigationBar(
                     compensateVerticalOverscroll = false,
                     useFixedSurfaceBoundsForOverscroll = true,
                 ),
-            colors = WideNavigationRailColors(
-                containerColor =
-                    if (themeConfig.isEnableBlur) {
-                        Color.Transparent
-                    } else {
-                        MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                    },
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                modalContainerColor = WideNavigationRailDefaults.colors().modalContainerColor,
-                modalScrimColor = WideNavigationRailDefaults.colors().modalScrimColor,
-                modalContentColor = WideNavigationRailDefaults.colors().modalContentColor,
-            ),
+            color = if (themeConfig.isEnableBlur) {
+                Color.Transparent
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
+            },
         ) {
             destinations.forEachIndexed { index, destination ->
-                NavigationRailItem(
-                    isSelected = index == page,
-                    destination = destination,
-                    onClick = {
-                        handlePageChange(index)
+                MiuixNavigationRailItem(
+                    selected = index == page,
+                    onClick = { handlePageChange(index) },
+                    icon = if (index == page) {
+                        destination.iconSelected
+                    } else {
+                        destination.iconNotSelected
                     },
-                    superuserCount = superuserCount,
-                    moduleCount = moduleCount,
-                    showNavigationBarBadge = showNavigationBarBadge,
+                    label = stringResource(destination.label),
+                    badge = {
+                        DestinationBadge(
+                            dest = destination,
+                            superUser = superuserCount,
+                            module = moduleCount,
+                            show = showNavigationBarBadge,
+                        )
+                    },
                 )
             }
         }
     }
-}
-
-@Composable
-private fun NavigationRailItem(
-    isSelected: Boolean,
-    destination: BottomBarDestination,
-    onClick: () -> Unit,
-    superuserCount: Int,
-    moduleCount: Int,
-    showNavigationBarBadge: Boolean,
-) {
-    WideNavigationRailItem(
-        railExpanded = false,
-        selected = isSelected,
-        onClick = onClick,
-        icon = {
-            BadgedBox(
-                badge = {
-                    DestinationBadge(
-                        dest = destination,
-                        superUser = superuserCount,
-                        module = moduleCount,
-                        show = showNavigationBarBadge,
-                    )
-                },
-            ) {
-                if (isSelected) {
-                    Icon(destination.iconSelected, stringResource(destination.label))
-                } else {
-                    Icon(destination.iconNotSelected, stringResource(destination.label))
-                }
-            }
-        },
-        label = {
-            Text(
-                stringResource(destination.label),
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                softWrap = false,
-                overflow = TextOverflow.Visible,
-            )
-        },
-    )
-}
-
-@Composable
-private fun RowScope.BottomBarNavigationItem(
-    isSelected: Boolean,
-    destination: BottomBarDestination,
-    onClick: () -> Unit,
-    superuserCount: Int,
-    moduleCount: Int,
-    showNavigationBarBadge: Boolean,
-) {
-    NavigationBarItem(
-        selected = isSelected,
-        onClick = onClick,
-        icon = {
-            BadgedBox(
-                badge = {
-                    DestinationBadge(
-                        dest = destination,
-                        superUser = superuserCount,
-                        module = moduleCount,
-                        show = showNavigationBarBadge,
-                    )
-                },
-            ) {
-                if (isSelected) {
-                    Icon(destination.iconSelected, stringResource(destination.label))
-                } else {
-                    Icon(destination.iconNotSelected, stringResource(destination.label))
-                }
-            }
-        },
-        label = {
-            Text(
-                stringResource(destination.label),
-                style = MaterialTheme.typography.labelMedium,
-                maxLines = 1,
-                softWrap = false,
-                overflow = TextOverflow.Visible,
-            )
-        },
-        alwaysShowLabel = false,
-    )
 }
 
 @Composable
@@ -306,8 +147,8 @@ private fun DestinationBadge(
         enter = fadeIn(),
         exit = fadeOut(),
     ) {
-        Badge(
-            containerColor = MaterialTheme.colorScheme.primary,
+        MiuixBadge(
+            containerColor = MiuixTheme.colorScheme.primary,
         ) {
             Text(count.toString())
         }

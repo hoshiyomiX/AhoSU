@@ -1,18 +1,14 @@
 package org.bakasu.bakasu.ui.screen.moduleRepo
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -30,23 +26,9 @@ import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material.icons.twotone.Link
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.PlayArrow
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -68,7 +50,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -122,13 +103,22 @@ import org.bakasu.bakasu.ui.viewmodel.ReleaseDetailsState
 import org.koin.androidx.compose.koinViewModel
 import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.TabRow
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * @author AlexLiuDev233
  * @date 2025/12/7
  */
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun OnlineModuleDetailScreen(
     moduleId: String,
@@ -144,51 +134,40 @@ fun OnlineModuleDetailScreen(
         val navigator = LocalNavigator.current
         val theme = koinInject<ThemeConfig>()
         val cards = koinInject<CardConfig>()
-        val scroll = null ?: TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-            rememberTopAppBarState(
-                initialHeightOffset = -154f,
-                initialHeightOffsetLimit = -154f, // from debugger
-            ),
-        )
+        val scroll = MiuixScrollBehavior()
         val barColor = if (theme.isEnableBlur) {
             Color.Transparent
         } else {
             MaterialTheme.colorScheme.surfaceContainer.copy(cards.cardAlpha)
         }
-        Scaffold(
+        MiuixScaffold(
             modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
             topBar = {
-                Column(Modifier.blurEffect().background(barColor)) {
-                    LargeFlexibleTopAppBar(
-                        title = { Text(stringResource(R.string.module_repo), maxLines = 2, overflow = TextOverflow.Ellipsis) },
-                        navigationIcon = { AppBackButton(onClick = { navigator.pop() }) },
-                        actions = { },
-                        windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
-                        scrollBehavior = scroll,
-                        colors = TopAppBarDefaults.topAppBarColors(
-                            containerColor = Color.Transparent,
-                            scrolledContainerColor = Color.Transparent,
-                        ),
-                    )
-                }
+                MiuixTopAppBar(
+                    modifier = Modifier.blurEffect(),
+                    title = stringResource(R.string.module_repo),
+                    color = barColor,
+                    navigationIcon = { AppBackButton(onClick = { navigator.pop() }) },
+                    scrollBehavior = scroll,
+                )
             },
             containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onSurface,
             contentWindowInsets = adaptiveScaffoldWindowInsets(),
             snackbarHost = { SwipeableSnackbarHost(hostState = LocalSnackbarHost.current) },
             content = { padding: PaddingValues ->
                 Box(modifier = Modifier.fillMaxSize().padding(padding), contentAlignment = Alignment.Center) {
                     if (state.loading) {
-                        LoadingIndicator()
+                        InfiniteProgressIndicator(color = MiuixTheme.colorScheme.primary)
                     } else {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 stringResource(state.error?.resId ?: R.string.repo_error_network),
                             )
                             if (state.error != ModuleCatalogFailure.NotFound) {
-                                FilledTonalButton(onClick = { viewModel.dispatch(ModuleDetailUiAction.Retry) }) {
-                                    Text(stringResource(R.string.network_retry))
-                                }
+                                TextButton(
+                                    text = stringResource(R.string.network_retry),
+                                    onClick = { viewModel.dispatch(ModuleDetailUiAction.Retry) },
+                                )
                             }
                         }
                     }
@@ -200,7 +179,6 @@ fun OnlineModuleDetailScreen(
     OnlineModuleDetailContent(module, viewModel)
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun OnlineModuleDetailContent(module: CatalogModule, viewModel: ModuleDetailViewModel) {
     val coroutineScope = rememberCoroutineScope()
@@ -208,12 +186,7 @@ private fun OnlineModuleDetailContent(module: CatalogModule, viewModel: ModuleDe
     val tabTitles = listOf(stringResource(R.string.readme), stringResource(R.string.release), stringResource(R.string.info))
     val uriHandler = LocalUriHandler.current
     val pagerState = rememberPagerState(pageCount = { tabTitles.size })
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        rememberTopAppBarState(
-            initialHeightOffset = -154f,
-            initialHeightOffsetLimit = -154f, // from debugger
-        ),
-    )
+    val scrollBehavior = MiuixScrollBehavior()
 
     BackHandler(pagerState.currentPage != 0) {
         coroutineScope.launch { pagerState.animateScrollToPage(0) }
@@ -221,63 +194,40 @@ private fun OnlineModuleDetailContent(module: CatalogModule, viewModel: ModuleDe
     val navigator = LocalNavigator.current
     val theme = koinInject<ThemeConfig>()
     val cards = koinInject<CardConfig>()
-    val scroll = scrollBehavior ?: TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        rememberTopAppBarState(
-            initialHeightOffset = -154f,
-            initialHeightOffsetLimit = -154f, // from debugger
-        ),
-    )
     val barColor = if (theme.isEnableBlur) {
         Color.Transparent
     } else {
         MaterialTheme.colorScheme.surfaceContainer.copy(cards.cardAlpha)
     }
-    Scaffold(
-        modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
+    MiuixScaffold(
+        modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            Column(Modifier.blurEffect().background(barColor)) {
-                LargeFlexibleTopAppBar(
-                    title = {
-                        Text(
-                            text = module.moduleName,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    },
-                    navigationIcon = { AppBackButton(onClick = { navigator.pop() }) },
-                    actions = {
-                        IconButton(onClick = { uriHandler.openUri(module.pageUrl) }) {
-                            Icon(
-                                imageVector = Icons.TwoTone.OpenInBrowser,
-                                contentDescription = stringResource(R.string.open_module_home_page),
-                            )
-                        }
-                    },
-                    windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
-                    scrollBehavior = scroll,
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        scrolledContainerColor = Color.Transparent,
-                    ),
-                )
-                PrimaryTabRow(
-                    selectedTabIndex = pagerState.currentPage,
-                    containerColor = Color.Transparent,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    tabTitles.forEachIndexed { index, title ->
-                        Tab(
-                            selected = pagerState.currentPage == index,
-                            onClick = { coroutineScope.launch { pagerState.animateScrollToPage(index) } },
-                            unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            text = { Text(title) },
+            MiuixTopAppBar(
+                modifier = Modifier.blurEffect(),
+                title = module.moduleName,
+                color = barColor,
+                navigationIcon = { AppBackButton(onClick = { navigator.pop() }) },
+                actions = {
+                    MiuixIconButton(onClick = { uriHandler.openUri(module.pageUrl) }) {
+                        Icon(
+                            imageVector = Icons.TwoTone.OpenInBrowser,
+                            contentDescription = stringResource(R.string.open_module_home_page),
                         )
                     }
-                }
-            }
+                },
+                scrollBehavior = scrollBehavior,
+                bottomContent = {
+                    TabRow(
+                        tabs = tabTitles,
+                        selectedTabIndex = pagerState.currentPage,
+                        onTabSelected = { index ->
+                            coroutineScope.launch { pagerState.animateScrollToPage(index) }
+                        },
+                    )
+                },
+            )
         },
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
         contentWindowInsets = adaptiveScaffoldWindowInsets(),
         snackbarHost = { SwipeableSnackbarHost(hostState = LocalSnackbarHost.current) },
         content = { innerPadding: PaddingValues ->
@@ -302,7 +252,6 @@ private fun OnlineModuleDetailContent(module: CatalogModule, viewModel: ModuleDe
     )
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun InfoTab(
     module: CatalogModule,
@@ -391,10 +340,10 @@ private fun ModuleInfoLink(title: String, description: String?, url: String?, al
         iconPlaceholder = false,
     ) {
         if (link != null) {
-            FilledTonalButton(
-                modifier = Modifier.defaultMinSize(minWidth = 52.dp, minHeight = 32.dp),
+            MiuixIconButton(
                 onClick = { uriHandler.openUri(link) },
-                contentPadding = ButtonDefaults.TextButtonContentPadding,
+                minWidth = 52.dp,
+                minHeight = 32.dp,
             ) {
                 Icon(
                     Icons.TwoTone.Link,
@@ -422,9 +371,11 @@ private fun DetailNotice(module: CatalogModule, state: ModuleDetailUiState?, vie
         } else if (state?.error != null) {
             Text(stringResource(R.string.repo_detail_error), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
         }
-        TextButton(onClick = { viewModel?.dispatch(ModuleDetailUiAction.Retry) }, enabled = state?.loading != true) {
-            Text(stringResource(R.string.network_retry))
-        }
+        TextButton(
+            text = stringResource(R.string.network_retry),
+            onClick = { viewModel?.dispatch(ModuleDetailUiAction.Retry) },
+            enabled = state?.loading != true,
+        )
     }
 }
 
@@ -502,7 +453,6 @@ private fun LazyListScope.releaseGroup(module: CatalogModule, release: ModuleRel
     item(key = "$releaseKey:spacing") { Spacer(Modifier.height(12.dp)) }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ReadmeTab(
     module: CatalogModule,
@@ -543,11 +493,12 @@ private fun ReadmeTab(
                 documentFailed -> item(key = "error") {
                     Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                         Text(stringResource(R.string.repo_document_error))
-                        TextButton(onClick = {
-                            if (!module.detailLoaded) viewModel.dispatch(ModuleDetailUiAction.Retry) else viewModel.loadReadme(retry = true)
-                        }) {
-                            Text(stringResource(R.string.network_retry))
-                        }
+                        TextButton(
+                            text = stringResource(R.string.network_retry),
+                            onClick = {
+                                if (!module.detailLoaded) viewModel.dispatch(ModuleDetailUiAction.Retry) else viewModel.loadReadme(retry = true)
+                            },
+                        )
                     }
                 }
 
@@ -574,7 +525,10 @@ private fun ReadmeTab(
             }
         }
         if (documentLoading || (!documentFailed && content.isNotBlank() && htmlLoading.value)) {
-            LoadingIndicator(Modifier.align(Alignment.Center))
+            InfiniteProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = MiuixTheme.colorScheme.primary,
+            )
         }
     }
 }
@@ -654,18 +608,34 @@ private fun ReleaseAsset(module: CatalogModule, release: ModuleRelease, asset: M
             }
         },
     ) {
-        FilledTonalButton(
-            modifier = Modifier.semantics { contentDescription = downloadDescription },
+        MiuixIconButton(
             onClick = onClick,
             enabled = !downloading,
-            contentPadding = ButtonDefaults.TextButtonContentPadding,
+            minWidth = 52.dp,
+            minHeight = 32.dp,
+            modifier = Modifier.semantics { contentDescription = downloadDescription },
         ) {
             if (downloading) {
-                CircularProgressIndicator(progress = { progress / 100f }, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                CircularProgressIndicator(
+                    progress = progress / 100f,
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                )
             } else {
-                Icon(if (module.isScript) Icons.TwoTone.PlayArrow else Icons.TwoTone.Download, contentDescription = null, modifier = Modifier.size(20.dp))
-                Spacer(Modifier.width(8.dp))
-                Text(stringResource(if (module.isScript) R.string.script_run else R.string.repo_download), style = MaterialTheme.typography.labelMedium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = if (module.isScript) Icons.TwoTone.PlayArrow else Icons.TwoTone.Download,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurface,
+                        modifier = Modifier.size(20.dp),
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = stringResource(if (module.isScript) R.string.script_run else R.string.repo_download),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                }
             }
         }
     }
@@ -677,7 +647,6 @@ internal fun releaseDate(value: String, locale: Locale): String = runCatching {
         .format(Instant.parse(value).atZone(ZoneId.systemDefault()))
 }.getOrDefault(value)
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ReleaseNotes(module: CatalogModule, release: ModuleRelease, state: ReleaseDetailsState?, viewModel: ModuleDetailViewModel?) {
     LaunchedEffect(module, release) { viewModel?.loadReleaseDetails(release) }
@@ -690,26 +659,28 @@ private fun ReleaseNotes(module: CatalogModule, release: ModuleRelease, state: R
     val documentLoading = document == null && release.changelogUrl.isNotBlank() && (state == null || state.loading)
     val documentFailed = state?.details?.notesFailed == true
     Column(Modifier.fillMaxWidth()) {
-        TextButton(
+        BasicComponent(
+            title = stringResource(R.string.show_detail_or_hide_detail),
+            endActions = {
+                Icon(
+                    imageVector = if (expanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
+                    contentDescription = stringResource(if (expanded) R.string.repo_collapse_changelog else R.string.repo_expand_changelog),
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
             onClick = { expanded = !expanded },
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            Text(stringResource(R.string.show_detail_or_hide_detail), modifier = Modifier.weight(1f))
-            Icon(
-                imageVector = if (expanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
-                contentDescription = stringResource(if (expanded) R.string.repo_collapse_changelog else R.string.repo_expand_changelog),
-            )
-        }
+        )
         if (expanded) {
             Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
                 when {
-                    documentLoading -> LoadingIndicator()
+                    documentLoading -> InfiniteProgressIndicator(color = MiuixTheme.colorScheme.primary)
 
                     documentFailed -> Column {
                         Text(stringResource(R.string.repo_changelog_error))
-                        TextButton(onClick = { viewModel?.loadReleaseDetails(release, retry = true) }) {
-                            Text(stringResource(R.string.network_retry))
-                        }
+                        TextButton(
+                            text = stringResource(R.string.network_retry),
+                            onClick = { viewModel?.loadReleaseDetails(release, retry = true) },
+                        )
                     }
 
                     document != null -> {
@@ -719,7 +690,7 @@ private fun ReleaseNotes(module: CatalogModule, release: ModuleRelease, state: R
                             loading = htmlLoading,
                             callerProvideLoadingIndicator = true,
                         )
-                        if (htmlLoading.value) LoadingIndicator()
+                        if (htmlLoading.value) InfiniteProgressIndicator(color = MiuixTheme.colorScheme.primary)
                     }
                 }
             }

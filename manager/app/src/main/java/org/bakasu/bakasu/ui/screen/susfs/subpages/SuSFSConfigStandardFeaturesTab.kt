@@ -10,11 +10,13 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
@@ -25,16 +27,8 @@ import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.Computer
 import androidx.compose.material.icons.twotone.Security
 import androidx.compose.material.icons.twotone.VisibilityOff
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -68,13 +62,19 @@ import org.bakasu.bakasu.ui.viewmodel.SuSFSViewModel
 import org.bakasu.bakasu.ui.viewmodel.awaitSuSFSBoolean
 import org.bakasu.bakasu.ui.viewmodel.awaitSuSFSSlotInfo
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.RadioButton
+import top.yukonga.miuix.kmp.basic.TabRow
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private enum class UnameDialogTab {
     Manual,
     SlotInfo,
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun StandardFeaturesTab(
     nestedScrollConnection: NestedScrollConnection,
@@ -348,209 +348,194 @@ fun StandardFeaturesTab(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center,
             ) {
-                LoadingIndicator()
+                InfiniteProgressIndicator(color = MiuixTheme.colorScheme.primary)
             }
         }
 
-        if (showUnameDialog) {
-            AlertDialog(
-                onDismissRequest = { showUnameDialog = false },
-                title = { Text(stringResource(R.string.susfs_standard_uname)) },
-                text = {
-                    Column(modifier = Modifier.fillMaxWidth()) {
-                        PrimaryTabRow(
-                            selectedTabIndex = unameDialogTab.ordinal,
-                            containerColor = Color.Transparent,
-                            divider = {},
-                        ) {
-                            Tab(
-                                selected = unameDialogTab == UnameDialogTab.Manual,
-                                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                onClick = { unameDialogTab = UnameDialogTab.Manual },
-                                text = {
-                                    Text(stringResource(R.string.susfs_standard_uname_tab_manual))
-                                },
-                            )
-                            Tab(
-                                selected = unameDialogTab == UnameDialogTab.SlotInfo,
-                                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                onClick = { unameDialogTab = UnameDialogTab.SlotInfo },
-                                text = {
-                                    Text(stringResource(R.string.susfs_standard_uname_tab_slot_info))
-                                },
-                            )
+        OverlayDialog(
+            show = showUnameDialog,
+            onDismissRequest = { showUnameDialog = false },
+            title = stringResource(R.string.susfs_standard_uname),
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                TabRow(
+                    tabs = listOf(
+                        stringResource(R.string.susfs_standard_uname_tab_manual),
+                        stringResource(R.string.susfs_standard_uname_tab_slot_info),
+                    ),
+                    selectedTabIndex = unameDialogTab.ordinal,
+                    onTabSelected = { index ->
+                        unameDialogTab = UnameDialogTab.entries[index]
+                    },
+                )
+
+                AnimatedContent(
+                    targetState = unameDialogTab,
+                    transitionSpec = {
+                        val direction =
+                            if (targetState.ordinal > initialState.ordinal) 1 else -1
+                        val enter = slideInHorizontally { width ->
+                            direction * width / 3
+                        } + fadeIn()
+                        val exit = slideOutHorizontally { width ->
+                            -direction * width / 3
+                        } + fadeOut()
+                        enter togetherWith exit
+                    },
+                    label = "UnameDialogTabContent",
+                ) { currentTab ->
+                    when (currentTab) {
+                        UnameDialogTab.Manual -> {
+                            SegmentedColumn(contentPadding = PaddingValues(top = 8.dp)) {
+                                item {
+                                    SettingsTextFieldWidget(
+                                        state = unameReleaseInput,
+                                        title = stringResource(R.string.susfs_standard_uname_release),
+                                        useLabelAsPlaceholder = true,
+                                        lineLimits = TextFieldLineLimits.SingleLine,
+                                        renderBackgroundBlur = false,
+                                    )
+                                }
+                                item {
+                                    SettingsTextFieldWidget(
+                                        state = unameVersionInput,
+                                        title = stringResource(R.string.susfs_standard_uname_version),
+                                        useLabelAsPlaceholder = true,
+                                        lineLimits = TextFieldLineLimits.SingleLine,
+                                        renderBackgroundBlur = false,
+                                    )
+                                }
+                            }
                         }
 
-                        AnimatedContent(
-                            targetState = unameDialogTab,
-                            transitionSpec = {
-                                val direction =
-                                    if (targetState.ordinal > initialState.ordinal) 1 else -1
-                                val enter = slideInHorizontally { width ->
-                                    direction * width / 3
-                                } + fadeIn()
-                                val exit = slideOutHorizontally { width ->
-                                    -direction * width / 3
-                                } + fadeOut()
-                                enter togetherWith exit
-                            },
-                            label = "UnameDialogTabContent",
-                        ) { currentTab ->
-                            when (currentTab) {
-                                UnameDialogTab.Manual -> {
-                                    SegmentedColumn(contentPadding = PaddingValues(top = 8.dp)) {
-                                        item {
-                                            SettingsTextFieldWidget(
-                                                state = unameReleaseInput,
-                                                title = stringResource(R.string.susfs_standard_uname_release),
-                                                useLabelAsPlaceholder = true,
-                                                lineLimits = TextFieldLineLimits.SingleLine,
-                                                renderBackgroundBlur = false,
-                                            )
-                                        }
-                                        item {
-                                            SettingsTextFieldWidget(
-                                                state = unameVersionInput,
-                                                title = stringResource(R.string.susfs_standard_uname_version),
-                                                useLabelAsPlaceholder = true,
-                                                lineLimits = TextFieldLineLimits.SingleLine,
-                                                renderBackgroundBlur = false,
-                                            )
-                                        }
+                        UnameDialogTab.SlotInfo -> {
+                            when {
+                                isSlotInfoLoading ||
+                                    (slotInfos == null && !slotInfoLoadFailed) -> {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .heightIn(min = 160.dp),
+                                        contentAlignment = Alignment.Center,
+                                    ) {
+                                        InfiniteProgressIndicator(color = MiuixTheme.colorScheme.primary)
                                     }
                                 }
 
-                                UnameDialogTab.SlotInfo -> {
-                                    when {
-                                        isSlotInfoLoading ||
-                                            (slotInfos == null && !slotInfoLoadFailed) -> {
-                                            Box(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .heightIn(min = 160.dp),
-                                                contentAlignment = Alignment.Center,
-                                            ) {
-                                                LoadingIndicator()
-                                            }
-                                        }
+                                slotInfoLoadFailed || slotInfos.isNullOrEmpty() -> {
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .heightIn(min = 160.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally,
+                                        verticalArrangement = Arrangement.Center,
+                                    ) {
+                                        Text(
+                                            text = stringResource(
+                                                if (slotInfoLoadFailed) {
+                                                    R.string.susfs_standard_uname_slot_info_load_failed
+                                                } else {
+                                                    R.string.susfs_standard_uname_slot_info_empty
+                                                },
+                                            ),
+                                        )
+                                        TextButton(
+                                            text = stringResource(R.string.network_retry),
+                                            onClick = {
+                                                slotInfos = null
+                                                slotInfoLoadFailed = false
+                                                slotInfoReloadKey++
+                                            },
+                                        )
+                                    }
+                                }
 
-                                        slotInfoLoadFailed || slotInfos.isNullOrEmpty() -> {
-                                            Column(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .heightIn(min = 160.dp),
-                                                horizontalAlignment = Alignment.CenterHorizontally,
-                                                verticalArrangement = Arrangement.Center,
-                                            ) {
-                                                Text(
-                                                    text = stringResource(
-                                                        if (slotInfoLoadFailed) {
-                                                            R.string.susfs_standard_uname_slot_info_load_failed
-                                                        } else {
-                                                            R.string.susfs_standard_uname_slot_info_empty
-                                                        },
-                                                    ),
-                                                )
-                                                TextButton(
-                                                    onClick = {
-                                                        slotInfos = null
-                                                        slotInfoLoadFailed = false
-                                                        slotInfoReloadKey++
-                                                    },
-                                                ) {
-                                                    Text(stringResource(R.string.network_retry))
-                                                }
-                                            }
-                                        }
-
-                                        else -> {
-                                            LazyColumn(
-                                                modifier = Modifier
-                                                    .fillMaxWidth()
-                                                    .heightIn(max = 320.dp),
-                                                contentPadding = PaddingValues(vertical = 8.dp),
-                                            ) {
-                                                lazySegmentColumn(
-                                                    items = checkNotNull(slotInfos),
-                                                    noHorizontalPadding = true,
-                                                    key = { index, slot ->
-                                                        "$index:${slot.slotName}"
-                                                    },
-                                                ) { _, slot ->
-                                                    val selected =
-                                                        selectedSlotName == slot.slotName
-                                                    SettingsBaseWidget(
-                                                        iconPlaceholder = false,
-                                                        title = slot.slotName,
-                                                        description = "${slot.uname}\n${slot.buildTime}",
+                                else -> {
+                                    LazyColumn(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .heightIn(max = 320.dp),
+                                        contentPadding = PaddingValues(vertical = 8.dp),
+                                    ) {
+                                        lazySegmentColumn(
+                                            items = checkNotNull(slotInfos),
+                                            noHorizontalPadding = true,
+                                            key = { index, slot ->
+                                                "$index:${slot.slotName}"
+                                            },
+                                        ) { _, slot ->
+                                            val selected =
+                                                selectedSlotName == slot.slotName
+                                            SettingsBaseWidget(
+                                                iconPlaceholder = false,
+                                                title = slot.slotName,
+                                                description = "${slot.uname}\n${slot.buildTime}",
+                                                selected = selected,
+                                                isOnBackground = false,
+                                                onClick = {
+                                                    selectedSlotName = slot.slotName
+                                                },
+                                                leadingContent = {
+                                                    RadioButton(
                                                         selected = selected,
-                                                        isOnBackground = false,
-                                                        onClick = {
-                                                            selectedSlotName = slot.slotName
-                                                        },
-                                                        leadingContent = {
-                                                            RadioButton(
-                                                                selected = selected,
-                                                                onClick = null,
-                                                            )
-                                                        },
+                                                        onClick = null,
                                                     )
-                                                }
-                                            }
+                                                },
+                                            )
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = handleUnameSave,
-                    ) {
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                ) {
+                    Button(onClick = handleUnameSave) {
                         Text(stringResource(R.string.susfs_save))
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showUnameDialog = false }) {
-                        Text(stringResource(R.string.susfs_entry_cancel))
-                    }
-                },
-            )
+                    TextButton(
+                        text = stringResource(R.string.susfs_entry_cancel),
+                        onClick = { showUnameDialog = false },
+                    )
+                }
+            }
         }
 
-        if (showCmdlineDialog) {
-            AlertDialog(
-                onDismissRequest = { showCmdlineDialog = false },
-                title = {
-                    Text(stringResource(R.string.susfs_standard_cmdline_or_bootconfig))
-                },
-                text = {
-                    SegmentedColumn(contentPadding = PaddingValues(0.dp)) {
-                        item {
-                            SettingsTextFieldWidget(
-                                state = cmdlineInput,
-                                title = stringResource(R.string.susfs_standard_cmdline_path),
-                                useLabelAsPlaceholder = true,
-                                lineLimits = TextFieldLineLimits.SingleLine,
-                                renderBackgroundBlur = false,
-                            )
-                        }
+        OverlayDialog(
+            show = showCmdlineDialog,
+            onDismissRequest = { showCmdlineDialog = false },
+            title = stringResource(R.string.susfs_standard_cmdline_or_bootconfig),
+        ) {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                SegmentedColumn(contentPadding = PaddingValues(0.dp)) {
+                    item {
+                        SettingsTextFieldWidget(
+                            state = cmdlineInput,
+                            title = stringResource(R.string.susfs_standard_cmdline_path),
+                            useLabelAsPlaceholder = true,
+                            lineLimits = TextFieldLineLimits.SingleLine,
+                            renderBackgroundBlur = false,
+                        )
                     }
-                },
-                confirmButton = {
-                    TextButton(
-                        onClick = handleCmdlineSave,
-                    ) {
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                ) {
+                    Button(onClick = handleCmdlineSave) {
                         Text(stringResource(R.string.susfs_save))
                     }
-                },
-                dismissButton = {
-                    TextButton(onClick = { showCmdlineDialog = false }) {
-                        Text(stringResource(R.string.susfs_entry_cancel))
-                    }
-                },
-            )
+                    TextButton(
+                        text = stringResource(R.string.susfs_entry_cancel),
+                        onClick = { showCmdlineDialog = false },
+                    )
+                }
+            }
         }
     }
 }

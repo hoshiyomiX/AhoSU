@@ -16,8 +16,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -47,17 +45,9 @@ import androidx.compose.material.icons.twotone.Security
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Update
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -108,6 +98,11 @@ import org.bakasu.bakasu.ui.viewmodel.SettingsUiAction
 import org.bakasu.bakasu.ui.viewmodel.SettingsViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
+import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 
 /**
  * @author ShirkNeko
@@ -117,11 +112,10 @@ import org.koin.compose.viewmodel.koinViewModel
 private val SPACING_MEDIUM = 8.dp
 private val SPACING_LARGE = 16.dp
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsPage(bottomPadding: Dp) {
     val navigator = LocalNavigator.current
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = MiuixScrollBehavior()
     val snackBarHost = LocalSnackbarHost.current
     val settingsViewModel = koinViewModel<SettingsViewModel>()
     val homeViewModel = koinViewModel<HomeViewModel>()
@@ -133,7 +127,7 @@ fun SettingsPage(bottomPadding: Dp) {
         settingsViewModel.dispatch(SettingsUiAction.LoadFeatureSettings)
     }
 
-    Scaffold(
+    MiuixScaffold(
         topBar = {
             TopBar(scrollBehavior = scrollBehavior)
         },
@@ -144,12 +138,12 @@ fun SettingsPage(bottomPadding: Dp) {
             )
         },
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
         contentWindowInsets = adaptiveScaffoldWindowInsets(includeBottom = false),
     ) { innerPadding ->
         val loadingDialog = rememberLoadingDialog()
         var showBottomsheet by remember { mutableStateOf(false) }
         val logSaved = stringResource(R.string.log_saved)
+        val sendLog = stringResource(R.string.send_log)
         val context = LocalContext.current
         val scope = rememberCoroutineScope()
         val exportBugreportLauncher = rememberLauncherForActivityResult(
@@ -491,51 +485,6 @@ fun SettingsPage(bottomPadding: Dp) {
                 )
             }
 
-            if (showBottomsheet) {
-                item {
-                    val sendLog = stringResource(R.string.send_log)
-                    LogBottomSheet(
-                        onDismiss = { showBottomsheet = false },
-                        onSaveLog = {
-                            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm")
-                            val current = LocalDateTime.now().format(formatter)
-                            exportBugreportLauncher.launch("KernelSU_bugreport_$current.tar.gz")
-                            showBottomsheet = false
-                        },
-                        onShareLog = {
-                            scope.launch {
-                                val bugreport = loadingDialog.withLoading {
-                                    withContext(Dispatchers.IO) {
-                                        generateBugreport()
-                                    }
-                                }
-
-                                val uri = FileProvider.getUriForFile(
-                                    context,
-                                    "${BuildConfig.APPLICATION_ID}.fileprovider",
-                                    bugreport,
-                                )
-
-                                val shareIntent = Intent(Intent.ACTION_SEND).apply {
-                                    putExtra(Intent.EXTRA_STREAM, uri)
-                                    setDataAndType(uri, "application/gzip")
-                                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                                }
-
-                                context.startActivity(
-                                    Intent.createChooser(
-                                        shareIntent,
-                                        sendLog,
-                                    ),
-                                )
-
-                                showBottomsheet = false
-                            }
-                        },
-                    )
-                }
-            }
-
             // 关于卡片
             item {
                 SegmentedColumn(
@@ -554,17 +503,59 @@ fun SettingsPage(bottomPadding: Dp) {
                 )
             }
         }
+
+        LogBottomSheet(
+            show = showBottomsheet,
+            onDismiss = { showBottomsheet = false },
+            onSaveLog = {
+                val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH_mm")
+                val current = LocalDateTime.now().format(formatter)
+                exportBugreportLauncher.launch("KernelSU_bugreport_$current.tar.gz")
+                showBottomsheet = false
+            },
+            onShareLog = {
+                scope.launch {
+                    val bugreport = loadingDialog.withLoading {
+                        withContext(Dispatchers.IO) {
+                            generateBugreport()
+                        }
+                    }
+
+                    val uri = FileProvider.getUriForFile(
+                        context,
+                        "${BuildConfig.APPLICATION_ID}.fileprovider",
+                        bugreport,
+                    )
+
+                    val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                        putExtra(Intent.EXTRA_STREAM, uri)
+                        setDataAndType(uri, "application/gzip")
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    }
+
+                    context.startActivity(
+                        Intent.createChooser(
+                            shareIntent,
+                            sendLog,
+                        ),
+                    )
+
+                    showBottomsheet = false
+                }
+            },
+        )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun LogBottomSheet(
+    show: Boolean,
     onDismiss: () -> Unit,
     onSaveLog: () -> Unit,
     onShareLog: () -> Unit,
 ) {
-    ModalBottomSheet(
+    OverlayBottomSheet(
+        show = show,
         onDismissRequest = onDismiss,
     ) {
         Row(
@@ -692,33 +683,21 @@ enum class UninstallType(@param:StringRes val title: Int, @param:StringRes val m
     NONE(0, 0, Icons.TwoTone.Delete),
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TopBar(
-    scrollBehavior: TopAppBarScrollBehavior? = null,
+    scrollBehavior: ScrollBehavior? = null,
 ) {
     val themeConfig: ThemeConfig = koinInject()
     val cardConfig: CardConfig = koinInject()
-    LargeFlexibleTopAppBar(
+    MiuixTopAppBar(
         modifier = Modifier.blurEffect(),
-        title = {
-            Text(text = stringResource(R.string.settings))
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor =
-                if (themeConfig.isEnableBlur) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                },
-            scrolledContainerColor =
-                if (themeConfig.isEnableBlur) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                },
-        ),
-        windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
+        title = stringResource(R.string.settings),
+        color =
+            if (themeConfig.isEnableBlur) {
+                Color.Transparent
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
+            },
         scrollBehavior = scrollBehavior,
     )
 }

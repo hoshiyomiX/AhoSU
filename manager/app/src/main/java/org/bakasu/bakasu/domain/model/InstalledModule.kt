@@ -21,6 +21,10 @@ data class InstalledModule(
     val webUiIconPath: String?,
     val dirId: String,
     val moduleUpdate: ModuleUpdateMetadata?,
+    /** e.g. "20/22" — rules of the last sepolicy.rule apply accepted by the kernel. */
+    val sepolicyApplied: String? = null,
+    /** Rejected rules from the last sepolicy.rule apply ("; "-joined). */
+    val sepolicyFailedRules: String? = null,
 )
 
 data class InstalledModulesState(

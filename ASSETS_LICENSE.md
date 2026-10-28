@@ -2,11 +2,11 @@
 
 **English** | [简体中文](ASSETS_LICENSE.zh-CN.md)
 
-> **Author & Copyright Holder**: **OukaroMF** ([GitHub @OukaroMF](https://github.com/OukaroMF))  
+> **Original Author & Copyright Holder (BakaSU designated assets)**: **OukaroMF** ([GitHub @OukaroMF](https://github.com/OukaroMF))  
 > **Strict Scope**: **This agreement applies STRICTLY and EXCLUSIVELY to the following three designated visual and vector asset files**, and does not apply to any other files, source code, documentation, or assets in this project:
 > 1. **`docs/BakaSU_Clean.svg`**
 > 2. **`docs/BakaSU_Full.svg`**
-> 3. **`manager/app/src/main/res/drawable/ic_launcher_foreground.xml`**
+> 3. **AhoSU launcher icon artwork** — `manager/app/src/main/res/drawable-*/ic_launcher_foreground.png`, `ic_launcher_background.png` and `ic_launcher_monochrome.png`
 
 ---
 
@@ -17,15 +17,15 @@ To balance the protection of original creative work, compliance with commercial 
 | File | Nature | Author / Copyright Holder | License | Key Permissions & Restrictions |
 | :--- | :--- | :--- | :--- | :--- |
 | **`docs/BakaSU_Clean.svg`** | 100% Original Vector Artwork | **OukaroMF** | **All Rights Reserved** | • **Exclusive Rights**: The author OukaroMF reserves 100% copyright.<br>• **Prohibited**: Unauthorized modification, redistribution, element extraction, or commercial use is strictly prohibited. |
-| **`manager/app/src/main/res/drawable/ic_launcher_foreground.xml`** | 100% Original Vector Graphic | **OukaroMF** | **All Rights Reserved** | • **Exclusive Rights**: The author OukaroMF reserves 100% copyright.<br>• **Prohibited**: Unauthorized modification, redistribution, element extraction, or commercial use is strictly prohibited. |
+| **AhoSU launcher icon artwork** (`drawable-*/ic_launcher_foreground.png`, `ic_launcher_background.png`, `ic_launcher_monochrome.png`) | User-provided raster artwork (anime-style illustration supplied by the maintainer, cropped/derived for adaptive-icon layers) | **hoshiyomiX (AhoSU maintainer)** | **Project-internal use** | • Supplied on 2026-10-27 by the AhoSU maintainer for exclusive use as the AhoSU launcher icon; redistribution or use outside the AhoSU project is not permitted.<br>• The former BakaSU vector launcher foreground (author OukaroMF, All Rights Reserved) was **removed** from the manager during the AhoSU rebrand; its license no longer applies to any file shipped in this repository. |
 | **`docs/BakaSU_Full.svg`** | Composite Artwork with 3rd-Party Typography | **OukaroMF**<br>*(contains 3rd-party glyphs)* | **CC BY-NC-ND 4.0** | • **Permitted**: Non-commercial display, sharing, and quotation in unmodified form.<br>• **Restrictions**: Must retain full attribution to GitHub@OukaroMF; commercial use and derivative works/alterations are prohibited. |
 
 ---
 
 ## 2. Detailed License Terms
 
-### Layer 1: Terms for `docs/BakaSU_Clean.svg` and `manager/app/src/main/res/drawable/ic_launcher_foreground.xml` (All Rights Reserved)
-- **Applicable Subjects**: **Exclusively `docs/BakaSU_Clean.svg` and `manager/app/src/main/res/drawable/ic_launcher_foreground.xml`**.
+### Layer 1: Terms for `docs/BakaSU_Clean.svg` (All Rights Reserved)
+- **Applicable Subjects**: **Exclusively `docs/BakaSU_Clean.svg`**.
 - **Author**: OukaroMF ([GitHub @OukaroMF](https://github.com/OukaroMF))
 - **Copyright Notice**: `Copyright (c) 2026 OukaroMF. All Rights Reserved.`
 - **Terms**:
@@ -71,7 +71,8 @@ The typography in `docs/BakaSU_Full.svg` incorporates the following third-party 
 | Scenario | Permitted? | Note |
 | :--- | :---: | :--- |
 | Embedding/displaying `docs/BakaSU_Full.svg` in reviews, articles, or forum posts | **YES** | Must remain unmodified and include attribution to GitHub@OukaroMF and the project repo |
-| Extracting or modifying `docs/BakaSU_Clean.svg` or `manager/app/src/main/res/drawable/ic_launcher_foreground.xml` for other modules or apps | **NO** | Infringes the copyright of original author OukaroMF |
+| Extracting or modifying `docs/BakaSU_Clean.svg` for other modules or apps | **NO** | Infringes the copyright of original author OukaroMF |
+| Reusing the AhoSU launcher icon artwork outside the AhoSU project | **NO** | User-provided artwork reserved for project-internal use |
 | Extracting font vector paths from `docs/BakaSU_Full.svg` to create other words | **NO** | Violates CC BY-NC-ND and commercial font compliance requirements |
 | Using designated visual/artwork assets in paid ROMs, commercial modules, or paid packages | **NO** | Strictly prohibited |
 
@@ -79,5 +80,5 @@ The typography in `docs/BakaSU_Full.svg` incorporates the following third-party 
 
 ## 4. Relationship with Source Code License
 
-This license **applies strictly and exclusively to `docs/BakaSU_Clean.svg`, `docs/BakaSU_Full.svg`, and `manager/app/src/main/res/drawable/ic_launcher_foreground.xml`**.  
+This license **applies strictly and exclusively to `docs/BakaSU_Clean.svg`, `docs/BakaSU_Full.svg`, and the AhoSU launcher icon artwork (`manager/app/src/main/res/drawable-*/ic_launcher_foreground.png`, `ic_launcher_background.png`, `ic_launcher_monochrome.png`)**.  
 The source code of the BakaSU project is licensed under its own open-source license (such as GPL-3.0). The source code license and this asset license are mutually independent and do not cover each other.

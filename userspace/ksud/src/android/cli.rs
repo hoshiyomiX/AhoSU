@@ -604,10 +604,7 @@ pub fn run() -> Result<()> {
         Commands::AnyKernel3 { zip, slot } => anykernel3::flash(&zip, slot),
         Commands::Susfs(args) => crate::android::susfs::cli::run_main(args),
         Commands::PostFsData => init_event::on_post_fs_data(),
-        Commands::BootCompleted => {
-            init_event::on_boot_completed();
-            Ok(())
-        }
+        Commands::BootCompleted => init_event::on_boot_completed(),
         Commands::UmountConfig { command } => match command {
             UmountConfigOp::Add { mnt, flags } => umount_config::add_umount(&mnt, flags),
             UmountConfigOp::Del { mnt } => umount_config::del_umount(&mnt),
@@ -725,8 +722,16 @@ pub fn run() -> Result<()> {
         Commands::Unload => crate::android::unload::unload(),
         Commands::Uninstall { package_name } => utils::uninstall(&package_name),
         Commands::Sepolicy { command } => match command {
-            Sepolicy::Patch { sepolicy } => sepolicy::live_patch(&sepolicy),
-            Sepolicy::Apply { file } => sepolicy::apply_file(file),
+            Sepolicy::Patch { sepolicy } => {
+                let report = sepolicy::live_patch(&sepolicy)?;
+                print_sepolicy_report(&report);
+                Ok(())
+            }
+            Sepolicy::Apply { file } => {
+                let report = sepolicy::apply_file(file)?;
+                print_sepolicy_report(&report);
+                Ok(())
+            }
             Sepolicy::Check { sepolicy } => sepolicy::check_rule(&sepolicy),
         },
         Commands::LateLoad {
@@ -757,8 +762,7 @@ pub fn run() -> Result<()> {
                 info!("KernelSU not available, exiting services");
                 std::process::exit(0);
             }
-            init_event::on_services();
-            Ok(())
+            init_event::on_services()
         }
         Commands::Sulogd => sulog::run_sulogd(),
         Commands::Profile { command } => match command {
@@ -939,4 +943,18 @@ pub fn run() -> Result<()> {
         log::error!("Error: {e:?}");
     }
     result
+}
+
+/// Print which rules the kernel rejected after a live patch / rule file apply.
+fn print_sepolicy_report(report: &sepolicy::SepolicyApplyReport) {
+    if report.applied >= report.total {
+        return;
+    }
+    println!(
+        "sepolicy: {}/{} rules applied",
+        report.applied, report.total
+    );
+    for rule in &report.failed {
+        println!("sepolicy rule NOT applied by kernel: {rule}");
+    }
 }

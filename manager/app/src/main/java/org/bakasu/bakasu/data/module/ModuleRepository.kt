@@ -183,6 +183,9 @@ class ModuleRepository(
                 webUiIconPath = value.optString("webuiIcon").takeIf(String::isNotBlank),
                 dirId = value.optString("dir_id", id),
                 moduleUpdate = null,
+                sepolicyApplied = value.optString("sepolicyApplied").takeIf(String::isNotBlank),
+                sepolicyFailedRules = value.optString("sepolicyFailedRules")
+                    .takeIf(String::isNotBlank),
             )
         }
     }

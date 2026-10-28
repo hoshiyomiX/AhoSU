@@ -196,6 +196,7 @@
     <string name="susfs_config_title">Konfigurasi SuSFS</string>
     <string name="susfs_config_setting_title">Konfigurasi SUSFS</string>
     <string name="module_update_json">Perbarui JSON</string>
+    <string name="module_sepolicy_incomplete">Sepolicy: %1$s rule diterapkan. Tidak diterapkan kernel: %2$s. Kebijakan ROM mungkin tidak memiliki tipe atau class yang dipakai modul ini.</string>
     <string name="module_update_json_copied">URL Pembaruan JSON disalin ke papan klip</string>
     <string name="show_more_module_info">Tampilkan info modul lainnya</string>
     <string name="show_more_module_info_summary">Pajang info modul tambahan seperti URL pembaruan JSON</string>
@@ -504,6 +505,10 @@
     <string name="susfs_enable_config">manajer SUSFS</string>
     <string name="susfs_enable_config_summary">Aktifkan manajer SUSFS bawaan, Dapat mengalami konflik dengan modul pihak ketiga.</string>
     <string name="susfs_config_disable_warning">Manajer SUSFS bawaan dinonaktfikan. Aktifkan manajer atau pasang modul pihak ketiga untuk menggunakan fitur SUSFS.</string>
+    <string name="susfs_supercall_unsupported">Supercall SuSFS kernel tidak tersedia (kernel dibangun tanpa CONFIG_KSU_SUSFS). Konfigurasi di sini tidak bisa diterapkan ke kernel, sehingga perubahan diblokir.</string>
+    <string name="susfs_supercall_unsupported_guard">Supercall SuSFS kernel tidak tersedia (kernel dibangun tanpa CONFIG_KSU_SUSFS). %1$s aktif secara out-of-band dengan pengaturan bawaannya; konfigurasi di sini tidak berlaku untuknya, sehingga perubahan diblokir.</string>
+    <string name="susfs_guard_pending">Supercall SuSFS kernel tidak tersedia dan guard belum termuat. Module %1$s yang aktif memuat guard saat tahap modul — Mulai ulang cepat menjalankan ulang tahap tersebut, jadi reboot penuh tidak diperlukan. Ketuk untuk mulai ulang cepat sekarang.</string>
+    <string name="susfs_guard_pending_confirm">Mulai ulang framework sekarang? Aplikasi yang sedang berjalan akan ditutup, dan guard SuSFS akan termuat saat tahap modul dijalankan ulang.</string>
     <string name="susfs_standard_logging">Logging</string>
     <string name="susfs_standard_cmdline_or_bootconfig">Cmdline / Bootconfig</string>
     <string name="susfs_standard_current_value">Saat ini: %1$s</string>

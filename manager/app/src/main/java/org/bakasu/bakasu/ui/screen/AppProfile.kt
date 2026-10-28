@@ -7,13 +7,9 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -26,17 +22,9 @@ import androidx.compose.material.icons.twotone.AccountCircle
 import androidx.compose.material.icons.twotone.Android
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Security
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -94,13 +82,18 @@ import org.bakasu.bakasu.ui.viewmodel.AppProfileViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.TabRow
+import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * @author weishu
  * @date 2023/5/16.
  */
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppProfileScreen(
     uid: Int,
@@ -109,7 +102,7 @@ fun AppProfileScreen(
     val cardConfig: CardConfig = koinInject()
     val navigator = LocalNavigator.current
     val snackBarHost = LocalSnackbarHost.current
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
+    val scrollBehavior = MiuixScrollBehavior()
     val scope = rememberCoroutineScope()
     val viewModel =
         koinViewModel<AppProfileViewModel>(parameters = { parametersOf(uid, packageName) })
@@ -146,48 +139,31 @@ fun AppProfileScreen(
     val profile = uiState.profile
     if (appGroup == null || profile == null) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator()
+            InfiniteProgressIndicator(color = MiuixTheme.colorScheme.primary)
         }
         return
     }
 
     val colorScheme = MaterialTheme.colorScheme
-    val cardColor = if (cardConfig.isCustomBackgroundEnabled) {
-        Color.Transparent
-    } else {
-        colorScheme.surfaceContainer
-    }
+    val cardColor = colorScheme.surfaceContainer
 
-    Scaffold(
+    MiuixScaffold(
         topBar = {
-            LargeFlexibleTopAppBar(
+            MiuixTopAppBar(
                 modifier = Modifier.blurEffect(),
-                title = {
-                    Text(
-                        text = appGroup.mainApp.label,
-                    )
-                },
-                subtitle = {
-                    Text(
-                        text = appGroup.mainApp.displayIdentifier,
-                    )
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = cardColor,
-                    scrolledContainerColor = cardColor,
-                ),
+                title = appGroup.mainApp.label,
+                subtitle = appGroup.mainApp.displayIdentifier,
+                color = cardColor,
                 navigationIcon = {
                     AppBackButton(
                         onClick = dropUnlessResumed { navigator.pop() },
                     )
                 },
-                windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
                 scrollBehavior = scrollBehavior,
             )
         },
         snackbarHost = { SwipeableSnackbarHost(hostState = snackBarHost) },
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
         contentWindowInsets = adaptiveScaffoldWindowInsets(),
     ) { paddingValues ->
         AppProfileInner(
@@ -238,7 +214,6 @@ fun AppProfileScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun AppProfileInner(
     modifier: Modifier = Modifier,
@@ -529,6 +504,22 @@ private fun ProfileBox(
     hasTemplate: Boolean,
     onModeChange: (Mode) -> Unit,
 ) {
+    val defaultText = stringResource(R.string.profile_default)
+    val templateText = stringResource(R.string.profile_template)
+    val customText = stringResource(R.string.profile_custom)
+    val entries = if (hasTemplate) {
+        listOf(
+            Mode.Default to defaultText,
+            Mode.Template to templateText,
+            Mode.Custom to customText,
+        )
+    } else {
+        listOf(
+            Mode.Default to defaultText,
+            Mode.Custom to customText,
+        )
+    }
+
     Column {
         SettingsBaseWidget(
             icon = Icons.TwoTone.AccountCircle,
@@ -540,50 +531,12 @@ private fun ProfileBox(
             contentColor = MaterialTheme.colorScheme.onSurface,
         )
 
-        Row(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+        TabRow(
+            tabs = entries.map { it.second },
+            selectedTabIndex = entries.indexOfFirst { it.first == mode }.coerceAtLeast(0),
+            onTabSelected = { index -> onModeChange(entries[index].first) },
+            modifier = Modifier.fillMaxWidth(),
         )
-        {
-            FilterChip(
-                selected = mode == Mode.Default,
-                onClick = { onModeChange(Mode.Default) },
-                label = {
-                    Text(
-                        text = stringResource(R.string.profile_default),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                },
-                shape = MaterialTheme.shapes.medium,
-            )
-
-            if (hasTemplate) {
-                FilterChip(
-                    selected = mode == Mode.Template,
-                    onClick = { onModeChange(Mode.Template) },
-                    label = {
-                        Text(
-                            text = stringResource(R.string.profile_template),
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    },
-                    shape = MaterialTheme.shapes.medium,
-                )
-            }
-
-            FilterChip(
-                selected = mode == Mode.Custom,
-                onClick = { onModeChange(Mode.Custom) },
-                label = {
-                    Text(
-                        text = stringResource(R.string.profile_custom),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                },
-                shape = MaterialTheme.shapes.medium,
-            )
-        }
     }
 }
 
@@ -594,7 +547,7 @@ private fun AppProfilePreview() {
     var profile by remember { mutableStateOf(AppProfile("")) }
 
     Surface(
-        color = if (cardConfig.isCustomBackgroundEnabled) Color.Transparent else MaterialTheme.colorScheme.surfaceBright,
+        color = MaterialTheme.colorScheme.surfaceBright,
     ) {
         AppProfileInner(
             appGroup = InstalledAppGroup(
