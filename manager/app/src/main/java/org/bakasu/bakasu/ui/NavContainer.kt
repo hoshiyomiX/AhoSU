@@ -680,11 +680,6 @@ private fun ManagerNavEntry(
                         )
                         .drawWithContent {
                             drawContent()
-                            drawRect(
-                                color = surfaceContainer.copy(
-                                    alpha = themeConfig.backgroundDim,
-                                ),
-                            )
                         },
                 )
             }
@@ -832,10 +827,6 @@ fun rememberMaterial3BlurBackdrop(
         } else {
             drawRect(backgroundColor)
         }
-
-        drawRect(
-            color = backgroundColor.copy(alpha = themeConfig.backgroundDim),
-        )
 
         drawContent()
     }

@@ -1,35 +1,13 @@
 package org.bakasu.bakasu.ui.screen.themeSettings.component
 
-import android.graphics.Color as AndroidColor
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.twotone.Check
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.usecase.IsSystemLanguageSettingsUseCase
 import org.bakasu.bakasu.domain.usecase.LaunchSystemLanguageSettingsUseCase
@@ -39,30 +17,6 @@ import org.bakasu.bakasu.ui.viewmodel.SettingsUiAction
 import org.bakasu.bakasu.ui.viewmodel.SettingsUiState
 import org.bakasu.bakasu.ui.viewmodel.SettingsViewModel
 import org.koin.compose.koinInject
-import top.yukonga.miuix.kmp.basic.Button
-import top.yukonga.miuix.kmp.basic.Slider
-import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.overlay.OverlayDialog
-
-@Composable
-fun ThemeSettingsDialogs(
-    state: SettingsUiState,
-    viewModel: SettingsViewModel,
-) {
-    val themeConfig: ThemeConfig = koinInject()
-    if (state.showThemeColorDialog) {
-        ThemeColorDialog(
-            currentSeedColor = themeConfig.seedColor,
-            onColorSelected = { seedColor ->
-                viewModel.dispatch(SettingsUiAction.SetThemeColor(seedColor))
-                viewModel.dispatch(SettingsUiAction.SetThemeColorDialogVisible(false))
-            },
-            onDismiss = {
-                viewModel.dispatch(SettingsUiAction.SetThemeColorDialogVisible(false))
-            },
-        )
-    }
-}
 
 @Composable
 fun LanguageSelectionDialog(
@@ -164,162 +118,4 @@ fun LanguageSelectionDialog(
             },
         )
     }
-}
-
-@Composable
-fun ThemeColorDialog(
-    currentSeedColor: Int,
-    onColorSelected: (Int) -> Unit,
-    onDismiss: () -> Unit,
-) {
-    val initialHsv = remember(currentSeedColor) {
-        FloatArray(3).also { AndroidColor.colorToHSV(currentSeedColor, it) }
-    }
-    var hue by remember(currentSeedColor) { mutableFloatStateOf(initialHsv[0]) }
-    var saturation by remember(currentSeedColor) { mutableFloatStateOf(initialHsv[1]) }
-    var value by remember(currentSeedColor) { mutableFloatStateOf(initialHsv[2]) }
-    val selectedColor = AndroidColor.HSVToColor(floatArrayOf(hue, saturation, value))
-
-    OverlayDialog(
-        show = true,
-        onDismissRequest = onDismiss,
-        title = stringResource(R.string.choose_theme_color),
-    ) {
-        Column {
-            ColorPicker(
-                color = Color(selectedColor),
-                hue = hue,
-                saturation = saturation,
-                value = value,
-                onHueChange = { hue = it },
-                onSaturationChange = { saturation = it },
-                onValueChange = { value = it },
-            )
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 4.dp),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                TextButton(
-                    text = stringResource(R.string.cancel),
-                    onClick = onDismiss,
-                )
-                Button(
-                    modifier = Modifier.padding(start = 8.dp),
-                    onClick = { onColorSelected(selectedColor) },
-                ) {
-                    Icon(
-                        Icons.TwoTone.Check,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Spacer(modifier = Modifier.size(8.dp))
-                    Text(stringResource(R.string.confirm))
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ColorPicker(
-    color: Color,
-    hue: Float,
-    saturation: Float,
-    value: Float,
-    onHueChange: (Float) -> Unit,
-    onSaturationChange: (Float) -> Unit,
-    onValueChange: (Float) -> Unit,
-) {
-    Column {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(color),
-            )
-            Spacer(modifier = Modifier.size(16.dp))
-            Text(
-                text = color.toHexString(),
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface,
-            )
-        }
-
-        ColorSlider(
-            label = "H",
-            value = hue,
-            valueRange = 0f..360f,
-            onValueChange = onHueChange,
-        )
-        ColorSlider(
-            label = "S",
-            value = saturation,
-            valueRange = 0f..1f,
-            onValueChange = onSaturationChange,
-        )
-        ColorSlider(
-            label = "V",
-            value = value,
-            valueRange = 0f..1f,
-            onValueChange = onValueChange,
-        )
-    }
-}
-
-@Composable
-private fun ColorSlider(
-    label: String,
-    value: Float,
-    valueRange: ClosedFloatingPointRange<Float>,
-    onValueChange: (Float) -> Unit,
-) {
-    Row(verticalAlignment = Alignment.CenterVertically) {
-        Text(
-            text = label,
-            style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(end = 12.dp),
-        )
-        Slider(
-            value = value,
-            onValueChange = onValueChange,
-            valueRange = valueRange,
-            modifier = Modifier.weight(1f),
-        )
-        Box(
-            modifier = Modifier.padding(start = 12.dp),
-            contentAlignment = Alignment.Center,
-        ) {
-            Text( // Some stupid way to solve measure problem
-                text = "360.00",
-                style = MaterialTheme.typography.labelMediumEmphasized.copy(
-                    fontFeatureSettings = "tnum",
-                ),
-                modifier = Modifier.alpha(0f),
-            )
-            Text(
-                text = "%.2f".format(value),
-                style = MaterialTheme.typography.labelMediumEmphasized.copy(
-                    fontFeatureSettings = "tnum",
-                ),
-            )
-        }
-    }
-}
-
-private fun Color.toHexString(): String {
-    val argb = AndroidColor.rgb(
-        (red * 255).toInt().coerceIn(0, 255),
-        (green * 255).toInt().coerceIn(0, 255),
-        (blue * 255).toInt().coerceIn(0, 255),
-    )
-    return "#%06X".format(argb and 0x00FFFFFF)
 }

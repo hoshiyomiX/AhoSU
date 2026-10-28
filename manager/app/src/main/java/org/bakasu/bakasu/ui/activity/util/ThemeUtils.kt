@@ -30,13 +30,7 @@ class ThemeUtils(
 
     private fun loadThemeSettings() {
         themeConfig.forceDarkMode = themeRepository.loadThemeMode()
-        themeConfig.seedColor = themeRepository.loadSeedColor()
-        themeConfig.useDynamicColor = themeRepository.loadDynamicColorState()
-        themeConfig.dynamicColorSpec = themeRepository.loadDynamicColorSpec()
-        themeConfig.dynamicPaletteStyle = themeRepository.loadDynamicPaletteStyle(
-            themeConfig.dynamicColorSpec,
-        )
         cardConfig.load()
-        backgroundManager.loadCustomBackground()
+        backgroundManager.loadBlurAndContrastPreferences()
     }
 }

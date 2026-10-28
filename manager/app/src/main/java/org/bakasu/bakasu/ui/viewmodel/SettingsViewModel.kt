@@ -3,8 +3,6 @@ package org.bakasu.bakasu.ui.viewmodel
 import androidx.annotation.StringRes
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.materialkolor.PaletteStyle
-import com.materialkolor.dynamiccolor.ColorSpec
 import java.util.Locale
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +16,6 @@ import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.model.AppearanceSetting
 import org.bakasu.bakasu.domain.model.PlatformSetting
 import org.bakasu.bakasu.domain.model.SettingsPlatformSnapshot
-import org.bakasu.bakasu.domain.model.coerceCompatibleWith
 import org.bakasu.bakasu.domain.usecase.ConfigureSuLogUseCase
 import org.bakasu.bakasu.domain.usecase.GetKernelFeatureSettingsUseCase
 import org.bakasu.bakasu.domain.usecase.GetPlatformFeatureStatusUseCase
@@ -69,16 +66,9 @@ data class SettingsUiState(
         PredictiveBackExitDirection.FOLLOW_GESTURE,
     val themeMode: Int = 0,
     val themeOptions: List<Int> = emptyList(),
-    val useDynamicColor: Boolean = false,
-    val dynamicColorSpec: ColorSpec.SpecVersion = ColorSpec.SpecVersion.SPEC_2021,
-    val dynamicPaletteStyle: PaletteStyle = PaletteStyle.TonalSpot,
     val showLanguageDialog: Boolean = false,
     val currentAppLocale: Locale? = null,
-    val showThemeColorDialog: Boolean = false,
     val useAltIcon: Boolean = false,
-    val cardAlpha: Float = 1f,
-    val backgroundDim: Float = 0f,
-    val isCustomBackgroundEnabled: Boolean = false,
     val systemDpi: Int = 0,
     val currentDpi: Int = 0,
     val tempDpi: Int = 0,
@@ -110,21 +100,11 @@ sealed interface SettingsUiAction {
     data object InitializeFirstRun : SettingsUiAction
     data object LoadFeatureSettings : SettingsUiAction
     data class SetThemeMode(val index: Int) : SettingsUiAction
-    data class SetThemeColor(val color: Int) : SettingsUiAction
-    data class SetThemeColorDialogVisible(val visible: Boolean) : SettingsUiAction
     data class SetPredictiveBackAnimation(val animation: PredictiveBackAnimation) : SettingsUiAction
     data class SetPredictiveBackExitDirection(
         val direction: PredictiveBackExitDirection,
     ) : SettingsUiAction
 
-    data class SetDynamicColor(val enabled: Boolean) : SettingsUiAction
-    data class SetDynamicColorSpec(val spec: ColorSpec.SpecVersion) : SettingsUiAction
-    data class SetDynamicPaletteStyle(val style: PaletteStyle) : SettingsUiAction
-    data class SetCustomBackground(val uri: String) : SettingsUiAction
-    data object RemoveCustomBackground : SettingsUiAction
-    data class SetCardAlpha(val value: Float) : SettingsUiAction
-    data class SetBackgroundDim(val value: Float) : SettingsUiAction
-    data object SaveCardConfig : SettingsUiAction
     data class SetLanguageDialogVisible(val visible: Boolean) : SettingsUiAction
     data class SetLanguage(val localeTag: String) : SettingsUiAction
     data object RestartActivity : SettingsUiAction
@@ -224,8 +204,6 @@ class SettingsViewModel(
         updatePlatformAsync(PlatformSetting.PredictiveBackExitDirection(direction.value))
     }
 
-    fun setThemeColorDialogVisible(visible: Boolean) = mutableState.update { it.copy(showThemeColorDialog = visible) }
-
     fun setLanguageDialogVisible(visible: Boolean) = mutableState.update { it.copy(showLanguageDialog = visible) }
     fun handleLanguageChange(localeTag: String) {
         updatePlatformAsync(PlatformSetting.Locale(localeTag))
@@ -240,27 +218,6 @@ class SettingsViewModel(
         updateAppearanceAsync(AppearanceSetting.ThemeMode(index))
     }
 
-    fun handleThemeColorChange(seedColor: Int) = updateAppearanceAsync(AppearanceSetting.SeedColor(seedColor))
-
-    fun handleDynamicColorChange(enabled: Boolean) {
-        mutableState.update { it.copy(useDynamicColor = enabled) }
-        updateAppearanceAsync(AppearanceSetting.DynamicColor(enabled))
-    }
-
-    fun handleDynamicColorSpecChange(spec: ColorSpec.SpecVersion) {
-        mutableState.update {
-            it.copy(
-                dynamicColorSpec = spec,
-                dynamicPaletteStyle = it.dynamicPaletteStyle.coerceCompatibleWith(spec),
-            )
-        }
-        updateAppearanceAsync(AppearanceSetting.DynamicColorSpec(spec))
-    }
-
-    fun handleDynamicPaletteStyleChange(style: PaletteStyle) {
-        mutableState.update { it.copy(dynamicPaletteStyle = style) }
-        updateAppearanceAsync(AppearanceSetting.DynamicPaletteStyle(style))
-    }
     fun updateTempDpi(dpi: Int) {
         mutableState.update { it.copy(tempDpi = dpi, isDpiCustom = dpi !in DPI_PRESETS) }
     }
@@ -279,42 +236,6 @@ class SettingsViewModel(
                 .onFailure(::emitError)
         }
     }
-
-    fun handleCustomBackground(uri: String) {
-        viewModelScope.launch {
-            updateAppearance(AppearanceSetting.CustomBackground(uri))
-                .onSuccess {
-                    applySnapshot(it, resetTempDpi = false)
-                    mutableEvents.tryEmit(SettingsUiEvent.Message(R.string.background_set_success))
-                }
-                .onFailure {
-                    mutableEvents.tryEmit(SettingsUiEvent.Message(R.string.background_crop_failed))
-                }
-        }
-    }
-
-    fun handleRemoveCustomBackground() {
-        viewModelScope.launch {
-            updateAppearance(AppearanceSetting.RemoveCustomBackground)
-                .onSuccess {
-                    applySnapshot(it, resetTempDpi = false)
-                    mutableEvents.tryEmit(SettingsUiEvent.Message(R.string.background_removed))
-                }
-                .onFailure(::emitError)
-        }
-    }
-
-    fun handleCardAlphaChange(value: Float) {
-        mutableState.update { it.copy(cardAlpha = value) }
-        updateAppearanceAsync(AppearanceSetting.CardAlpha(value))
-    }
-
-    fun handleBackgroundDimChange(value: Float) {
-        mutableState.update { it.copy(backgroundDim = value) }
-        updateAppearanceAsync(AppearanceSetting.BackgroundDim(value))
-    }
-
-    fun saveCardConfig() = updateAppearanceAsync(AppearanceSetting.SaveCardConfig)
 
     fun handleIconChange(enabled: Boolean) {
         mutableState.update { it.copy(useAltIcon = enabled) }
@@ -428,32 +349,11 @@ class SettingsViewModel(
 
             is SettingsUiAction.SetThemeMode -> handleThemeModeChange(action.index)
 
-            is SettingsUiAction.SetThemeColor -> handleThemeColorChange(action.color)
-
-            is SettingsUiAction.SetThemeColorDialogVisible ->
-                setThemeColorDialogVisible(action.visible)
-
             is SettingsUiAction.SetPredictiveBackAnimation ->
                 setPredictiveBackAnimation(action.animation)
 
             is SettingsUiAction.SetPredictiveBackExitDirection ->
                 setPredictiveBackExitDirection(action.direction)
-
-            is SettingsUiAction.SetDynamicColor -> handleDynamicColorChange(action.enabled)
-
-            is SettingsUiAction.SetDynamicColorSpec -> handleDynamicColorSpecChange(action.spec)
-
-            is SettingsUiAction.SetDynamicPaletteStyle -> handleDynamicPaletteStyleChange(action.style)
-
-            is SettingsUiAction.SetCustomBackground -> handleCustomBackground(action.uri)
-
-            SettingsUiAction.RemoveCustomBackground -> handleRemoveCustomBackground()
-
-            is SettingsUiAction.SetCardAlpha -> handleCardAlphaChange(action.value)
-
-            is SettingsUiAction.SetBackgroundDim -> handleBackgroundDimChange(action.value)
-
-            SettingsUiAction.SaveCardConfig -> saveCardConfig()
 
             is SettingsUiAction.SetLanguageDialogVisible -> setLanguageDialogVisible(action.visible)
 
@@ -539,14 +439,8 @@ class SettingsViewModel(
                     PredictiveBackExitDirection.fromValueOrDefault(snapshot.predictiveBackExitDirection),
                 themeMode = snapshot.themeMode,
                 themeOptions = THEME_OPTIONS,
-                useDynamicColor = snapshot.useDynamicColor,
-                dynamicColorSpec = snapshot.dynamicColorSpec,
-                dynamicPaletteStyle = snapshot.dynamicPaletteStyle,
                 currentAppLocale = snapshot.currentLocaleTag?.let(Locale::forLanguageTag),
                 useAltIcon = snapshot.useAltIcon,
-                cardAlpha = snapshot.cardAlpha,
-                backgroundDim = snapshot.backgroundDim,
-                isCustomBackgroundEnabled = snapshot.customBackgroundEnabled,
                 systemDpi = snapshot.systemDpi,
                 currentDpi = snapshot.currentDpi,
                 tempDpi = if (resetTempDpi) snapshot.currentDpi else current.tempDpi,
