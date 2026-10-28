@@ -4,9 +4,12 @@ import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,20 +21,17 @@ import androidx.compose.material.icons.twotone.Restore
 import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.TaskAlt
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -57,8 +57,10 @@ import org.bakasu.bakasu.ui.viewmodel.awaitSuSFSBoolean
 import org.bakasu.bakasu.ui.viewmodel.awaitSuSFSStatusInfo
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun StatusTab(
     nestedScrollConnection: NestedScrollConnection,
@@ -175,7 +177,6 @@ fun StatusTab(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BackupRestoreSection(
     onConfigRestored: () -> Unit,
@@ -259,47 +260,49 @@ fun BackupRestoreSection(
         }
     }
 
-    if (showImportConfirm) {
-        AlertDialog(
-            onDismissRequest = {
-                showImportConfirm = false
-                pendingImportUri = null
-            },
-            title = { Text(confirmTitle) },
-            text = { Text(confirmMsg) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        val uri = pendingImportUri
-                        showImportConfirm = false
-                        pendingImportUri = null
-                        if (uri != null) {
-                            scope.launch {
-                                val ok = awaitSuSFSBoolean(configHelper) { reply ->
-                                    SuSFSUiAction.ImportConfig(uri.toString(), reply)
-                                }
-                                if (ok) {
-                                    onConfigRestored()
-                                }
-                                scope.launch {
-                                    snackbarHost.showReplacingSnackbar(if (ok) importSuccessMsg else importFailedMsg)
-                                }
-                            }
-                        }
-                    },
-                ) {
-                    Text(importLabel)
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = {
+    OverlayDialog(
+        show = showImportConfirm,
+        onDismissRequest = {
+            showImportConfirm = false
+            pendingImportUri = null
+        },
+        title = confirmTitle,
+        summary = confirmMsg,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+        ) {
+            Button(
+                onClick = {
+                    val uri = pendingImportUri
                     showImportConfirm = false
                     pendingImportUri = null
-                }) {
-                    Text(cancelLabel)
-                }
-            },
-        )
+                    if (uri != null) {
+                        scope.launch {
+                            val ok = awaitSuSFSBoolean(configHelper) { reply ->
+                                SuSFSUiAction.ImportConfig(uri.toString(), reply)
+                            }
+                            if (ok) {
+                                onConfigRestored()
+                            }
+                            scope.launch {
+                                snackbarHost.showReplacingSnackbar(if (ok) importSuccessMsg else importFailedMsg)
+                            }
+                        }
+                    }
+                },
+            ) {
+                Text(importLabel)
+            }
+            TextButton(
+                text = cancelLabel,
+                onClick = {
+                    showImportConfirm = false
+                    pendingImportUri = null
+                },
+            )
+        }
     }
 }
 

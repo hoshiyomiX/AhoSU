@@ -6,17 +6,16 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.UploadFile
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
@@ -35,6 +34,10 @@ import org.bakasu.bakasu.ui.component.settings.SettingsDropdownWidget
 import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
 import org.bakasu.bakasu.ui.util.LocalSnackbarHost
 import org.bakasu.bakasu.ui.util.showReplacingSnackbar
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 
 /**
  * Displays an entry's fields in a read-only dialog with a delete action.
@@ -53,49 +56,55 @@ fun EntryDetailDialog(
     onDismiss: () -> Unit,
     onDelete: () -> Unit,
 ) {
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text(title) },
-            text = {
-                Column(
-                    modifier = Modifier
-                        .heightIn(max = 420.dp)
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    fields.forEach { (label, value) ->
-                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                            Text(
-                                text = label,
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            )
-                            Text(
-                                text = value,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface,
-                            )
-                        }
+    OverlayDialog(
+        show = showDialog,
+        onDismissRequest = onDismiss,
+        title = title,
+    ) {
+        Column {
+            Column(
+                modifier = Modifier
+                    .heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                fields.forEach { (label, value) ->
+                    Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text(
+                            text = label,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            text = value,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
                     }
                 }
-            },
-            confirmButton = {
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = onDismiss,
+                )
                 Button(
+                    modifier = Modifier.padding(start = 8.dp),
                     onClick = onDelete,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error,
+                        color = MaterialTheme.colorScheme.error,
                     ),
                 ) {
                     Text(stringResource(R.string.delete))
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
+            }
+        }
     }
 }
 
@@ -165,58 +174,64 @@ fun ManualAddDialog(
         }
     }
 
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text(title) },
-            text = {
-                Column(
-                    modifier = Modifier
-                        .heightIn(max = 420.dp)
-                        .verticalScroll(rememberScrollState()),
-                ) {
-                    SegmentedColumn(contentPadding = PaddingValues(0.dp)) {
-                        if (subtypes.size > 1) {
-                            item {
-                                SettingsDropdownWidget(
-                                    title = stringResource(R.string.susfs_entry_select_subtype),
-                                    description = selectedSubtype,
-                                    iconPlaceholder = false,
-                                    choice = subtypes.indexOf(selectedSubtype).coerceAtLeast(0),
-                                    data = subtypes,
-                                    renderBackgroundBlur = false,
-                                    onChoiceChange = { index -> onSubtypeChange(subtypes[index]) },
-                                )
-                            }
+    OverlayDialog(
+        show = showDialog,
+        onDismissRequest = onDismiss,
+        title = title,
+    ) {
+        Column {
+            Column(
+                modifier = Modifier
+                    .heightIn(max = 420.dp)
+                    .verticalScroll(rememberScrollState()),
+            ) {
+                SegmentedColumn(contentPadding = PaddingValues(0.dp)) {
+                    if (subtypes.size > 1) {
+                        item {
+                            SettingsDropdownWidget(
+                                title = stringResource(R.string.susfs_entry_select_subtype),
+                                description = selectedSubtype,
+                                iconPlaceholder = false,
+                                choice = subtypes.indexOf(selectedSubtype).coerceAtLeast(0),
+                                data = subtypes,
+                                renderBackgroundBlur = false,
+                                onChoiceChange = { index -> onSubtypeChange(subtypes[index]) },
+                            )
                         }
-                        formContent()
-                        if (showImportFromFile) {
-                            item {
-                                SettingsJumpPageWidget(
-                                    icon = Icons.Default.UploadFile,
-                                    title = importFromFileLabel,
-                                    description = stringResource(R.string.susfs_entry_import_hint),
-                                    renderBackgroundBlur = false,
-                                    onClick = { pickFileLauncher.launch(arrayOf("*/*")) },
-                                )
-                            }
+                    }
+                    formContent()
+                    if (showImportFromFile) {
+                        item {
+                            SettingsJumpPageWidget(
+                                icon = Icons.Default.UploadFile,
+                                title = importFromFileLabel,
+                                description = stringResource(R.string.susfs_entry_import_hint),
+                                renderBackgroundBlur = false,
+                                onClick = { pickFileLauncher.launch(arrayOf("*/*")) },
+                            )
                         }
                     }
                 }
-            },
-            confirmButton = {
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = onDismiss,
+                )
                 Button(
+                    modifier = Modifier.padding(start = 8.dp),
                     onClick = onConfirm,
                 ) {
                     Text(stringResource(R.string.add))
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text(stringResource(R.string.cancel))
-                }
-            },
-        )
+            }
+        }
     }
 }
 

@@ -1,34 +1,12 @@
 package org.bakasu.bakasu.ui.screen.susfs
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandHorizontally
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryScrollableTabRow
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRowDefaults
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -36,12 +14,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
@@ -69,6 +45,12 @@ import org.bakasu.bakasu.ui.viewmodel.SuSFSViewModel
 import org.bakasu.bakasu.ui.viewmodel.awaitSuSFSBoolean
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.TabRow
+import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 
 private class SuSFSConfigSubpage(
     val requirePersist: Boolean,
@@ -76,7 +58,6 @@ private class SuSFSConfigSubpage(
     val content: @Composable (PaddingValues, NestedScrollConnection) -> Unit,
 )
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SuSFSConfigScreen() {
     val themeConfig: ThemeConfig = koinInject()
@@ -84,11 +65,10 @@ fun SuSFSConfigScreen() {
     val configHelper = koinViewModel<SuSFSViewModel>()
     val navigator = LocalNavigator.current
     val snackBarHost = LocalSnackbarHost.current
-    val topAppBarState = rememberTopAppBarState()
     val coroutineScope = rememberCoroutineScope()
     var isRefreshing by remember { mutableStateOf(false) }
     var configEnabled by remember { mutableStateOf<Boolean?>(null) }
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+    val scrollBehavior = MiuixScrollBehavior()
     val operationFailedMsg = stringResource(R.string.susfs_operation_failed)
     val pullRefreshState = rememberPullToRefreshState()
     val refreshCoordinator = remember(coroutineScope, configHelper) {
@@ -229,11 +209,11 @@ fun SuSFSConfigScreen() {
         }
     }
 
-    Scaffold(
+    MiuixScaffold(
         topBar = {
             Column(modifier = Modifier.blurEffect()) {
-                LargeFlexibleTopAppBar(
-                    title = { Text(stringResource(R.string.susfs_config_title)) },
+                MiuixTopAppBar(
+                    title = stringResource(R.string.susfs_config_title),
                     scrollBehavior = scrollBehavior,
                     navigationIcon = {
                         AppBackButton(
@@ -242,58 +222,24 @@ fun SuSFSConfigScreen() {
                             },
                         )
                     },
-                    colors = TopAppBarDefaults.topAppBarColors().copy(
-                        containerColor =
-                            if (themeConfig.isEnableBlur) {
-                                Color.Transparent
-                            } else {
-                                MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                            },
-                        scrolledContainerColor =
-                            if (themeConfig.isEnableBlur) {
-                                Color.Transparent
-                            } else {
-                                MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                            },
-                    ),
-                    windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
-                )
-
-                PrimaryScrollableTabRow(
-                    selectedTabIndex = selectedTabIndex,
-                    containerColor =
+                    color =
                         if (themeConfig.isEnableBlur) {
                             Color.Transparent
                         } else {
                             MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
                         },
-                    edgePadding = 0.dp,
-                    minTabWidth = 0.dp,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    subpages.forEachIndexed { index, subpage ->
-                        val tabVisible = !subpage.requirePersist || configEnabled == true
-                        AnimatedVisibility(
-                            visible = tabVisible,
-                            enter = fadeIn() + expandHorizontally(expandFrom = Alignment.Start),
-                            exit = fadeOut() + shrinkHorizontally(shrinkTowards = Alignment.Start),
-                        ) {
-                            Tab(
-                                selected = tabVisible && pagerState.currentPage == index,
-                                onClick = {
-                                    coroutineScope.launch {
-                                        pagerState.animateScrollToPage(index)
-                                    }
-                                },
-                                modifier = Modifier.widthIn(
-                                    min = TabRowDefaults.ScrollableTabRowMinTabWidth,
-                                ),
-                                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                                text = { Text(subpage.title) },
-                            )
+                )
+
+                TabRow(
+                    tabs = visibleSubpages.map { it.value.title },
+                    selectedTabIndex = selectedTabIndex,
+                    onTabSelected = { index ->
+                        coroutineScope.launch {
+                            pagerState.animateScrollToPage(visibleSubpages[index].index)
                         }
-                    }
-                }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
 
                 BackHandler(
                     enabled = pagerState.currentPage != defaultPage,
@@ -305,26 +251,17 @@ fun SuSFSConfigScreen() {
             }
         },
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
         contentWindowInsets = adaptiveScaffoldWindowInsets(),
         snackbarHost = { SwipeableSnackbarHost(hostState = snackBarHost) },
     ) { innerPadding ->
-        PullToRefreshBox(
-            state = pullRefreshState,
+        PullToRefresh(
             isRefreshing = isRefreshing,
             onRefresh = ::requestRefresh,
             modifier = Modifier
                 .fillMaxSize()
                 .blurSource(),
-            indicator = {
-                PullToRefreshDefaults.LoadingIndicator(
-                    modifier = Modifier
-                        .padding(top = innerPadding.calculateTopPadding())
-                        .align(Alignment.TopCenter),
-                    state = pullRefreshState,
-                    isRefreshing = isRefreshing,
-                )
-            },
+            pullToRefreshState = pullRefreshState,
+            contentPadding = PaddingValues(top = innerPadding.calculateTopPadding()),
         ) {
             Column(
                 modifier = Modifier
