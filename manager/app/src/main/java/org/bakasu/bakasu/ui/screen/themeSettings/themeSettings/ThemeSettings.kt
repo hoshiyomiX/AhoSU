@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -56,17 +54,10 @@ import androidx.compose.material.icons.twotone.Swipe
 import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.material.icons.twotone.ViewCarousel
 import androidx.compose.material.icons.twotone.Wallpaper
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -133,13 +124,16 @@ import org.bakasu.bakasu.ui.viewmodel.SettingsViewModel
 import org.bakasu.bakasu.ui.viewmodel.dpiFriendlyNameRes
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
 
 @SuppressLint(
     "LocalContextConfigurationRead",
     "LocalContextResourcesRead",
     "ObsoleteSdkInt",
 )
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun ThemeSettingsScreen(
     settingsViewModel: SettingsViewModel,
@@ -147,8 +141,7 @@ fun ThemeSettingsScreen(
     val themeConfig: ThemeConfig = koinInject()
     val cardConfig: CardConfig = koinInject()
     // 顶部滚动行为
-    val topAppBarState = rememberTopAppBarState()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+    val scrollBehavior = MiuixScrollBehavior()
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
     // 创建设置状态管理器
@@ -299,18 +292,14 @@ fun ThemeSettingsScreen(
         scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffsetLimit
     }
 
-    Scaffold(
+    MiuixScaffold(
         contentWindowInsets = adaptiveScaffoldWindowInsets(),
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            LargeFlexibleTopAppBar(
+            MiuixTopAppBar(
                 modifier = Modifier
                     .blurEffect(),
-                title = {
-                    Text(
-                        text = stringResource(R.string.theme_settings),
-                    )
-                },
+                title = stringResource(R.string.theme_settings),
                 navigationIcon = {
                     AppBackButton(
                         onClick = {
@@ -318,26 +307,16 @@ fun ThemeSettingsScreen(
                         },
                     )
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor =
-                        if (themeConfig.isEnableBlur) {
-                            Color.Transparent
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                        },
-                    scrolledContainerColor =
-                        if (themeConfig.isEnableBlur) {
-                            Color.Transparent
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                        },
-                ),
-                windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
+                color =
+                    if (themeConfig.isEnableBlur) {
+                        Color.Transparent
+                    } else {
+                        MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
+                    },
                 scrollBehavior = scrollBehavior,
             )
         },
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
     ) { paddingValues ->
         LazyColumn(
             modifier = Modifier

@@ -2,6 +2,7 @@ package org.bakasu.bakasu.ui.screen.themeSettings.component
 
 import android.graphics.Color as AndroidColor
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,17 +13,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Check
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberSliderState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
@@ -45,6 +39,10 @@ import org.bakasu.bakasu.ui.viewmodel.SettingsUiAction
 import org.bakasu.bakasu.ui.viewmodel.SettingsUiState
 import org.bakasu.bakasu.ui.viewmodel.SettingsViewModel
 import org.koin.compose.koinInject
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Slider
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 
 @Composable
 fun ThemeSettingsDialogs(
@@ -66,7 +64,6 @@ fun ThemeSettingsDialogs(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LanguageSelectionDialog(
     currentLocale: String,
@@ -183,10 +180,12 @@ fun ThemeColorDialog(
     var value by remember(currentSeedColor) { mutableFloatStateOf(initialHsv[2]) }
     val selectedColor = AndroidColor.HSVToColor(floatArrayOf(hue, saturation, value))
 
-    AlertDialog(
+    OverlayDialog(
+        show = true,
         onDismissRequest = onDismiss,
-        title = { Text(stringResource(R.string.choose_theme_color)) },
-        text = {
+        title = stringResource(R.string.choose_theme_color),
+    ) {
+        Column {
             ColorPicker(
                 color = Color(selectedColor),
                 hue = hue,
@@ -196,24 +195,32 @@ fun ThemeColorDialog(
                 onSaturationChange = { saturation = it },
                 onValueChange = { value = it },
             )
-        },
-        confirmButton = {
-            Button(onClick = { onColorSelected(selectedColor) }) {
-                Icon(
-                    Icons.TwoTone.Check,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = onDismiss,
                 )
-                Spacer(modifier = Modifier.size(8.dp))
-                Text(stringResource(R.string.confirm))
+                Button(
+                    modifier = Modifier.padding(start = 8.dp),
+                    onClick = { onColorSelected(selectedColor) },
+                ) {
+                    Icon(
+                        Icons.TwoTone.Check,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Spacer(modifier = Modifier.size(8.dp))
+                    Text(stringResource(R.string.confirm))
+                }
             }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.cancel))
-            }
-        },
-    )
+        }
+    }
 }
 
 @Composable
@@ -275,17 +282,6 @@ private fun ColorSlider(
     valueRange: ClosedFloatingPointRange<Float>,
     onValueChange: (Float) -> Unit,
 ) {
-    val sliderState = rememberSliderState(
-        value = value,
-        steps = 0,
-        trackRange = valueRange,
-    )
-    LaunchedEffect(value) {
-        if (sliderState.value != value) {
-            sliderState.value = value
-        }
-    }
-
     Row(verticalAlignment = Alignment.CenterVertically) {
         Text(
             text = label,
@@ -293,8 +289,9 @@ private fun ColorSlider(
             modifier = Modifier.padding(end = 12.dp),
         )
         Slider(
-            state = sliderState,
+            value = value,
             onValueChange = onValueChange,
+            valueRange = valueRange,
             modifier = Modifier.weight(1f),
         )
         Box(
