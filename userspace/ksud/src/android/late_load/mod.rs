@@ -192,9 +192,62 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
     let _ = Command::new("am")
         .args(["force-stop", package_name])
         .status();
-    let _ = Command::new("am")
-        .args(["start", "-n", &format!("{package_name}/.ui.MainActivity")])
-        .status();
+    relaunch_manager(package_name);
 
     Ok(())
+}
+
+/// Relaunch the manager after the kernel module has been loaded.
+///
+/// The manifest namespace can differ from the application id (AhoSU ships
+/// namespace `org.bakasu.bakasu` while the package stays
+/// `com.resukisu.resukisu`, and PR builds can override the package entirely),
+/// and the enabled launcher may be the icon alias instead of MainActivity.
+/// Starting the legacy `{package}/.ui.MainActivity` component therefore hits
+/// a class that does not exist, silently leaving the manager force-stopped
+/// (the "failed to restart PID" seen after every late-load). Ask the package
+/// manager for the currently enabled LAUNCHER-category activity first, then
+/// fall back to `monkey` (launches by package, no activity class needed), and
+/// only keep the legacy relative component as the last resort.
+fn relaunch_manager(package_name: &str) {
+    if let Some(component) = resolve_launch_component(package_name) {
+        info!("Relaunching manager as {component}");
+        let _ = Command::new("am").args(["start", "-n", &component]).status();
+        return;
+    }
+
+    let monkey = Command::new("monkey")
+        .args(["-p", package_name, "-c", "android.intent.category.LAUNCHER", "1"])
+        .status();
+    if monkey.is_ok_and(|s| s.success()) {
+        return;
+    }
+
+    let legacy = format!("{package_name}/.ui.MainActivity");
+    info!("Relaunching manager as {legacy} (legacy fallback)");
+    let _ = Command::new("am").args(["start", "-n", &legacy]).status();
+}
+
+/// Query the package manager for the manager's enabled launcher activity.
+fn resolve_launch_component(package_name: &str) -> Option<String> {
+    let output = Command::new("cmd")
+        .args([
+            "package",
+            "resolve-activity",
+            "--brief",
+            "-c",
+            "android.intent.category.LAUNCHER",
+            package_name,
+        ])
+        .output()
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let text = String::from_utf8_lossy(&output.stdout);
+    text.lines()
+        .rev()
+        .map(str::trim)
+        .find(|line| line.starts_with(package_name) && line.contains('/'))
+        .map(ToString::to_string)
 }
