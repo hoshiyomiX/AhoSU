@@ -50,7 +50,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -71,7 +70,6 @@ import org.bakasu.bakasu.ui.component.settings.SettingsSwitchWidget
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.screen.themeSettings.component.LanguageSelectionDialog
 import org.bakasu.bakasu.ui.theme.BackgroundManager
-import org.bakasu.bakasu.ui.theme.BottomBarStyle
 import org.bakasu.bakasu.ui.theme.CardConfig
 import org.bakasu.bakasu.ui.theme.ThemeConfig
 import org.bakasu.bakasu.ui.theme.blurEffect
@@ -295,9 +293,6 @@ private fun AppearanceSettings(
     val themeConfig: ThemeConfig = koinInject()
     val cardConfig: CardConfig = koinInject()
     val backgroundManager: BackgroundManager = koinInject()
-    val configuration = LocalConfiguration.current
-    val isPortrait = configuration.screenWidthDp < configuration.screenHeightDp ||
-        (configuration.screenHeightDp.toFloat() / configuration.screenWidthDp > 1.4f)
     SegmentedColumn(title = stringResource(R.string.appearance_settings)) {
         item {
             // 语言设置
@@ -370,19 +365,6 @@ private fun AppearanceSettings(
                     if (!isChecked) {
                         backgroundManager.saveEnableBlurExp(false)
                     }
-                },
-            )
-        }
-
-        item(visible = isPortrait) {
-            SettingsSwitchWidget(
-                icon = Icons.TwoTone.Dock,
-                title = stringResource(R.string.enable_floating_bottom_bar),
-                description = stringResource(R.string.enable_floating_bottom_bar_summary),
-                checked = themeConfig.bottomBarStyle == BottomBarStyle.FLOATING,
-                onCheckedChange = { enabled ->
-                    val style = if (enabled) BottomBarStyle.FLOATING else BottomBarStyle.MATERIAL3_EXPRESSIVE
-                    backgroundManager.saveBottomBarStyle(style)
                 },
             )
         }
