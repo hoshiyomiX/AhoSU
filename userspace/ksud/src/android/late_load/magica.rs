@@ -139,6 +139,18 @@ fn connect_to_device(port: u16) -> Result<ADBTcpDevice> {
 }
 
 pub fn run(port: u16, package_name: &String, allow_shell: bool) -> Result<()> {
+    // B2: already-jailbroken guard. The auto-jailbreak receiver re-fires on
+    // every BOOT_COMPLETED re-broadcast after a soft reboot (and MagicaService
+    // restarts via START_STICKY), re-entering this path while the kernel
+    // module is still live. Re-running would re-open the adbd root TCP window
+    // (enable_adb_root), re-run every module stage a second time and
+    // force-stop the manager mid-use. Probe for the live module with the same
+    // supercall check late-load uses and skip the re-entry instead.
+    if ksuinit::has_kernelsu() {
+        info!("KernelSU already loaded, skip magica re-entry");
+        return Ok(());
+    }
+
     enable_adb_root(port)?;
 
     let mut device = connect_to_device(port)?;
