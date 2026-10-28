@@ -21,7 +21,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -54,25 +53,15 @@ import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material.icons.twotone.PlayArrow
 import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -162,12 +151,17 @@ import org.bakasu.bakasu.ui.webui.WebUIActivity
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -181,7 +175,7 @@ enum class ShortcutType {
  * @date 2025/9/29.
  */
 @SuppressLint("ResourceType", "AutoboxingStateCreation")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModulePage(bottomPadding: Dp) {
     val isModuleUriAccessible = koinInject<IsModuleUriAccessibleUseCase>()
@@ -368,7 +362,7 @@ fun ModulePage(bottomPadding: Dp) {
             )
         },
         floatingActionButton = {
-            if (hideInstallButton) return@floatingActionButton
+            if (hideInstallButton) return@MiuixScaffold
 
             FloatingActionButton(
                 modifier = Modifier.padding(bottom = bottomPadding + 5.dp),
@@ -587,7 +581,7 @@ private fun MetaModuleWarningCard(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ModuleList(
     viewModel: ModuleViewModel,
@@ -1004,197 +998,182 @@ private fun ModuleList(
         }
     }
 
-    if (showShortcutDialog.value) {
-        ModalBottomSheet(
-            sheetState = rememberBottomSheetState(
-                initialValue = SheetValue.Hidden,
-                enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-            ),
-            onDismissRequest = {
-                showShortcutDialog.value = false
-            },
+    OverlayBottomSheet(
+        show = showShortcutDialog.value,
+        onDismissRequest = {
+            showShortcutDialog.value = false
+        },
+        title = stringResource(R.string.module_shortcut_title),
+    ) {
+        var error by remember { mutableStateOf("") }
+        Column(
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            var error by remember { mutableStateOf("") }
-            Column(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .padding(vertical = 16.dp)
+                    .size(100.dp)
+                    .clip(ContinuousRoundedRectangle(25.dp)),
             ) {
-                Text(
-                    text = stringResource(R.string.module_shortcut_title),
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .padding(horizontal = 24.dp),
-                )
-
-                Box(
-                    contentAlignment = Alignment.Center,
-                    modifier = Modifier
-                        .padding(vertical = 16.dp)
-                        .size(100.dp)
-                        .clip(ContinuousRoundedRectangle(25.dp)),
-                ) {
-                    val preview = shortcutPreviewIcon.value
-                    if (preview != null) {
-                        Image(
-                            bitmap = preview,
-                            modifier = Modifier.size(100.dp),
-                            contentDescription = null,
-                        )
-                    } else {
-                        Box(
-                            modifier = Modifier
-                                .size(100.dp)
-                                .background(Color.White),
-                        )
-                        Image(
-                            painter = painterResource(id = R.drawable.ic_launcher_foreground),
-                            contentDescription = null,
-                            contentScale = FixedScale(1.5f),
-                        )
-                    }
+                val preview = shortcutPreviewIcon.value
+                if (preview != null) {
+                    Image(
+                        bitmap = preview,
+                        modifier = Modifier.size(100.dp),
+                        contentDescription = null,
+                    )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .background(Color.White),
+                    )
+                    Image(
+                        painter = painterResource(id = R.drawable.ic_launcher_foreground),
+                        contentDescription = null,
+                        contentScale = FixedScale(1.5f),
+                    )
                 }
-                SegmentedColumn {
-                    if (shortcutIconUri == defaultShortcutIconUri) {
-                        item {
-                            SettingsBaseWidget(
-                                iconPlaceholder = false,
-                                isOnBackground = false,
-                                title = stringResource(id = R.string.module_shortcut_icon_pick),
-                                onClick = {
-                                    pickShortcutIconLauncher.launch("image/*")
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.ChevronRight,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(24.dp),
-                                )
-                            }
-                        }
-                    } else {
-                        item {
-                            SettingsBaseWidget(
-                                iconPlaceholder = false,
-                                isOnBackground = false,
-                                title = stringResource(id = R.string.restore),
-                                onClick = {
-                                    shortcutIconUri = defaultShortcutIconUri
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.TwoTone.Undo,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(24.dp),
-                                )
-                            }
-                        }
-                    }
-
+            }
+            SegmentedColumn {
+                if (shortcutIconUri == defaultShortcutIconUri) {
                     item {
-                        val shouldNotEmpty =
-                            stringResource(R.string.module_shortcut_should_not_empty)
-                        SettingsTextFieldWidget(
-                            state = textFieldState,
-                            title = stringResource(id = R.string.module_shortcut_name_label),
-                            error = error,
-                            renderBackgroundBlur = false,
-                        )
-
-                        LaunchedEffect(textFieldState.text) {
-                            error = if (textFieldState.text.isBlank()) {
-                                shouldNotEmpty
-                            } else {
-                                ""
-                            }
-                        }
-                    }
-
-                    if (hasExistingShortcut) {
-                        item {
-                            SettingsJumpPageWidget(
-                                iconPlaceholder = false,
-                                renderBackgroundBlur = false,
-                                title = stringResource(id = R.string.module_shortcut_delete),
-                                onClick = {
-                                    val moduleId = shortcutModuleId
-                                    val type = selectedShortcutType
-                                    if (!moduleId.isNullOrBlank() && type != null) {
-                                        deleteModuleShortcut(context, moduleId, type)
-                                    }
-                                    showShortcutDialog.value = false
-                                },
+                        SettingsBaseWidget(
+                            iconPlaceholder = false,
+                            isOnBackground = false,
+                            title = stringResource(id = R.string.module_shortcut_icon_pick),
+                            onClick = {
+                                pickShortcutIconLauncher.launch("image/*")
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.TwoTone.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp),
                             )
                         }
                     }
-
+                } else {
                     item {
-                        val settings = koinInject<SettingsPlatformRepository>()
-                        val moduleShortcutSchemeCopied = stringResource(R.string.module_shortcut_scheme_copied)
+                        SettingsBaseWidget(
+                            iconPlaceholder = false,
+                            isOnBackground = false,
+                            title = stringResource(id = R.string.restore),
+                            onClick = {
+                                shortcutIconUri = defaultShortcutIconUri
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.TwoTone.Undo,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(24.dp),
+                            )
+                        }
+                    }
+                }
 
+                item {
+                    val shouldNotEmpty =
+                        stringResource(R.string.module_shortcut_should_not_empty)
+                    SettingsTextFieldWidget(
+                        state = textFieldState,
+                        title = stringResource(id = R.string.module_shortcut_name_label),
+                        error = error,
+                        renderBackgroundBlur = false,
+                    )
+
+                    LaunchedEffect(textFieldState.text) {
+                        error = if (textFieldState.text.isBlank()) {
+                            shouldNotEmpty
+                        } else {
+                            ""
+                        }
+                    }
+                }
+
+                if (hasExistingShortcut) {
+                    item {
                         SettingsJumpPageWidget(
                             iconPlaceholder = false,
                             renderBackgroundBlur = false,
-                            title = stringResource(R.string.module_shortcut_copy_scheme),
+                            title = stringResource(id = R.string.module_shortcut_delete),
                             onClick = {
-                                val currentModuleId = shortcutModuleId
+                                val moduleId = shortcutModuleId
                                 val type = selectedShortcutType
-                                if (currentModuleId.isNullOrBlank() || type == null) {
-                                    return@SettingsJumpPageWidget
+                                if (!moduleId.isNullOrBlank() && type != null) {
+                                    deleteModuleShortcut(context, moduleId, type)
                                 }
-                                val url = shortcut.buildShortcutUri(currentModuleId, type, settings.intentToken).toString()
-                                val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
-                                clipboard.setPrimaryClip(ClipData.newPlainText("KernelSU deep link", url))
-                                Toast.makeText(context, moduleShortcutSchemeCopied, Toast.LENGTH_SHORT).show()
+                                showShortcutDialog.value = false
                             },
                         )
                     }
                 }
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    OutlinedButton(
-                        onClick = { showShortcutDialog.value = false },
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(start = 16.dp),
-                    ) {
-                        Text(
-                            text = stringResource(id = android.R.string.cancel),
-                        )
-                    }
 
-                    Button(
+                item {
+                    val settings = koinInject<SettingsPlatformRepository>()
+                    val moduleShortcutSchemeCopied = stringResource(R.string.module_shortcut_scheme_copied)
+
+                    SettingsJumpPageWidget(
+                        iconPlaceholder = false,
+                        renderBackgroundBlur = false,
+                        title = stringResource(R.string.module_shortcut_copy_scheme),
                         onClick = {
-                            val moduleId = shortcutModuleId
+                            val currentModuleId = shortcutModuleId
                             val type = selectedShortcutType
-                            if (!moduleId.isNullOrBlank() && textFieldState.text.isNotBlank() && type != null) {
-                                createModuleShortcut(
-                                    context = context,
-                                    moduleId = moduleId,
-                                    name = textFieldState.text.toString(),
-                                    iconUri = shortcutIconUri,
-                                    type = type,
-                                    intentToken = settings.intentToken,
-                                )
+                            if (currentModuleId.isNullOrBlank() || type == null) {
+                                return@SettingsJumpPageWidget
                             }
-                            showShortcutDialog.value = false
+                            val url = shortcut.buildShortcutUri(currentModuleId, type, settings.intentToken).toString()
+                            val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager
+                            clipboard.setPrimaryClip(ClipData.newPlainText("KernelSU deep link", url))
+                            Toast.makeText(context, moduleShortcutSchemeCopied, Toast.LENGTH_SHORT).show()
                         },
-                        enabled = error.isBlank(),
-                        modifier = Modifier
-                            .weight(1f)
-                            .padding(end = 16.dp),
-                    ) {
-                        Text(
-                            text = if (hasExistingShortcut) {
-                                stringResource(id = R.string.module_update)
-                            } else {
-                                stringResource(id = android.R.string.ok)
-                            },
-                        )
-                    }
+                    )
+                }
+            }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                TextButton(
+                    text = stringResource(id = android.R.string.cancel),
+                    onClick = { showShortcutDialog.value = false },
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 16.dp),
+                )
+
+                Button(
+                    onClick = {
+                        val moduleId = shortcutModuleId
+                        val type = selectedShortcutType
+                        if (!moduleId.isNullOrBlank() && textFieldState.text.isNotBlank() && type != null) {
+                            createModuleShortcut(
+                                context = context,
+                                moduleId = moduleId,
+                                name = textFieldState.text.toString(),
+                                iconUri = shortcutIconUri,
+                                type = type,
+                                intentToken = settings.intentToken,
+                            )
+                        }
+                        showShortcutDialog.value = false
+                    },
+                    enabled = error.isBlank(),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 16.dp),
+                ) {
+                    Text(
+                        text = if (hasExistingShortcut) {
+                            stringResource(id = R.string.module_update)
+                        } else {
+                            stringResource(id = android.R.string.ok)
+                        },
+                    )
                 }
             }
         }
@@ -1242,7 +1221,6 @@ fun ModuleItem(
         shape = RoundedCornerShape(16.dp),
     ) {
         val textDecoration = if (!module.remove) null else TextDecoration.LineThrough
-        val interactionSource = remember { MutableInteractionSource() }
 
         LaunchedEffect(module.dirId) {
             viewModel.dispatch(ModuleUiAction.LoadSize(module.dirId))
@@ -1352,7 +1330,6 @@ fun ModuleItem(
                     horizontalArrangement = Arrangement.End,
                 ) {
                     Switch(
-                        enabled = !module.update && !isChangingEnabled,
                         checked = isEnabled,
                         onCheckedChange = { enabled ->
                             scope.launch {
@@ -1366,24 +1343,7 @@ fun ModuleItem(
                                 }
                             }
                         },
-                        interactionSource = if (!module.hasWebUi) interactionSource else null,
-                        thumbContent = {
-                            if (isEnabled) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.Check,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize),
-                                )
-                            } else {
-                                Icon(
-                                    imageVector = Icons.TwoTone.Close,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.surfaceBright,
-                                    modifier = Modifier.size(SwitchDefaults.IconSize),
-                                )
-                            }
-                        },
+                        enabled = !module.update && !isChangingEnabled,
                     )
                 }
             }
@@ -1453,7 +1413,7 @@ fun ModuleItem(
                         modifier = Modifier
                             .padding(vertical = 5.dp)
                             .defaultMinSize(minWidth = 52.dp, minHeight = 32.dp)
-                            .clip(ButtonDefaults.filledTonalShape)
+                            .clip(RoundedCornerShape(ButtonDefaults.CornerRadius))
                             .combinedClickable(
                                 onClick = {
                                     navigator.push(Route.ExecuteModuleAction(module.dirId, false))
@@ -1465,14 +1425,14 @@ fun ModuleItem(
                             ),
                         color =
                             if (!module.remove && isEnabled) {
-                                ButtonDefaults.filledTonalButtonColors().containerColor
+                                MiuixTheme.colorScheme.secondaryVariant
                             } else {
-                                ButtonDefaults.filledTonalButtonColors().disabledContainerColor
+                                MiuixTheme.colorScheme.disabledSecondaryVariant
                             },
                         contentColor = if (!module.remove && isEnabled) {
-                            ButtonDefaults.filledTonalButtonColors().contentColor
+                            MiuixTheme.colorScheme.onSecondaryVariant
                         } else {
-                            ButtonDefaults.filledTonalButtonColors().disabledContentColor
+                            MiuixTheme.colorScheme.disabledOnSecondaryVariant
                         },
                     ) {
                         Icon(
@@ -1490,7 +1450,7 @@ fun ModuleItem(
                         modifier = Modifier
                             .padding(vertical = 5.dp)
                             .defaultMinSize(minWidth = 52.dp, minHeight = 32.dp)
-                            .clip(ButtonDefaults.filledTonalShape)
+                            .clip(RoundedCornerShape(ButtonDefaults.CornerRadius))
                             .combinedClickable(
                                 onClick = { onClick(module) },
                                 onLongClick = {
@@ -1499,14 +1459,14 @@ fun ModuleItem(
                             ),
                         color =
                             if (!module.remove && isEnabled) {
-                                ButtonDefaults.filledTonalButtonColors().containerColor
+                                MiuixTheme.colorScheme.secondaryVariant
                             } else {
-                                ButtonDefaults.filledTonalButtonColors().disabledContainerColor
+                                MiuixTheme.colorScheme.disabledSecondaryVariant
                             },
                         contentColor = if (!module.remove && isEnabled) {
-                            ButtonDefaults.filledTonalButtonColors().contentColor
+                            MiuixTheme.colorScheme.onSecondaryVariant
                         } else {
-                            ButtonDefaults.filledTonalButtonColors().disabledContentColor
+                            MiuixTheme.colorScheme.disabledOnSecondaryVariant
                         },
                     ) {
                         Icon(
@@ -1526,20 +1486,20 @@ fun ModuleItem(
                         modifier = Modifier
                             .padding(vertical = 5.dp)
                             .defaultMinSize(minWidth = 52.dp, minHeight = 32.dp)
-                            .clip(ButtonDefaults.filledTonalShape)
+                            .clip(RoundedCornerShape(ButtonDefaults.CornerRadius))
                             .clickable {
                                 onUpdate(module)
                             },
                         color =
                             if (!module.remove) {
-                                ButtonDefaults.filledTonalButtonColors().containerColor
+                                MiuixTheme.colorScheme.secondaryVariant
                             } else {
-                                ButtonDefaults.filledTonalButtonColors().disabledContainerColor
+                                MiuixTheme.colorScheme.disabledSecondaryVariant
                             },
                         contentColor = if (!module.remove) {
-                            ButtonDefaults.filledTonalButtonColors().contentColor
+                            MiuixTheme.colorScheme.onSecondaryVariant
                         } else {
-                            ButtonDefaults.filledTonalButtonColors().disabledContentColor
+                            MiuixTheme.colorScheme.disabledOnSecondaryVariant
                         },
                     ) {
                         Icon(
@@ -1556,20 +1516,20 @@ fun ModuleItem(
                     modifier = Modifier
                         .padding(vertical = 5.dp)
                         .defaultMinSize(minWidth = 52.dp, minHeight = 32.dp)
-                        .clip(ButtonDefaults.filledTonalShape)
+                        .clip(RoundedCornerShape(ButtonDefaults.CornerRadius))
                         .clickable {
                             onUninstallClicked(module)
                         },
                     color =
                         if (!module.remove) {
-                            ButtonDefaults.filledTonalButtonColors().containerColor
+                            MiuixTheme.colorScheme.secondaryVariant
                         } else {
-                            ButtonDefaults.filledTonalButtonColors().disabledContainerColor
+                            MiuixTheme.colorScheme.disabledSecondaryVariant
                         },
                     contentColor = if (!module.remove) {
-                        ButtonDefaults.filledTonalButtonColors().contentColor
+                        MiuixTheme.colorScheme.onSecondaryVariant
                     } else {
-                        ButtonDefaults.filledTonalButtonColors().disabledContentColor
+                        MiuixTheme.colorScheme.disabledOnSecondaryVariant
                     },
                 ) {
                     if (!module.remove) {
