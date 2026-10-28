@@ -152,9 +152,12 @@ fn wait_for_boot_completed() -> Result<()> {
 
 pub fn soft_reboot() -> Result<()> {
     // check it avoid user click "soft_reboot" in manager when version mismatch
+    // B3: return the error instead of Ok(()) — the manager's fastCmdResult
+    // maps a zero exit to success, so the mismatch used to surface as a
+    // silent no-op in the UI.
     if let Err(e) = ksucalls::ensure_uapi_version_matched() {
         error!("{e:#}, skip soft_reboot");
-        return Ok(());
+        return Err(e);
     }
 
     utils::daemonize_with(true, || -> Result<()> {
@@ -205,18 +208,26 @@ pub fn soft_reboot() -> Result<()> {
     terminate_waitsys(&mut waitsys);
 
     info!("post-fs-data");
-    on_post_fs_data()?;
+    // B3: never abort between "stop" and "start" — a failure here must not
+    // leave the runtime stopped; warn and keep the restart symmetric.
+    if let Err(e) = on_post_fs_data() {
+        warn!("on_post_fs_data failed during soft reboot: {e:#}");
+    }
     info!("start");
     let status = Command::new("start").status().context("start failed")?;
     if !status.success() {
         warn!("start exited with status: {status}");
     }
     info!("services");
-    on_services();
+    if let Err(e) = on_services() {
+        warn!("on_services failed during soft reboot: {e:#}");
+    }
     if let Err(e) = wait_for_boot_completed() {
         warn!("wait for boot completed failed: {e}");
     }
-    on_boot_completed();
+    if let Err(e) = on_boot_completed() {
+        warn!("on_boot_completed failed during soft reboot: {e:#}");
+    }
 
     unsafe {
         _exit(0);

@@ -14,9 +14,13 @@ use crate::{
 };
 
 pub fn on_post_fs_data() -> Result<()> {
+    // B3: propagate the mismatch instead of faking success (a zero exit
+    // code) — the manager's fastCmdResult treats exit 0 as success, so a
+    // stale libksud (e.g. after a manager update) silently no-op'd the
+    // event.
     if let Err(e) = ksucalls::ensure_uapi_version_matched() {
         error!("{e:#}, skip on_post_fs_data");
-        return Ok(());
+        return Err(e);
     }
 
     ksucalls::report_post_fs_data();
@@ -164,17 +168,18 @@ pub fn run_stage(stage: &str, wait: ScriptWait) {
     }
 }
 
-pub fn on_services() {
+pub fn on_services() -> Result<()> {
+    // B3: propagate the mismatch — see on_post_fs_data.
     if let Err(e) = ksucalls::ensure_uapi_version_matched() {
         error!("{e:#}, skip on_services");
-        return;
+        return Err(e);
     }
 
     match ksucalls::report_services() {
         Ok(true) => {}
         Ok(false) => {
             info!("services already started, skipping");
-            return;
+            return Ok(());
         }
         Err(e) => {
             // B4: a transient report_services failure (e.g. an ioctl hiccup
@@ -189,12 +194,14 @@ pub fn on_services() {
 
     info!("on_services triggered!");
     run_stage("service", ScriptWait::NoWait);
+    Ok(())
 }
 
-pub fn on_boot_completed() {
+pub fn on_boot_completed() -> Result<()> {
+    // B3: propagate the mismatch — see on_post_fs_data.
     if let Err(e) = ksucalls::ensure_uapi_version_matched() {
         error!("{e:#}, skip on_boot_completed");
-        return;
+        return Err(e);
     }
 
     ksucalls::report_boot_complete();
@@ -204,6 +211,7 @@ pub fn on_boot_completed() {
     if !is_safe_mode() {
         crate::android::susfs::init_event::on_boot_completed();
     }
+    Ok(())
 }
 
 fn catch_bootlog(logname: &str, command: &[&str]) -> Result<()> {

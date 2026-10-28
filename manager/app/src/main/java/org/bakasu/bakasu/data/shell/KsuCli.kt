@@ -498,10 +498,12 @@ class KsuCliRepository(context: Context) {
         return result.isSuccess
     }
 
-    fun reboot(reason: String = "") {
+    fun reboot(reason: String = ""): Boolean {
         if (reason == "soft_reboot") {
-            execKsud("soft-reboot", newShell = true, globalMnt = true)
-            return
+            // B3: propagate the ksud exit code instead of discarding it, so a
+            // UAPI/kernel mismatch (e.g. a stale libksud after a manager
+            // update) surfaces in the UI instead of silently no-op'ing.
+            return execKsud("soft-reboot", newShell = true, globalMnt = true)
         }
         val shell = getRootShell()
         if (reason == "recovery") {
@@ -512,6 +514,7 @@ class KsuCliRepository(context: Context) {
             shell,
             "/system/bin/svc power reboot $reason || /system/bin/reboot $reason",
         )
+        return true
     }
 
     fun rootAvailable(): Boolean {
