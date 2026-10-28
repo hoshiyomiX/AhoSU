@@ -233,12 +233,20 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
 fn relaunch_manager(package_name: &str) {
     if let Some(component) = resolve_launch_component(package_name) {
         info!("Relaunching manager as {component}");
-        let _ = Command::new("am").args(["start", "-n", &component]).status();
+        let _ = Command::new("am")
+            .args(["start", "-n", &component])
+            .status();
         return;
     }
 
     let monkey = Command::new("monkey")
-        .args(["-p", package_name, "-c", "android.intent.category.LAUNCHER", "1"])
+        .args([
+            "-p",
+            package_name,
+            "-c",
+            "android.intent.category.LAUNCHER",
+            "1",
+        ])
         .status();
     if monkey.is_ok_and(|s| s.success()) {
         return;
