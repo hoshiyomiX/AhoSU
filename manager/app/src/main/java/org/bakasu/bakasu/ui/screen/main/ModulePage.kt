@@ -56,21 +56,13 @@ import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CheckableDropdownMenuItem
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SheetValue
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -80,9 +72,6 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
@@ -172,6 +161,15 @@ import org.bakasu.bakasu.ui.viewmodel.ModuleViewModel
 import org.bakasu.bakasu.ui.webui.WebUIActivity
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.FloatingActionButton
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import top.yukonga.miuix.kmp.basic.ListPopupColumn
+import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
+import top.yukonga.miuix.kmp.overlay.OverlayListPopup
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 enum class ShortcutType {
     Action,
@@ -328,7 +326,7 @@ fun ModulePage(bottomPadding: Dp) {
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState),
     )
 
-    Scaffold(
+    MiuixScaffold(
         topBar = {
             SearchAppBar(
                 title = stringResource(R.string.module),
@@ -337,7 +335,7 @@ fun ModulePage(bottomPadding: Dp) {
                     viewModel.dispatch(ModuleUiAction.Search(query))
                 },
                 dropdownContent = {
-                    IconButton(
+                    MiuixIconButton(
                         onClick = { showDropdown = true },
                     ) {
                         Icon(
@@ -354,7 +352,7 @@ fun ModulePage(bottomPadding: Dp) {
                     }
                 },
                 navigationContent = {
-                    IconButton(
+                    MiuixIconButton(
                         onClick = {
                             navigator.push(Route.ModuleRepo)
                         },
@@ -370,12 +368,11 @@ fun ModulePage(bottomPadding: Dp) {
             )
         },
         floatingActionButton = {
-            if (hideInstallButton) return@Scaffold
+            if (hideInstallButton) return@floatingActionButton
 
             FloatingActionButton(
                 modifier = Modifier.padding(bottom = bottomPadding + 5.dp),
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                containerColor = MaterialTheme.colorScheme.primary,
+                containerColor = MiuixTheme.colorScheme.primary,
                 onClick = {
                     selectZipLauncher.launch(
                         Intent(Intent.ACTION_GET_CONTENT).apply {
@@ -384,16 +381,15 @@ fun ModulePage(bottomPadding: Dp) {
                         },
                     )
                 },
-                content = {
-                    Icon(
-                        painter = painterResource(id = R.drawable.package_import),
-                        contentDescription = null,
-                    )
-                },
-            )
+            ) {
+                Icon(
+                    painter = painterResource(id = R.drawable.package_import),
+                    contentDescription = null,
+                    tint = MiuixTheme.colorScheme.onPrimary,
+                )
+            }
         },
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
         contentWindowInsets = adaptiveScaffoldWindowInsets(includeBottom = false),
         snackbarHost = {
             SwipeableSnackbarHost(
@@ -509,7 +505,6 @@ fun ModulePage(bottomPadding: Dp) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ModuleDropdown(
     expanded: Boolean,
@@ -517,38 +512,44 @@ private fun ModuleDropdown(
     viewModel: ModuleViewModel,
     uiState: ModuleUiState,
 ) {
-    DropdownMenuPopup(
-        expanded = expanded,
+    OverlayListPopup(
+        show = expanded,
         onDismissRequest = onDismissRequest,
     ) {
-        DropdownMenuGroup(
-            shapes = MenuDefaults.groupShapes(),
-        ) {
-            CheckableDropdownMenuItem(
-                checked = uiState.sortActionFirst,
-                onCheckedChange = {
+        ListPopupColumn {
+            BasicComponent(
+                title = stringResource(R.string.module_sort_action_first),
+                endActions = {
+                    if (uiState.sortActionFirst) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Check,
+                            contentDescription = null,
+                            tint = MiuixTheme.colorScheme.primary,
+                        )
+                    }
+                },
+                onClick = {
                     viewModel.dispatch(
-                        ModuleUiAction.Sort(uiState.sortEnabledFirst, it),
+                        ModuleUiAction.Sort(uiState.sortEnabledFirst, !uiState.sortActionFirst),
                     )
                 },
-                text = { Text(stringResource(R.string.module_sort_action_first)) },
-                shapes = MenuDefaults.itemShape(
-                    index = 0,
-                    count = 2,
-                ),
             )
-            CheckableDropdownMenuItem(
-                checked = uiState.sortEnabledFirst,
-                onCheckedChange = {
+            BasicComponent(
+                title = stringResource(R.string.module_sort_enabled_first),
+                endActions = {
+                    if (uiState.sortEnabledFirst) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Check,
+                            contentDescription = null,
+                            tint = MiuixTheme.colorScheme.primary,
+                        )
+                    }
+                },
+                onClick = {
                     viewModel.dispatch(
-                        ModuleUiAction.Sort(it, uiState.sortActionFirst),
+                        ModuleUiAction.Sort(!uiState.sortEnabledFirst, uiState.sortActionFirst),
                     )
                 },
-                text = { Text(stringResource(R.string.module_sort_enabled_first)) },
-                shapes = MenuDefaults.itemShape(
-                    index = 1,
-                    count = 2,
-                ),
             )
         }
     }
@@ -566,7 +567,6 @@ private fun getMetaModuleWarningText(
     return status.resId?.let { context.getString(it) }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun MetaModuleWarningCard(
     text: String,
@@ -579,7 +579,6 @@ private fun MetaModuleWarningCard(
         exit = fadeOut() + shrinkVertically(),
     ) {
         WarningCard(
-            shape = CardDefaults.elevatedShape,
             message = text,
             onClose = onClose,
         )
@@ -899,24 +898,16 @@ private fun ModuleList(
         openShortcutDialogForType(shortcutType)
     }
 
-    PullToRefreshBox(
-        state = pullRefreshState,
+    PullToRefresh(
+        isRefreshing = uiState.isRefreshing,
         onRefresh = {
             viewModel.dispatch(ModuleUiAction.Refresh(manual = true))
         },
         modifier = boxModifier
             .fillMaxSize()
             .blurSource(),
-        indicator = {
-            PullToRefreshDefaults.LoadingIndicator(
-                modifier = Modifier
-                    .padding(top = topPadding)
-                    .align(Alignment.TopCenter),
-                state = pullRefreshState,
-                isRefreshing = uiState.isRefreshing,
-            )
-        },
-        isRefreshing = uiState.isRefreshing,
+        pullToRefreshState = pullRefreshState,
+        contentPadding = PaddingValues(top = topPadding),
     ) {
         val metaModuleWarningText by produceState<String?>(
             initialValue = null,
