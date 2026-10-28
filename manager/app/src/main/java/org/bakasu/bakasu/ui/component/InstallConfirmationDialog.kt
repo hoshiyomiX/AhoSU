@@ -21,16 +21,9 @@ import androidx.compose.material.icons.automirrored.twotone.Help
 import androidx.compose.material.icons.twotone.Extension
 import androidx.compose.material.icons.twotone.GetApp
 import androidx.compose.material.icons.twotone.Memory
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -64,6 +57,12 @@ import org.bakasu.bakasu.ui.util.LocalPermissionRequestInterface
 import org.bakasu.bakasu.ui.util.downloader.download
 import org.bakasu.bakasu.ui.util.downloader.downloadFailureMessage
 import org.koin.compose.koinInject
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 
 val LocalRepositoryModuleInstall = staticCompositionLocalOf<(Uri, CatalogModule, ModuleReleaseAsset, () -> Boolean) -> Unit> {
     error("Repository module installation is unavailable")
@@ -283,88 +282,64 @@ fun InstallConfirmationDialog(
     onDismiss: () -> Unit,
 ) {
     if (show && zipFiles.isNotEmpty()) {
-        AlertDialog(
+        val confirmLabel = stringResource(R.string.install_confirm)
+        val cancelLabel = stringResource(android.R.string.cancel)
+        val titleSingle = stringResource(R.string.confirm_installation)
+        val titleMultiple = stringResource(R.string.confirm_multiple_installation, zipFiles.size)
+
+        OverlayDialog(
+            show = true,
             onDismissRequest = onDismiss,
-            title = {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth(),
-                ) {
-                    Icon(
-                        imageVector = if (zipFiles.any { it.type == ZipType.KERNEL }) {
-                            Icons.TwoTone.Memory
-                        } else {
-                            Icons.TwoTone.Extension
-                        },
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(24.dp),
-                    )
-                    Spacer(modifier = Modifier.width(12.dp))
-                    Text(
-                        text = if (zipFiles.size == 1) {
-                            stringResource(R.string.confirm_installation)
-                        } else {
-                            stringResource(R.string.confirm_multiple_installation, zipFiles.size)
-                        },
-                        style = MaterialTheme.typography.headlineSmall,
-                    )
+            title = if (zipFiles.size == 1) titleSingle else titleMultiple,
+        ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 400.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                items(zipFiles.size) { index ->
+                    val zipFile = zipFiles[index]
+                    InstallItemCard(zipFile = zipFile)
                 }
-            },
-            text = {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 400.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                ) {
-                    items(zipFiles.size) { index ->
-                        val zipFile = zipFiles[index]
-                        InstallItemCard(zipFile = zipFile)
+
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                    ) {
+                        TextButton(
+                            text = cancelLabel,
+                            onClick = onDismiss,
+                        )
+                        Button(onClick = { onConfirm(zipFiles) }) {
+                            Icon(
+                                imageVector = Icons.TwoTone.GetApp,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(text = confirmLabel)
+                        }
                     }
                 }
-            },
-            confirmButton = {
-                Button(
-                    onClick = { onConfirm(zipFiles) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                    ),
-                ) {
-                    Icon(
-                        imageVector = Icons.TwoTone.GetApp,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp),
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.install_confirm))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text(
-                        stringResource(android.R.string.cancel),
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                }
-            },
-            modifier = Modifier.widthIn(min = 320.dp, max = 560.dp),
-        )
+            }
+        }
     }
 }
 
 @Composable
 fun InstallItemCard(zipFile: ZipFileInfo) {
-    ElevatedCard(
+    Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.elevatedCardColors(
-            containerColor = when (zipFile.type) {
+        cornerRadius = 16.dp,
+        colors = CardDefaults.defaultColors(
+            color = when (zipFile.type) {
                 ZipType.MODULE -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
                 ZipType.KERNEL -> MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f)
                 else -> MaterialTheme.colorScheme.surfaceBright
             },
         ),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
     ) {
         Column(
             modifier = Modifier

@@ -7,22 +7,20 @@ import android.text.Layout
 import android.util.Log
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -58,6 +56,11 @@ import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.parcelize.Parcelize
 import org.bakasu.bakasu.domain.model.DocumentFormat
 import org.bakasu.bakasu.domain.model.ModuleReadme
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private const val TAG = "DialogComponent"
 
@@ -410,7 +413,6 @@ fun rememberCustomDialog(composable: @Composable (dismiss: () -> Unit) -> Unit):
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun LoadingDialog() {
     Dialog(
@@ -424,7 +426,7 @@ private fun LoadingDialog() {
             Box(
                 contentAlignment = Alignment.Center,
             ) {
-                LoadingIndicator()
+                InfiniteProgressIndicator(color = MiuixTheme.colorScheme.primary)
             }
         }
     }
@@ -432,49 +434,55 @@ private fun LoadingDialog() {
 
 @Composable
 private fun ConfirmDialog(visuals: ConfirmDialogVisuals, confirm: () -> Unit, dismiss: () -> Unit) {
-    AlertDialog(
+    val okLabel = stringResource(id = android.R.string.ok)
+    val cancelLabel = stringResource(id = android.R.string.cancel)
+
+    OverlayDialog(
+        show = true,
         onDismissRequest = {
             dismiss()
         },
-        title = {
-            Text(text = visuals.title)
-        },
-        text = {
-            LazyColumn(
-                modifier = Modifier
-                    .heightIn(max = 325.dp),
-            ) {
-                item {
-                    val document = visuals.document
-                    if (document != null) {
-                        GithubMarkdown(
-                            document = document,
-                            backgroundColor = MaterialTheme.colorScheme.surfaceContainer,
-                        )
-                    } else if (visuals.isMarkdown) {
-                        MarkdownContent(content = visuals.content)
-                    } else if (visuals.isHtml) {
-                        GithubMarkdown(
-                            document = ModuleReadme(visuals.content, "https://appassets.androidplatform.net/", DocumentFormat.HTML),
-                            backgroundColor = MaterialTheme.colorScheme.surfaceContainer,
-                        )
-                    } else {
-                        Text(text = visuals.content)
+        title = visuals.title,
+    ) {
+        LazyColumn(
+            modifier = Modifier
+                .heightIn(max = 325.dp),
+        ) {
+            item {
+                val document = visuals.document
+                if (document != null) {
+                    GithubMarkdown(
+                        document = document,
+                        backgroundColor = MaterialTheme.colorScheme.surfaceContainer,
+                    )
+                } else if (visuals.isMarkdown) {
+                    MarkdownContent(content = visuals.content)
+                } else if (visuals.isHtml) {
+                    GithubMarkdown(
+                        document = ModuleReadme(visuals.content, "https://appassets.androidplatform.net/", DocumentFormat.HTML),
+                        backgroundColor = MaterialTheme.colorScheme.surfaceContainer,
+                    )
+                } else {
+                    Text(text = visuals.content)
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
+                ) {
+                    TextButton(
+                        text = visuals.dismiss ?: cancelLabel,
+                        onClick = dismiss,
+                    )
+                    Button(onClick = confirm) {
+                        Text(text = visuals.confirm ?: okLabel)
                     }
                 }
             }
-        },
-        confirmButton = {
-            TextButton(onClick = confirm) {
-                Text(text = visuals.confirm ?: stringResource(id = android.R.string.ok))
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = dismiss) {
-                Text(text = visuals.dismiss ?: stringResource(id = android.R.string.cancel))
-            }
-        },
-    )
+        }
+    }
 }
 
 @Composable
