@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -35,31 +34,12 @@ import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Star
 import androidx.compose.material.icons.twotone.Warning
 import androidx.compose.material.icons.twotone.WebAsset
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CheckableDropdownMenuItem
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.material3.rememberBottomSheetState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -82,7 +62,6 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -136,6 +115,21 @@ import org.bakasu.bakasu.ui.viewmodel.ModuleRepoViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.HorizontalDivider as MiuixHorizontalDivider
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.ListPopupColumn
+import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
+import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.overlay.OverlayListPopup
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * @author AlexLiuDev233
@@ -171,30 +165,31 @@ fun ModuleRepoScreen(repositoryUrl: String? = null) {
     val selectAsset = rememberCustomDialog { dismiss ->
         val module = assetSelection
         if (module != null) {
-            AlertDialog(
+            OverlayDialog(
+                show = true,
                 onDismissRequest = dismiss,
-                title = { Text(stringResource(R.string.repo_select_install_asset)) },
-                text = {
-                    LazyColumn {
-                        items(module.latestAsset?.assets.orEmpty()) { asset ->
-                            TextButton(
-                                onClick = {
-                                    dismiss()
-                                    confirmInstall(module, asset) { viewModel.resolveAsset(module.catalogId, asset) != null }
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                            ) {
-                                Column(Modifier.fillMaxWidth()) {
-                                    Text(asset.name)
-                                    moduleAssetDetails(asset)?.let { Text(it, style = MaterialTheme.typography.bodySmall) }
-                                }
-                            }
-                        }
+                title = stringResource(R.string.repo_select_install_asset),
+            ) {
+                LazyColumn {
+                    items(module.latestAsset?.assets.orEmpty()) { asset ->
+                        BasicComponent(
+                            title = asset.name,
+                            summary = moduleAssetDetails(asset),
+                            onClick = {
+                                dismiss()
+                                confirmInstall(module, asset) { viewModel.resolveAsset(module.catalogId, asset) != null }
+                            },
+                        )
                     }
-                },
-                confirmButton = {},
-                dismissButton = { TextButton(onClick = dismiss) { Text(stringResource(R.string.cancel)) } },
-            )
+                    item {
+                        TextButton(
+                            text = stringResource(R.string.cancel),
+                            onClick = dismiss,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                    }
+                }
+            }
         }
     }
     val quickInstall: (CatalogModule) -> Unit = { module ->
@@ -229,7 +224,7 @@ fun ModuleRepoScreen(repositoryUrl: String? = null) {
         viewModel.refresh(force = false)
     }
 
-    Scaffold(
+    MiuixScaffold(
         topBar = {
             SearchAppBar(
                 title = stringResource(R.string.module_repo),
@@ -244,13 +239,11 @@ fun ModuleRepoScreen(repositoryUrl: String? = null) {
                         onSelect = viewModel::selectRepository,
                         onManage = { navigator.push(Route.AddRepository) },
                     )
-                    Box {
-                        IconButton(onClick = { showSortDropdown = true }) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.TwoTone.Sort,
-                                contentDescription = stringResource(R.string.repo_sort),
-                            )
-                        }
+                    MiuixIconButton(onClick = { showSortDropdown = true }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.TwoTone.Sort,
+                            contentDescription = stringResource(R.string.repo_sort),
+                        )
                         ModuleRepoSortDropdown(
                             expanded = showSortDropdown,
                             onDismissRequest = { showSortDropdown = false },
@@ -269,26 +262,17 @@ fun ModuleRepoScreen(repositoryUrl: String? = null) {
             )
         },
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
         contentWindowInsets = adaptiveScaffoldWindowInsets(),
         snackbarHost = { SwipeableSnackbarHost(hostState = snackBarHost) },
     ) { innerPadding ->
-        PullToRefreshBox(
-            modifier = Modifier.fillMaxSize().blurSource(),
-            state = pullRefreshState,
+        PullToRefresh(
             isRefreshing = uiState.isPullRefreshing,
             onRefresh = {
                 viewModel.dispatch(ModuleRepoUiAction.PullRefresh)
             },
-            indicator = {
-                PullToRefreshDefaults.LoadingIndicator(
-                    state = pullRefreshState,
-                    isRefreshing = uiState.isPullRefreshing,
-                    modifier = Modifier
-                        .padding(top = innerPadding.calculateTopPadding())
-                        .align(Alignment.TopCenter),
-                )
-            },
+            modifier = Modifier.fillMaxSize().blurSource(),
+            pullToRefreshState = pullRefreshState,
+            contentPadding = PaddingValues(top = innerPadding.calculateTopPadding()),
         ) {
             when (uiState.content) {
                 CatalogContent.MODULES -> LazyColumn(
@@ -306,7 +290,10 @@ fun ModuleRepoScreen(repositoryUrl: String? = null) {
                         .mapNotNull { uiState.failures[it.url] }.distinct()
                     if (failures.isNotEmpty() && !uiState.isRefreshing) {
                         item {
-                            TextButton(onClick = refreshModules) { Text(failures.map { repositoryErrorText(it) }.joinToString("\n")) }
+                            TextButton(
+                                text = failures.map { repositoryErrorText(it) }.joinToString("\n"),
+                                onClick = refreshModules,
+                            )
                         }
                     }
                     items(uiState.modules, key = { it.catalogId }) { module ->
@@ -368,11 +355,9 @@ fun ModuleRepoScreen(repositoryUrl: String? = null) {
                             Spacer(modifier = Modifier.height(10.dp))
 
                             Button(
-                                contentPadding = PaddingValues(horizontal = 50.dp),
+                                text = stringResource(R.string.network_retry),
                                 onClick = refreshModules,
-                            ) {
-                                Text(text = stringResource(R.string.network_retry))
-                            }
+                            )
                         }
                     }
                 }
@@ -394,7 +379,6 @@ fun ModuleRepoScreen(repositoryUrl: String? = null) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ModuleRepositorySelector(
     sources: List<RepositorySource>,
@@ -404,25 +388,16 @@ private fun ModuleRepositorySelector(
     modifier: Modifier = Modifier,
 ) {
     var showSheet by rememberSaveable { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
-    IconButton(onClick = { showSheet = true }, modifier = modifier) {
+    MiuixIconButton(onClick = { showSheet = true }, modifier = modifier) {
         Icon(Icons.TwoTone.Settings, contentDescription = stringResource(R.string.repo_manage))
     }
-    if (showSheet) {
-        val sheetState = rememberBottomSheetState(
-            initialValue = SheetValue.Hidden,
-            enabledValues = setOf(SheetValue.Hidden, SheetValue.Expanded),
-        )
-        ModalBottomSheet(
-            sheetState = sheetState,
-            onDismissRequest = { showSheet = false },
-        ) {
-            CompositionLocalProvider(LocalBackgroundBlurProvided provides true) {
-                Text(
-                    text = stringResource(R.string.repo_select_repository),
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(start = 24.dp, end = 24.dp, bottom = 16.dp).semantics { heading() },
-                )
+    OverlayBottomSheet(
+        show = showSheet,
+        onDismissRequest = { showSheet = false },
+        title = stringResource(R.string.repo_select_repository),
+    ) {
+        CompositionLocalProvider(LocalBackgroundBlurProvided provides true) {
+            Column {
                 LazyColumn(
                     modifier = Modifier.fillMaxWidth().weight(1f, fill = false)
                         .selectableGroup(),
@@ -443,10 +418,7 @@ private fun ModuleRepositorySelector(
                             isOnBackground = false,
                             onClick = {
                                 onSelect(source.url)
-                                scope.launch {
-                                    sheetState.hide()
-                                    showSheet = false
-                                }
+                                showSheet = false
                             },
                             trailingContent = {
                                 if (selected) Icon(Icons.TwoTone.Check, contentDescription = null)
@@ -462,11 +434,8 @@ private fun ModuleRepositorySelector(
                             description = stringResource(R.string.repo_manage),
                             renderBackgroundBlur = false,
                             onClick = {
-                                scope.launch {
-                                    sheetState.hide()
-                                    showSheet = false
-                                    onManage()
-                                }
+                                showSheet = false
+                                onManage()
                             },
                         )
                     }
@@ -476,7 +445,6 @@ private fun ModuleRepositorySelector(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun ModuleRepoSortDropdown(
     expanded: Boolean,
@@ -484,19 +452,26 @@ private fun ModuleRepoSortDropdown(
     viewModel: ModuleRepoViewModel,
     uiState: ModuleRepoUiState,
 ) {
-    DropdownMenuPopup(expanded = expanded, onDismissRequest = onDismissRequest) {
-        DropdownMenuGroup(shapes = MenuDefaults.groupShapes()) {
-            CheckableDropdownMenuItem(
-                checked = uiState.sortStargazerCountFirst,
-                onCheckedChange = {
-                    viewModel.dispatch(ModuleRepoUiAction.SetStarsFirst(it))
+    OverlayListPopup(
+        show = expanded,
+        onDismissRequest = onDismissRequest,
+    ) {
+        ListPopupColumn {
+            BasicComponent(
+                title = stringResource(R.string.module_sort_star_first),
+                endActions = {
+                    if (uiState.sortStargazerCountFirst) {
+                        Icon(
+                            imageVector = Icons.TwoTone.Check,
+                            contentDescription = null,
+                            tint = MiuixTheme.colorScheme.primary,
+                        )
+                    }
+                },
+                onClick = {
+                    viewModel.dispatch(ModuleRepoUiAction.SetStarsFirst(!uiState.sortStargazerCountFirst))
                     onDismissRequest()
                 },
-                text = { Text(stringResource(R.string.module_sort_star_first)) },
-                shapes = MenuDefaults.itemShape(
-                    index = 0,
-                    count = 1,
-                ),
             )
         }
     }
@@ -563,16 +538,16 @@ fun OnlineModuleItem(
             }
         }
         Spacer(Modifier.height(16.dp))
-        HorizontalDivider(thickness = Dp.Hairline)
+        MiuixHorizontalDivider(thickness = Dp.Hairline)
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            FilledTonalButton(
+            MiuixIconButton(
                 onClick = onOpen,
-                modifier = Modifier.defaultMinSize(minWidth = 52.dp, minHeight = 32.dp),
-                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 7.dp),
+                minWidth = 52.dp,
+                minHeight = 32.dp,
             ) {
                 Icon(Icons.TwoTone.WebAsset, contentDescription = stringResource(R.string.learn_more), modifier = Modifier.size(20.dp))
             }
@@ -585,7 +560,6 @@ fun OnlineModuleItem(
     }
 }
 
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun QuickInstallButton(module: CatalogModule, loading: Boolean, enabled: Boolean, onClick: () -> Unit) {
     val observeDownload = koinInject<ObserveAssetDownloadUseCase>()
@@ -610,15 +584,25 @@ private fun QuickInstallButton(module: CatalogModule, loading: Boolean, enabled:
     } else {
         stringResource(if (module.isScript) R.string.script_run else R.string.repo_install_latest)
     }
-    FilledTonalButton(
+    MiuixIconButton(
         onClick = onClick,
         enabled = enabled && !loading && !downloading,
-        modifier = Modifier.defaultMinSize(minWidth = 52.dp, minHeight = 32.dp).semantics { contentDescription = description },
-        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 7.dp),
+        minWidth = 52.dp,
+        minHeight = 32.dp,
+        modifier = Modifier.semantics { contentDescription = description },
     ) {
         when {
-            loading -> LoadingIndicator(modifier = Modifier.size(24.dp))
-            downloading -> CircularProgressIndicator(progress = { progress / 100f }, modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+            loading -> InfiniteProgressIndicator(
+                modifier = Modifier.size(24.dp),
+                color = MiuixTheme.colorScheme.primary,
+            )
+
+            downloading -> CircularProgressIndicator(
+                progress = progress / 100f,
+                modifier = Modifier.size(20.dp),
+                strokeWidth = 2.dp,
+            )
+
             else -> Icon(if (module.isScript) Icons.TwoTone.PlayArrow else Icons.TwoTone.Download, contentDescription = null, modifier = Modifier.size(24.dp))
         }
     }
