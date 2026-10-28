@@ -141,6 +141,8 @@ class ThemeConfig {
         set(value) {
             _isEnableBlurExp.value = value
         }
+    var bottomBarStyle by mutableStateOf(BottomBarStyle.FLOATING)
+
     fun resetBackgroundState() {
         isThemeChanging = true
     }
@@ -206,6 +208,11 @@ class BackgroundManager(
     fun saveEnableBlurExp(enable: Boolean) {
         config.isEnableBlurExp = enable
         settings.putBoolean("enable_blur_exp", enable)
+    }
+
+    fun saveBottomBarStyle(style: BottomBarStyle) {
+        config.bottomBarStyle = style
+        settings.putInt("bottom_bar_style", style.ordinal)
     }
 
     fun loadBlurAndContrastPreferences() {
@@ -423,6 +430,7 @@ private fun ThemeInitializer(
         settings.preload()
         themeConfig.forceDarkMode = themeRepository.loadThemeMode()
         themeConfig.isEnableBlur = settings.getBoolean("enable_blur", false)
+        themeConfig.bottomBarStyle = BottomBarStyle.fromOrdinal(settings.getInt("bottom_bar_style", 1))
         cardConfig.load()
         backgroundManager.loadBlurAndContrastPreferences()
     }
