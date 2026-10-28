@@ -427,6 +427,7 @@ private fun ThemeInitializer(
         backgroundManager.loadBlurAndContrastPreferences()
     }
 }
+
 @Composable
 private fun BackgroundLayer(
     themeConfig: ThemeConfig,
@@ -477,7 +478,6 @@ private fun BackgroundLayer(
                 MaterialTheme.colorScheme.surfaceContainer,
             ),
     )
-
 }
 
 /**
@@ -1499,6 +1499,7 @@ private fun Bitmap.createBackgroundBlurSource(viewportSize: IntSize): Bitmap {
         )
     }
 }
+
 @Composable
 private fun generateTypography(themeConfig: ThemeConfig): androidx.compose.material3.Typography {
     val darkMode = isInDarkTheme(themeConfig.forceDarkMode)
