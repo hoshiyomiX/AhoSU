@@ -138,6 +138,12 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
     // before the late-load/service stages. Run it explicitly here, mirroring
     // the stage ordering of init_event::on_post_fs_data.
     ksucalls::report_post_fs_data();
+    // B1: apply the persisted SuSFS config that must capture metadata before
+    // mounts and overlays, exactly like init_event::on_post_fs_data does on
+    // the normal/soft-reboot paths. Without this, the jailbreak boot only
+    // picked the config up after the first soft reboot, when
+    // init_event::on_boot_completed finally ran the susfs handlers.
+    crate::android::susfs::init_event::on_post_fs_data();
     init_event::run_stage("post-fs-data", wait);
 
     init_event::run_stage("late-load", wait);
@@ -154,6 +160,13 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
         // L6: modules are mounted — notify the kernel so event-gated features
         // become active, like the metamodule would on a normal boot.
         ksucalls::report_module_mounted();
+    }
+
+    // B1: load the manager umount config after the mounts are in place,
+    // mirroring init_event::on_post_fs_data (applied right after the
+    // metamodule mount script on normal/soft-reboot boots).
+    if let Err(e) = crate::android::umount_config::load_umount_config() {
+        warn!("load umount config failed: {e}");
     }
     // 11. Execute dynamic manager booted load
     if let Err(e) = dynamic_manager::booted_load() {
@@ -186,6 +199,14 @@ pub fn run(package_name: &String, kmi: Option<String>, allow_shell: bool) -> Res
     // L6: mirror init_event::on_boot_completed — report boot completion first.
     ksucalls::report_boot_complete();
     init_event::run_stage("boot-completed", ScriptWait::NoWait);
+    // B1: apply the SuSFS boot-completed config (sus_cmdline, sus_map,
+    // sus_path, ...) on the jailbreak boot path too — previously this only
+    // ran via init_event::on_boot_completed on normal/soft-reboot boots, so a
+    // jailbreak boot stayed unconfigured until the first soft reboot. The
+    // safe-mode guard mirrors init_event::on_boot_completed.
+    if !utils::is_safe_mode() {
+        crate::android::susfs::init_event::on_boot_completed();
+    }
 
     // 15. Restart Manager so it gets a fresh ksu fd from the newly loaded kernel module
     info!("Restarting KernelSU Manager {package_name}...");

@@ -7,7 +7,7 @@ use std::{
 
 use crate::android::{
     susfs::{api::prelude as api, config::model::Config},
-    utils::daemonize,
+    utils::create_daemon,
 };
 
 fn is_fuse_mounted() -> bool {
@@ -68,9 +68,21 @@ pub fn on_boot_completed() {
     }
 
     log::info!("Start daemonize...");
-    if let Err(e) = daemonize(false) {
-        log::error!("unable to daemonize: {e}");
-        return;
+    // B1: use create_daemon instead of daemonize so the CALLING process
+    // survives (daemonize _exit(0)s the caller once the daemon child is
+    // spawned). The jailbreak late-load path calls this handler and still has
+    // its own work to do afterwards (manager restart, post-magica adb
+    // cleanup); the daemon-side behavior is unchanged (detach + reset_std +
+    // double fork), and the previous callers only lose a redundant exit(0).
+    match create_daemon(false) {
+        // We are the daemon: continue with the FUSE wait and the config apply.
+        Ok(true) => {}
+        // Original process: the daemon was spawned and reaped; nothing to do.
+        Ok(false) => return,
+        Err(e) => {
+            log::error!("unable to daemonize: {e}");
+            return;
+        }
     }
     log::info!("Daemonize success.");
 
