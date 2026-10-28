@@ -355,9 +355,10 @@ fun ModuleRepoScreen(repositoryUrl: String? = null) {
                             Spacer(modifier = Modifier.height(10.dp))
 
                             Button(
-                                text = stringResource(R.string.network_retry),
                                 onClick = refreshModules,
-                            )
+                            ) {
+                                Text(text = stringResource(R.string.network_retry))
+                            }
                         }
                     }
                 }
