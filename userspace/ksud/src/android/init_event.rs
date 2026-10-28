@@ -177,8 +177,13 @@ pub fn on_services() {
             return;
         }
         Err(e) => {
-            error!("Failed to report services: {e:#}");
-            return;
+            // B4: a transient report_services failure (e.g. an ioctl hiccup
+            // while the framework restarts during a soft reboot) must not
+            // skip the whole service stage — module service.sh scripts
+            // (zygisk re-injection, lspctl, daemon restarts) still need to
+            // re-run. Keep the stage, mirroring the late-load path, which
+            // already runs it on report errors.
+            warn!("Failed to report services: {e:#}, running service stage anyway");
         }
     }
 
