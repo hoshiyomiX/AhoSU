@@ -120,6 +120,8 @@
     <string name="allowlist_restore_failed">Restauración de lista de permisos falló: %1$s</string>
     <string name="backup_allowlist">Copia de seguridad lista</string>
     <string name="restore_allowlist">Restaurar lista de permisos</string>
+    <string name="settings_custom_background">Fondo de aplicación personalizado</string>
+    <string name="settings_custom_background_summary">Seleccionar una imagen como fondo</string>
     <string name="home_android_version">Versión de Android</string>
     <string name="home_device_model">Modelo del dispositivo</string>
     <string name="su_not_allowed">No se permite conceder superusuario a %s</string>
@@ -259,7 +261,16 @@
     <string name="enable_adb_summary">Forzar la activación de la depuración USB y desactivar la autenticación adb. No lo actives a menos que sea absolutamente necesario.</string>
     <string name="install_force_backup">Copia de seguridad como imagen de fábrica</string>
     <string name="install_force_backup_summary">Por favor, asegúrese de que la imagen de arranque seleccionada sea una imagen original (stock)</string>
+    <string name="background_crop_method_title">Seleccionar método de recorte</string>
+    <string name="background_crop_method_in_app">Recorte dentro de la aplicación</string>
+    <string name="background_crop_method_external">Recorte externo</string>
     <string name="background_external_crop_unavailable">El recorte externo no está disponible. Se utilizará en su lugar el recorte integrado en la aplicación.</string>
+    <string name="background_crop_failed">No se pudo recortar la imagen</string>
+    <string name="background_crop_title">Recortar fondo</string>
+    <string name="background_crop_apply">Aplicar</string>
+    <string name="background_crop_reset">Reestablecer</string>
+    <string name="background_crop_loading">Cargando imagen</string>
+    <string name="background_crop_rotation_angle">Rotación</string>
     <string name="settings_config_enable_blur">Activar desenfoque</string>
     <string name="settings_config_enable_blur_summary">Habilitar proceso de desenfoque para esta aplicación</string>
     <string name="settings_exp_draw_background_to_blur">Dibujar fondo personalizado para desenfocar</string>

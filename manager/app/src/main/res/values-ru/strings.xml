@@ -183,6 +183,8 @@
     <string name="allowlist_restore_failed">Не удалось восстановить список: %1$s</string>
     <string name="backup_allowlist">Резервное копирование списка</string>
     <string name="restore_allowlist">Белый список восстановления ключей</string>
+    <string name="settings_custom_background">Пользовательский фон приложения</string>
+    <string name="settings_custom_background_summary">Выберите изображение в качестве фона</string>
     <string name="settings_config_enable_blur">Включить блюр</string>
     <string name="settings_config_enable_blur_summary">Использовать блюр для приложения</string>
     <string name="settings_exp_draw_background_to_blur">Нарисовать кастомный фон для блюра</string>
@@ -400,7 +402,16 @@
     <string name="settings_check_manager_update_summary">Автоматически проверять обновления менеджера</string>
     <string name="settings_check_module_update">Проверка обновлений модулей</string>
     <string name="settings_check_module_update_summary">Автоматическая проверка обновлений установленных модулей</string>
+    <string name="background_crop_method_title">Способ кадрирования</string>
+    <string name="background_crop_method_in_app">Кадрирование</string>
+    <string name="background_crop_method_external">Внешняя обрезка</string>
     <string name="background_external_crop_unavailable">Внешняя обрезка недоступна. Вместо неё используется обрезка внутри приложения.</string>
+    <string name="background_crop_failed">Не удалось обрезать изображение</string>
+    <string name="background_crop_title">Обрезать фон</string>
+    <string name="background_crop_apply">Принять</string>
+    <string name="background_crop_reset">Сброс</string>
+    <string name="background_crop_loading">Загрузка изображения</string>
+    <string name="background_crop_rotation_angle">Вращение</string>
     <string name="theme_settings">Настройки темы</string>
     <string name="predictive_back_animation_aosp">AOSP</string>
     <string name="readme">Прочти меня</string>

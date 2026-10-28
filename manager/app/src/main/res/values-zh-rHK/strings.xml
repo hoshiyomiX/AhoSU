@@ -184,6 +184,8 @@
     <string name="allowlist_restore_failed">應用程式列表還原失敗：%1$s</string>
     <string name="backup_allowlist">備份應用程式列表</string>
     <string name="restore_allowlist">還原應用程式列表</string>
+    <string name="settings_custom_background">自訂背景</string>
+    <string name="settings_custom_background_summary">選擇一張圖片作為應用程式背景</string>
     <string name="settings_card_alpha">卡片唔透明度</string>
     <string name="home_android_version">Android 版本</string>
     <string name="home_device_model">裝置</string>
@@ -376,7 +378,16 @@
     <string name="manage_app_profile">管理 App Profile 模版</string>
     <string name="recently_installed">最近安裝</string>
     <string name="home_pr_build_warning">當前為 PR 除錯構建，請勿喺生產環境中使用！</string>
+    <string name="background_crop_method_title">選擇裁切方式</string>
+    <string name="background_crop_method_in_app">應用程式內裁切</string>
+    <string name="background_crop_method_external">外部裁切</string>
     <string name="background_external_crop_unavailable">外部裁切不可用，正使用應用程式內裁切。</string>
+    <string name="background_crop_failed">圖片裁切失敗</string>
+    <string name="background_crop_title">裁切背景</string>
+    <string name="background_crop_apply">套用</string>
+    <string name="background_crop_reset">重設</string>
+    <string name="background_crop_loading">載入圖片中</string>
+    <string name="background_crop_rotation_angle">旋轉角度</string>
     <string name="settings_config_enable_blur">啟用模糊</string>
     <string name="settings_config_enable_blur_summary">為此應用程式啟用模糊處理</string>
     <string name="enable_floating_bottom_bar">懸浮底部欄</string>

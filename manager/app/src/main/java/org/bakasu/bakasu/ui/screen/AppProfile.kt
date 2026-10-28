@@ -145,7 +145,11 @@ fun AppProfileScreen(
     }
 
     val colorScheme = MaterialTheme.colorScheme
-    val cardColor = colorScheme.surfaceContainer
+    val cardColor = if (cardConfig.isCustomBackgroundEnabled) {
+        Color.Transparent
+    } else {
+        colorScheme.surfaceContainer
+    }
 
     MiuixScaffold(
         topBar = {
@@ -547,7 +551,7 @@ private fun AppProfilePreview() {
     var profile by remember { mutableStateOf(AppProfile("")) }
 
     Surface(
-        color = MaterialTheme.colorScheme.surfaceBright,
+        color = if (cardConfig.isCustomBackgroundEnabled) Color.Transparent else MaterialTheme.colorScheme.surfaceBright,
     ) {
         AppProfileInner(
             appGroup = InstalledAppGroup(

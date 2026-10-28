@@ -119,6 +119,8 @@
     <string name="allowlist_restore_failed">Échec de la restauration de la liste d\'autorisations root : %1$s</string>
     <string name="backup_allowlist">Sauvegarder la liste d\'autorisations root</string>
     <string name="restore_allowlist">Restaurer la liste d\'autorisations root</string>
+    <string name="settings_custom_background">Arrière-plan personnalisé</string>
+    <string name="settings_custom_background_summary">Sélection d\'une image d\'arrière-plan</string>
     <string name="home_android_version">Version d\'Android</string>
     <string name="home_device_model">Modèle de l\'appareil</string>
     <string name="su_not_allowed">Octroi des privilèges superutilisateur à %s non autorisé</string>
@@ -251,7 +253,16 @@
     <string name="install_select_partition">Sélectionner la partition</string>
     <string name="install_upload_lkm_file">Utiliser un fichier local d\'image LKM</string>
     <string name="install_only_support_ko_file">Seuls les fichier .ko sont pris en charge</string>
+    <string name="background_crop_method_title">Méthode de recadrage</string>
+    <string name="background_crop_method_in_app">Recadrage dans l\'application</string>
+    <string name="background_crop_method_external">Recadrage avec une application externe</string>
     <string name="background_external_crop_unavailable">Recadrage avec application externe indisponible. Le recadrage dans l\'application sera utilisé.</string>
+    <string name="background_crop_failed">Échec de recadrage de l\'image</string>
+    <string name="background_crop_title">Recadrage de l\'arrière-plan</string>
+    <string name="background_crop_apply">Appliquer</string>
+    <string name="background_crop_reset">Réinitialiser</string>
+    <string name="background_crop_loading">Chargement de l\'image</string>
+    <string name="background_crop_rotation_angle">Rotation</string>
     <string name="settings_config_enable_blur">Floutage</string>
     <string name="settings_config_enable_blur_summary">Active la fonctionnalité de floutage de l\'affichage</string>
     <string name="settings_exp_draw_background_to_blur">Application du floutage à l\'arrière-plan personnalisé</string>

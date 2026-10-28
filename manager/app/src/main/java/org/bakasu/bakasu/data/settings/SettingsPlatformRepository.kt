@@ -4,6 +4,8 @@ import android.app.Application
 import android.content.ComponentName
 import android.content.pm.PackageManager
 import android.content.res.Configuration
+import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import com.topjohnwu.superuser.ShellUtils
 import java.security.SecureRandom
 import kotlinx.coroutines.CancellationException
@@ -39,15 +41,17 @@ class SettingsPlatformRepository(
     fun load(): SettingsPlatformSnapshot {
         themeConfig.forceDarkMode = themeRepository.loadThemeMode()
         themeConfig.useBuiltinMonoFont = settings.getBoolean("use_builtin_monospace_font", false)
-        backgroundManager.loadBlurAndContrastPreferences()
+        backgroundManager.loadCustomBackground()
         val systemDpi = application.resources.displayMetrics.densityDpi
         val currentDpi = settings.getInt("app_dpi", systemDpi)
+        val customBackground = settings.getString("custom_background", null) != null
         val themeMode = when (themeConfig.forceDarkMode) {
             true -> 2
             false -> 1
             null -> 0
         }
         cardConfig.load()
+        cardConfig.updateBackground(customBackground)
         when (themeMode) {
             2 -> cardConfig.updateThemePreference(darkMode = true, lightMode = false)
             1 -> cardConfig.updateThemePreference(darkMode = false, lightMode = true)
@@ -63,6 +67,9 @@ class SettingsPlatformRepository(
             themeMode = themeMode,
             currentLocaleTag = localeHelper.getCurrentAppLocale(application)?.toLanguageTag(),
             useAltIcon = settings.getBoolean("use_alt_icon", false),
+            cardAlpha = cardConfig.cardAlpha,
+            backgroundDim = themeConfig.backgroundDim,
+            customBackgroundEnabled = customBackground,
             systemDpi = systemDpi,
             currentDpi = currentDpi,
             checkManagerUpdate = settings.getBoolean("check_update", true),
@@ -81,6 +88,36 @@ class SettingsPlatformRepository(
     ): Result<SettingsPlatformSnapshot> = try {
         when (setting) {
             is AppearanceSetting.ThemeMode -> setThemeMode(setting.index)
+
+            is AppearanceSetting.CustomBackground -> {
+                check(
+                    backgroundManager.saveAndApplyCustomBackground(
+                        application,
+                        setting.uri.toUri(),
+                    ),
+                )
+                backgroundManager.saveBackgroundDim(0.3f)
+                backgroundManager.saveEnableBlur(true)
+                backgroundManager.saveEnableBlurExp(false)
+                backgroundManager.saveEnableHighContrastMode(false)
+                cardConfig.cardElevation = 0.dp
+                cardConfig.updateBackground(true)
+                cardConfig.save()
+            }
+
+            AppearanceSetting.RemoveCustomBackground -> removeCustomBackground()
+
+            is AppearanceSetting.CardAlpha -> {
+                cardConfig.cardAlpha = setting.value
+                cardConfig.isCustomAlphaSet = true
+                settings.putBoolean("is_custom_alpha_set", true)
+                settings.putFloat("card_alpha", setting.value)
+            }
+
+            is AppearanceSetting.BackgroundDim ->
+                backgroundManager.saveBackgroundDim(setting.value)
+
+            AppearanceSetting.SaveCardConfig -> cardConfig.save()
         }
         Result.success(load())
     } catch (error: CancellationException) {
@@ -202,6 +239,17 @@ class SettingsPlatformRepository(
             }
         }
         cardConfig.save()
+    }
+
+    private fun removeCustomBackground() {
+        backgroundManager.clearCustomBackground(application)
+        cardConfig.cardAlpha = 1f
+        cardConfig.isCustomAlphaSet = false
+        cardConfig.isCustomBackgroundEnabled = false
+        cardConfig.save()
+        backgroundManager.saveBackgroundDim(0f)
+        backgroundManager.saveEnableBlurExp(false)
+        backgroundManager.saveEnableHighContrastMode(false)
     }
 
     private fun initializeFirstRun() {

@@ -120,6 +120,15 @@
     <string name="allowlist_restore_failed">Gagal memulihkan daftar izin: %1$s</string>
     <string name="backup_allowlist">Cadangkan Daftar Izin</string>
     <string name="restore_allowlist">Pulihkan Daftar Izin</string>
+    <string name="settings_custom_background">Latar belakang kustom</string>
+    <string name="settings_custom_background_summary">Pilih gambar sebagai latar belakang</string>
+    <string name="background_crop_method_title">Pilih metode krop</string>
+    <string name="background_crop_failed">Gagal meng-krop gambar</string>
+    <string name="background_crop_title">Krop latar belakang</string>
+    <string name="background_crop_apply">Terapkan</string>
+    <string name="background_crop_reset">Reset</string>
+    <string name="background_crop_loading">Memuat gambar</string>
+    <string name="background_crop_rotation_angle">Rotasi</string>
     <string name="home_android_version">Versi Android</string>
     <string name="home_device_model">Model Perangkat</string>
     <string name="su_not_allowed">Memberikan hak superuser kepada %s tidak diizinkan</string>
@@ -330,7 +339,9 @@
     <string name="settings_background_dim">Penyesuaian Keredupan Latar Belakang</string>
     <string name="warning_of_meta_module_title">Memerlukan Meta modul</string>
     <string name="warning_of_meta_module_summary">Modul ini ingin me-mount /system yang ditangani oleh meta modul. Tanpa modul ini, kemungkin tidak akan berfungsi</string>
+    <string name="background_crop_method_external">Krop Eksternal</string>
     <string name="background_external_crop_unavailable">Krop eksternal tidak tersedia. Gunakan krop bawaan aplikasi.</string>
+    <string name="background_crop_method_in_app">Krop Bawaan</string>
     <string name="predictive_back_animation">Animasi Predictive Back</string>
     <string name="predictive_back_exit_direction">Arah Keluar</string>
     <string name="search_modules">Cari modul</string>

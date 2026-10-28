@@ -69,6 +69,9 @@ data class SettingsUiState(
     val showLanguageDialog: Boolean = false,
     val currentAppLocale: Locale? = null,
     val useAltIcon: Boolean = false,
+    val cardAlpha: Float = 1f,
+    val backgroundDim: Float = 0f,
+    val isCustomBackgroundEnabled: Boolean = false,
     val systemDpi: Int = 0,
     val currentDpi: Int = 0,
     val tempDpi: Int = 0,
@@ -100,6 +103,11 @@ sealed interface SettingsUiAction {
     data object InitializeFirstRun : SettingsUiAction
     data object LoadFeatureSettings : SettingsUiAction
     data class SetThemeMode(val index: Int) : SettingsUiAction
+    data class SetCustomBackground(val uri: String) : SettingsUiAction
+    data object RemoveCustomBackground : SettingsUiAction
+    data class SetCardAlpha(val value: Float) : SettingsUiAction
+    data class SetBackgroundDim(val value: Float) : SettingsUiAction
+    data object SaveCardConfig : SettingsUiAction
     data class SetPredictiveBackAnimation(val animation: PredictiveBackAnimation) : SettingsUiAction
     data class SetPredictiveBackExitDirection(
         val direction: PredictiveBackExitDirection,
@@ -217,6 +225,37 @@ class SettingsViewModel(
         mutableState.update { it.copy(themeMode = index) }
         updateAppearanceAsync(AppearanceSetting.ThemeMode(index))
     }
+
+    fun handleCustomBackground(uri: String) {
+        viewModelScope.launch {
+            updateAppearance(AppearanceSetting.CustomBackground(uri))
+                .onSuccess {
+                    applySnapshot(it, resetTempDpi = false)
+                    mutableEvents.tryEmit(SettingsUiEvent.Message(R.string.background_set_success))
+                }
+        }
+    }
+
+    fun handleRemoveCustomBackground() {
+        viewModelScope.launch {
+            updateAppearance(AppearanceSetting.RemoveCustomBackground)
+                .onSuccess {
+                    applySnapshot(it, resetTempDpi = false)
+                }
+        }
+    }
+
+    fun handleCardAlphaChange(value: Float) {
+        mutableState.update { it.copy(cardAlpha = value) }
+        updateAppearanceAsync(AppearanceSetting.CardAlpha(value))
+    }
+
+    fun handleBackgroundDimChange(value: Float) {
+        mutableState.update { it.copy(backgroundDim = value) }
+        updateAppearanceAsync(AppearanceSetting.BackgroundDim(value))
+    }
+
+    fun saveCardConfig() = updateAppearanceAsync(AppearanceSetting.SaveCardConfig)
 
     fun updateTempDpi(dpi: Int) {
         mutableState.update { it.copy(tempDpi = dpi, isDpiCustom = dpi !in DPI_PRESETS) }
@@ -348,6 +387,11 @@ class SettingsViewModel(
             SettingsUiAction.LoadFeatureSettings -> loadFeatureSettings()
 
             is SettingsUiAction.SetThemeMode -> handleThemeModeChange(action.index)
+            is SettingsUiAction.SetCustomBackground -> handleCustomBackground(action.uri)
+            SettingsUiAction.RemoveCustomBackground -> handleRemoveCustomBackground()
+            is SettingsUiAction.SetCardAlpha -> handleCardAlphaChange(action.value)
+            is SettingsUiAction.SetBackgroundDim -> handleBackgroundDimChange(action.value)
+            SettingsUiAction.SaveCardConfig -> saveCardConfig()
 
             is SettingsUiAction.SetPredictiveBackAnimation ->
                 setPredictiveBackAnimation(action.animation)
@@ -441,6 +485,9 @@ class SettingsViewModel(
                 themeOptions = THEME_OPTIONS,
                 currentAppLocale = snapshot.currentLocaleTag?.let(Locale::forLanguageTag),
                 useAltIcon = snapshot.useAltIcon,
+                cardAlpha = snapshot.cardAlpha,
+                backgroundDim = snapshot.backgroundDim,
+                isCustomBackgroundEnabled = snapshot.customBackgroundEnabled,
                 systemDpi = snapshot.systemDpi,
                 currentDpi = snapshot.currentDpi,
                 tempDpi = if (resetTempDpi) snapshot.currentDpi else current.tempDpi,

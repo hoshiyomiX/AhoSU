@@ -31,6 +31,6 @@ class ThemeUtils(
     private fun loadThemeSettings() {
         themeConfig.forceDarkMode = themeRepository.loadThemeMode()
         cardConfig.load()
-        backgroundManager.loadBlurAndContrastPreferences()
+        backgroundManager.loadCustomBackground()
     }
 }

@@ -146,6 +146,8 @@
     <string name="allowlist_restore_failed">فشل استعادة القائمة المسموحة: %1$s</string>
     <string name="backup_allowlist">قائمة النسخ الاحتياطي</string>
     <string name="restore_allowlist">استعادة قائمة المسموح بها</string>
+    <string name="settings_custom_background">خلفية التطبيق المخصصة</string>
+    <string name="settings_custom_background_summary">حدد صورة كخلفية</string>
     <string name="home_android_version">‏إصدار Android</string>
     <string name="home_device_model">نوع الجهاز</string>
     <string name="su_not_allowed">لا يسمح بمنح المستخدم المتميز ل %s</string>
@@ -251,7 +253,16 @@
     <string name="install_select_partition">إختر القسم</string>
     <string name="install_upload_lkm_file">استعمل ملف LKM محلّي</string>
     <string name="install_only_support_ko_file">فقط الملفات بصيغة ko. مدعومة</string>
+    <string name="background_crop_method_title">إختر طريقة القص</string>
+    <string name="background_crop_method_in_app">قص داخل-التطبيق</string>
+    <string name="background_crop_method_external">قص خارجي</string>
     <string name="background_external_crop_unavailable">خاصية القص الخارجي غير متاحة. سيتم استخدام خاصية القص داخل التطبيق بدلاً من ذلك.</string>
+    <string name="background_crop_failed">فشل في قص الصورة</string>
+    <string name="background_crop_title">قص الخلفية</string>
+    <string name="background_crop_apply">طبّق</string>
+    <string name="background_crop_reset">إعادة ضبط</string>
+    <string name="background_crop_loading">تحميل الصورة</string>
+    <string name="background_crop_rotation_angle">تدوير</string>
     <string name="settings_config_enable_blur">فعّل الضبابية</string>
     <string name="settings_card_alpha">شفافّية البطاقة</string>
     <string name="feature_status_unsupported_summary">النواة لاتدعم هذه الخاصيّة</string>

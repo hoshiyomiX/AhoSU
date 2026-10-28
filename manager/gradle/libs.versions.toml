@@ -26,6 +26,7 @@ ndk = "30.0.16248370"
 foundation = "1.12.1"
 aboutLibraries = "15.2.0"
 miuix = "0.9.4"
+ucrop = "2.2.11"
 datastore = "1.2.1"
 benchmark = "1.5.0"
 profileinstaller = "1.4.1"
@@ -99,6 +100,7 @@ miuix-nav = { group = "top.yukonga.miuix.kmp", name = "miuix-nav", version.ref =
 miuix-blur = { group = "top.yukonga.miuix.kmp", name = "miuix-blur-android", version.ref = "miuix" }
 miuix-ui = { group = "top.yukonga.miuix.kmp", name = "miuix-ui", version.ref = "miuix" }
 miuix-preference = { group = "top.yukonga.miuix.kmp", name = "miuix-preference", version.ref = "miuix" }
+ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucrop" }
 
 markdown = { group = "io.noties.markwon", name = "core", version.ref = "markdown" }
 markwon-tables = { group = "io.noties.markwon", name = "ext-tables", version.ref = "markdown" }

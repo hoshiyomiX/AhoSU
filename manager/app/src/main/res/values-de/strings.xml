@@ -112,6 +112,8 @@
     <string name="allowlist_restore_failed">Wiederherstellung der erlaubten Liste fehlgeschlagen: %1$s</string>
     <string name="backup_allowlist">Sicherungsliste</string>
     <string name="restore_allowlist">Allowlist wiederherstellen</string>
+    <string name="settings_custom_background">Eigener App-Hintergrund</string>
+    <string name="settings_custom_background_summary">Wählen Sie ein Bild als Hintergrund</string>
     <string name="home_android_version">Androidversion</string>
     <string name="home_device_model">Geräteausführung</string>
     <string name="su_not_allowed">Superuser %s zu erlauben ist nicht erlaubt</string>

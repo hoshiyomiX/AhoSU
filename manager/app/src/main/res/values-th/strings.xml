@@ -173,6 +173,13 @@
     <string name="unknown_module">โมดูลที่ไม่รู้จัก</string>
     <string name="confirm">ยืนยัน</string>
     <string name="cancel">ยกเลิก</string>
+    <string name="settings_custom_background_summary">เลือกภาพเป็นพื้นหลัง</string>
+    <string name="background_crop_method_in_app">Crop ในแอป</string>
+    <string name="background_crop_failed">ไม่สามารถ CROP รูปภาพได้</string>
+    <string name="background_crop_title">CROP พื้นหลัง</string>
+    <string name="background_crop_reset">รีเซ็ต</string>
+    <string name="background_crop_loading">กำลังโหลดรูปภาพ</string>
+    <string name="background_crop_rotation_angle">หมุน</string>
     <string name="settings_config_enable_blur">ใช้งานการเบลอ</string>
     <string name="settings_config_enable_blur_summary">เปิดการประมวลผลการเบลอสำหรับแอปนี่</string>
     <string name="settings_custom_enable_high_contrast_summary">ประมวลผลเงารอบๆข้อความ</string>

@@ -134,6 +134,8 @@
     <string name="allowlist_restore_failed">Khôi phục danh sách cho phép thất bại: %1$s</string>
     <string name="backup_allowlist">Sao lưu danh sách cho phép</string>
     <string name="restore_allowlist">Khôi phục danh sách cho phép</string>
+    <string name="settings_custom_background">Tuỳ chỉnh nền ứng dụng</string>
+    <string name="settings_custom_background_summary">Chọn một hình ảnh làm nền</string>
     <string name="home_android_version">Phiên bản Android</string>
     <string name="home_device_model">Mẫu thiết bị</string>
     <string name="su_not_allowed">Cấp Superuser cho %s là không được phép</string>
@@ -325,6 +327,10 @@
     <string name="settings_sulog">Nhật ký SU</string>
     <string name="settings_sulog_summary">Ghi lại các sự kiện liên quan đến root vào các tệp sulog của KernelSU.</string>
     <string name="theme_settings">Cài đặt chủ đề</string>
+    <string name="background_crop_apply">Áp dụng</string>
+    <string name="background_crop_reset">Khôi phục</string>
+    <string name="background_crop_loading">Đang tải hình ảnh</string>
+    <string name="background_crop_rotation_angle">Xoay</string>
     <string name="slot_a">Slot A</string>
     <string name="slot_b">Slot B</string>
     <string name="predictive_back_settings">Dự đoán cử chỉ quay lại</string>
@@ -383,6 +389,8 @@
     <string name="notification_permission_description">Cần có Quyền truy cập vào thông báo để có thể hiện tiến trình tải.</string>
     <string name="notification_permission_denied">Tải thất bại: Cần có Quyền truy cập thông báo</string>
     <string name="profile_flags">Cờ</string>
+    <string name="background_crop_method_title">Chọn 1 phương thức crop</string>
+    <string name="background_crop_failed">Cắt ảnh thất bại</string>
     <string name="enable_adb">Buộc bật adb khi khởi động</string>
     <string name="settings_soft_reboot_summary">Sử dụng khởi động lại mềm thay vì khởi động lại đầy đủ khi cài đặt, cập nhật hoặc bật/tắt các mô-đun.</string>
     <string name="enable_adb_summary">Buộc bật chế độ gỡ lỗi USB và tắt xác thực adb. Không bật cái này trừ khi thực sự cần thiết.</string>
@@ -397,7 +405,10 @@
     <string name="home_learn_kernelsu_url">https://kernelsu.org/vi_VN/guide/what-is-kernelsu.html</string>
     <string name="install_force_backup">Sao lưu dưới dạng image gốc</string>
     <string name="install_force_backup_summary">Hãy đảm bảo boot image mà bạn chọn là một image gốc</string>
+    <string name="background_crop_method_in_app">Cắt trong ứng dụng</string>
+    <string name="background_crop_method_external">Cắt bên ngoài</string>
     <string name="background_external_crop_unavailable">Cắt bên ngoài không khả dụng. Sử dụng cắt trong ứng dụng thay vào đó.</string>
+    <string name="background_crop_title">Cắt nền</string>
     <string name="settings_exp_draw_background_to_blur">Vẽ nền tùy chỉnh để làm mờ</string>
     <string name="settings_custom_enable_high_contrast_summary">Kết xuất bóng quanh văn bản</string>
     <string name="settings_custom_monospace_font">Sử dụng phông chữ monospace được tích hợp</string>

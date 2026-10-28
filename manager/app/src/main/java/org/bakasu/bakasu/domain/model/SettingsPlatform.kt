@@ -7,6 +7,9 @@ data class SettingsPlatformSnapshot(
     val themeMode: Int = 0,
     val currentLocaleTag: String? = null,
     val useAltIcon: Boolean = false,
+    val cardAlpha: Float = 1f,
+    val backgroundDim: Float = 0f,
+    val customBackgroundEnabled: Boolean = false,
     val systemDpi: Int = 0,
     val currentDpi: Int = 0,
     val checkManagerUpdate: Boolean = true,
@@ -31,6 +34,11 @@ data class PlatformFeatureStatus(
 
 sealed interface AppearanceSetting {
     data class ThemeMode(val index: Int) : AppearanceSetting
+    data class CustomBackground(val uri: String) : AppearanceSetting
+    data object RemoveCustomBackground : AppearanceSetting
+    data class CardAlpha(val value: Float) : AppearanceSetting
+    data class BackgroundDim(val value: Float) : AppearanceSetting
+    data object SaveCardConfig : AppearanceSetting
 }
 
 sealed interface PlatformSetting {

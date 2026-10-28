@@ -142,13 +142,19 @@ class ThemeConfig {
             _isEnableBlurExp.value = value
         }
     var bottomBarStyle by mutableStateOf(BottomBarStyle.FLOATING)
+    var customBackgroundUri by mutableStateOf<Uri?>(null)
+    var backgroundDim by mutableFloatStateOf(0f)
+    var backgroundImageLoaded by mutableStateOf(false)
 
     fun resetBackgroundState() {
+        backgroundImageLoaded = false
         isThemeChanging = true
     }
 
     fun reset() {
+        customBackgroundUri = null
         forceDarkMode = null
+        backgroundImageLoaded = false
         isThemeChanging = false
     }
 }
@@ -215,9 +221,98 @@ class BackgroundManager(
         settings.putInt("bottom_bar_style", style.ordinal)
     }
 
-    fun loadBlurAndContrastPreferences() {
-        config.isEnableBlurExp = settings.getBoolean("enable_blur_exp", false)
-        config.isHighContrastMode = settings.getBoolean("high_contrast_mode", false)
+    fun saveBackgroundDim(dim: Float) {
+        config.backgroundDim = dim
+        settings.putFloat("background_dim", dim)
+    }
+
+    suspend fun saveAndApplyCustomBackground(
+        context: Context,
+        uri: Uri,
+    ): Boolean {
+        val appContext = context.applicationContext
+        return try {
+            val finalUri = withContext(Dispatchers.IO) {
+                copyImageToInternalStorage(appContext, uri)
+            } ?: return false
+
+            saveBackgroundUri(finalUri)
+            config.customBackgroundUri = finalUri
+            cardConfig.updateBackground(true)
+            withContext(Dispatchers.IO) {
+                clearBackgroundBlurCache(appContext)
+            }
+            config.backgroundImageLoaded = false
+
+            true
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Log.e(tag, "保存背景失败: ${e.message}", e)
+            false
+        }
+    }
+
+    fun clearCustomBackground(context: Context) {
+        saveBackgroundUri(null)
+        config.customBackgroundUri = null
+        cardConfig.updateBackground(false)
+        clearBackgroundBlurCache(context)
+        config.backgroundImageLoaded = false
+    }
+
+    fun loadCustomBackground() {
+        val prefs = settings
+        val uriString = prefs.getString("custom_background", null)
+
+        val newUri = uriString?.toUri()
+
+        if (config.customBackgroundUri?.toString() != newUri?.toString()) {
+            Log.d(tag, "加载自定义背景: $uriString")
+            config.customBackgroundUri = newUri
+            config.backgroundImageLoaded = false
+            cardConfig.updateBackground(newUri != null)
+        }
+
+        config.backgroundDim = prefs.getFloat("background_dim", 0f).coerceIn(0f, 1f)
+        config.isEnableBlurExp = prefs.getBoolean("enable_blur_exp", false)
+        config.isHighContrastMode = prefs.getBoolean("high_contrast_mode", false)
+    }
+
+    private fun saveBackgroundUri(uri: Uri?) {
+        settings.putString("custom_background", uri?.toString())
+    }
+
+    fun clearBackgroundBlurCache(context: Context) {
+        runCatching {
+            backgroundBlurCacheFile(context).delete()
+            legacyBackgroundBlurCacheDir(context).deleteRecursively()
+        }.onFailure {
+            Log.w(tag, "Failed to clear background blur cache: ${it.message}")
+        }
+    }
+
+    private fun copyImageToInternalStorage(context: Context, uri: Uri): Uri? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+            val fileName = "custom_background.jpg"
+            val file = File(context.filesDir, fileName)
+
+            FileOutputStream(file).use { outputStream ->
+                val buffer = ByteArray(8 * 1024)
+                var read: Int
+                while (inputStream.read(buffer).also { read = it } != -1) {
+                    outputStream.write(buffer, 0, read)
+                }
+                outputStream.flush()
+            }
+            inputStream.close()
+
+            Uri.fromFile(file)
+        } catch (e: Exception) {
+            Log.e(tag, "复制图片失败: ${e.message}", e)
+            null
+        }
     }
 
     fun saveEnableHighContrastMode(enable: Boolean) {
@@ -431,8 +526,8 @@ private fun ThemeInitializer(
         themeConfig.forceDarkMode = themeRepository.loadThemeMode()
         themeConfig.isEnableBlur = settings.getBoolean("enable_blur", false)
         themeConfig.bottomBarStyle = BottomBarStyle.fromOrdinal(settings.getInt("bottom_bar_style", 1))
+        backgroundManager.loadCustomBackground()
         cardConfig.load()
-        backgroundManager.loadBlurAndContrastPreferences()
     }
 }
 
@@ -442,6 +537,18 @@ private fun BackgroundLayer(
     settings: AppSettingsRepository,
     renderState: BackgroundRenderState,
 ) {
+    val backgroundUri = remember(themeConfig.customBackgroundUri) {
+        themeConfig.customBackgroundUri
+    }
+
+    LaunchedEffect(themeConfig.customBackgroundUri) {
+        if (themeConfig.customBackgroundUri == null) {
+            renderState.imageBitmap = null
+            renderState.imagePainter = null
+            renderState.blurImageBitmap = null
+        }
+    }
+
     // Translucent surfaces must re-sample/re-map the background only while content is actually
     // moving: nested-scroll drags/flings (scrollActive) and horizontal pager swipes, which
     // translate layers without re-recording backdrop nodes (pagerScrollActive). At rest the loop
@@ -486,7 +593,18 @@ private fun BackgroundLayer(
                 MaterialTheme.colorScheme.surfaceContainer,
             ),
     )
+
+    // 自定义背景
+    backgroundUri?.let { uri ->
+        BackgroundInitializer(
+            uri = uri,
+            themeConfig = themeConfig,
+            renderState = renderState,
+        )
+    }
 }
+
+private const val BACKGROUND_BLUR_RADIUS = 45f
 
 /**
  * Captures background content for blurEffect child nodes,
@@ -537,7 +655,11 @@ fun Modifier.blurEffect(
 
     return LocalBlurState.current?.let { backdrop ->
         // 0.8f like haze, for material design without custom background enable
-        val blurTintAlpha = 0.8f
+        val blurTintAlpha = if (cardConfig.isCustomBackgroundEnabled) {
+            cardConfig.cardAlpha
+        } else {
+            0.8f
+        }
 
         val blendColor =
             MaterialTheme.colorScheme.surfaceContainer.copy(alpha = blurTintAlpha)
@@ -603,7 +725,7 @@ private fun Modifier.renderBackgroundFallback(
     }
 
     val backgroundColor = MaterialTheme.colorScheme.surfaceContainer
-    val dimColor = backgroundColor
+    val dimColor = backgroundColor.copy(alpha = themeConfig.backgroundDim)
     val backgroundBitmap = renderState.imageBitmap
     val backgroundAnchor = LocalBackgroundBlurAnchor.current
     val pagerPage = LocalPagerPage.current
@@ -1593,4 +1715,354 @@ fun isInDarkTheme(themeMode: Boolean?): Boolean = when (themeMode) {
     false -> false
 
     null -> isSystemInDarkTheme() // 跟随系统
+}
+
+private fun Bitmap.softwareFastBlur(radius: Int): Bitmap {
+    if (radius < 1) return this
+
+    val w = width
+    val h = height
+    val pix = IntArray(w * h)
+    getPixels(pix, 0, w, 0, 0, w, h)
+
+    val wm = w - 1
+    val hm = h - 1
+    val wh = w * h
+    val div = radius + radius + 1
+
+    val r = IntArray(wh)
+    val g = IntArray(wh)
+    val b = IntArray(wh)
+    var rsum: Int
+    var gsum: Int
+    var bsum: Int
+    var p: Int
+    var yp: Int
+    var yi: Int
+    val vmin = IntArray(w.coerceAtLeast(h))
+
+    var divsum = (div + 1) shr 1
+    divsum *= divsum
+    val dv = IntArray(256 * divsum)
+    for (i in 0 until 256 * divsum) {
+        dv[i] = i / divsum
+    }
+
+    var yw = 0
+    yi = 0
+
+    val stack = Array(div) { IntArray(3) }
+    var stackpointer: Int
+    var stackstart: Int
+    var sir: IntArray
+    var rbs: Int
+    val r1 = radius + 1
+    var routsum: Int
+    var goutsum: Int
+    var boutsum: Int
+    var rinsum: Int
+    var ginsum: Int
+    var binsum: Int
+
+    for (y in 0 until h) {
+        bsum = 0
+        gsum = 0
+        rsum = 0
+        boutsum = 0
+        goutsum = 0
+        routsum = 0
+        binsum = 0
+        ginsum = 0
+        rinsum = 0
+        for (i in -radius..radius) {
+            p = pix[yi + wm.coerceAtMost(i.coerceAtLeast(0))]
+            sir = stack[i + radius]
+            sir[0] = (p and 0xff0000) shr 16
+            sir[1] = (p and 0x00ff00) shr 8
+            sir[2] = p and 0x0000ff
+            rbs = r1 - abs(i)
+            rsum += sir[0] * rbs
+            gsum += sir[1] * rbs
+            bsum += sir[2] * rbs
+            if (i > 0) {
+                rinsum += sir[0]
+                ginsum += sir[1]
+                binsum += sir[2]
+            } else {
+                routsum += sir[0]
+                goutsum += sir[1]
+                boutsum += sir[2]
+            }
+        }
+        stackpointer = radius
+
+        for (x in 0 until w) {
+            r[yi] = dv[rsum]
+            g[yi] = dv[gsum]
+            b[yi] = dv[bsum]
+
+            rsum -= routsum
+            gsum -= goutsum
+            bsum -= boutsum
+
+            stackstart = stackpointer - radius + div
+            sir = stack[stackstart % div]
+
+            routsum -= sir[0]
+            goutsum -= sir[1]
+            boutsum -= sir[2]
+
+            if (y == 0) vmin[x] = (x + radius + 1).coerceAtMost(wm)
+            p = pix[yw + vmin[x]]
+
+            sir[0] = (p and 0xff0000) shr 16
+            sir[1] = (p and 0x00ff00) shr 8
+            sir[2] = p and 0x0000ff
+
+            rinsum += sir[0]
+            ginsum += sir[1]
+            binsum += sir[2]
+
+            rsum += rinsum
+            gsum += ginsum
+            bsum += binsum
+
+            stackpointer = (stackpointer + 1) % div
+            sir = stack[stackpointer % div]
+
+            routsum += sir[0]
+            goutsum += sir[1]
+            boutsum += sir[2]
+
+            rinsum -= sir[0]
+            ginsum -= sir[1]
+            binsum -= sir[2]
+
+            yi++
+        }
+        yw += w
+    }
+
+    for (x in 0 until w) {
+        bsum = 0
+        gsum = 0
+        rsum = 0
+        boutsum = 0
+        goutsum = 0
+        routsum = 0
+        binsum = 0
+        ginsum = 0
+        rinsum = 0
+        yp = -radius * w
+        for (i in -radius..radius) {
+            yi = (yp.coerceAtLeast(0)) + x
+            sir = stack[i + radius]
+            sir[0] = r[yi]
+            sir[1] = g[yi]
+            sir[2] = b[yi]
+            rbs = r1 - abs(i)
+            rsum += r[yi] * rbs
+            gsum += g[yi] * rbs
+            bsum += b[yi] * rbs
+            if (i > 0) {
+                rinsum += sir[0]
+                ginsum += sir[1]
+                binsum += sir[2]
+            } else {
+                routsum += sir[0]
+                goutsum += sir[1]
+                boutsum += sir[2]
+            }
+            if (i < hm) yp += w
+        }
+        yi = x
+        stackpointer = radius
+        for (y in 0 until h) {
+            pix[yi] = (-0x1000000 and pix[yi]) or (dv[rsum] shl 16) or (dv[gsum] shl 8) or dv[bsum]
+            rsum -= routsum
+            gsum -= goutsum
+            bsum -= boutsum
+            stackstart = stackpointer - radius + div
+            sir = stack[stackstart % div]
+            routsum -= sir[0]
+            goutsum -= sir[1]
+            boutsum -= sir[2]
+            if (x == 0) vmin[y] = (y + r1).coerceAtMost(hm) * w
+            p = x + vmin[y]
+            sir[0] = r[p]
+            sir[1] = g[p]
+            sir[2] = b[p]
+            rinsum += sir[0]
+            ginsum += sir[1]
+            binsum += sir[2]
+            rsum += rinsum
+            gsum += ginsum
+            bsum += binsum
+            stackpointer = (stackpointer + 1) % div
+            sir = stack[stackpointer]
+            routsum += sir[0]
+            goutsum += sir[1]
+            boutsum += sir[2]
+            rinsum -= sir[0]
+            ginsum -= sir[1]
+            binsum -= sir[2]
+            yi += w
+        }
+    }
+
+    val outputBitmap = createBitmap(w, h)
+    outputBitmap.setPixels(pix, 0, w, 0, 0, w, h)
+    return outputBitmap
+}
+
+@RequiresApi(Build.VERSION_CODES.S)
+private fun Bitmap.blurBitmap(blurRadius: Float): Bitmap {
+    val outputBitmap = createBitmap(width, height)
+    val outputCanvas = Canvas(outputBitmap)
+
+    if (outputCanvas.isHardwareAccelerated) {
+        val renderNode = RenderNode("BlurEffectNode").apply {
+            setPosition(0, 0, width, height)
+            setRenderEffect(
+                RenderEffect.createBlurEffect(
+                    blurRadius,
+                    blurRadius,
+                    Shader.TileMode.CLAMP,
+                ),
+            )
+        }
+
+        val recordingCanvas = renderNode.beginRecording()
+        recordingCanvas.drawBitmap(this, 0f, 0f, null)
+        renderNode.endRecording()
+
+        outputCanvas.drawRenderNode(renderNode)
+    } else {
+        val radiusInt = blurRadius.toInt().coerceIn(1, 25)
+        return this.softwareFastBlur(radiusInt)
+    }
+
+    return outputBitmap
+}
+
+@RequiresApi(Build.VERSION_CODES.S)
+private suspend fun Bitmap.createBackgroundBlurImage(
+    context: Context,
+    viewportSize: IntSize,
+    blurRadius: Float,
+): ImageBitmap = withContext(Dispatchers.Default) {
+    val cacheFile = backgroundBlurCacheFile(context)
+
+    BitmapFactory.decodeFile(cacheFile.absolutePath)?.let { cachedBitmap ->
+        if (
+            cachedBitmap.width == viewportSize.width &&
+            cachedBitmap.height == viewportSize.height
+        ) {
+            return@withContext cachedBitmap.asImageBitmap()
+        }
+
+        cachedBitmap.recycle()
+    }
+
+    val blurSource = createBackgroundBlurSource(viewportSize)
+
+    val blurredBitmap = try {
+        blurSource.blurBitmap(blurRadius)
+    } finally {
+        if (blurSource !== this@createBackgroundBlurImage) {
+            blurSource.recycle()
+        }
+    }
+
+    saveBackgroundBlurCache(cacheFile, blurredBitmap)
+    blurredBitmap.asImageBitmap()
+}
+
+private fun backgroundBlurCacheFile(context: Context): File = File(context.filesDir, "blured_custom_background.jpg")
+
+private fun legacyBackgroundBlurCacheDir(context: Context): File = File(context.filesDir, "background_blur_cache")
+
+private fun saveBackgroundBlurCache(cacheFile: File, bitmap: Bitmap) {
+    runCatching {
+        cacheFile.parentFile?.mkdirs()
+        val tempFile = File(cacheFile.parentFile, "${cacheFile.name}.tmp")
+        FileOutputStream(tempFile).use { output ->
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 95, output)
+        }
+        if (!tempFile.renameTo(cacheFile)) {
+            tempFile.copyTo(cacheFile, overwrite = true)
+            tempFile.delete()
+        }
+    }.onFailure {
+        Log.w("ThemeSystem", "Failed to save background blur cache: ${it.message}")
+    }
+}
+
+@Composable
+private fun BackgroundInitializer(
+    uri: Uri,
+    themeConfig: ThemeConfig,
+    renderState: BackgroundRenderState,
+) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(themeConfig.isEnableBlurExp, renderState.blurViewportSize) {
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            themeConfig.isEnableBlurExp &&
+            renderState.blurViewportSize.width > 0 &&
+            renderState.blurViewportSize.height > 0
+        ) {
+            renderState.imagePainter?.let {
+                if (it.state !is AsyncImagePainter.State.Success) return@let
+
+                val bitmap = (it.state as AsyncImagePainter.State.Success).result.drawable.toBitmap()
+                renderState.blurImageBitmap = bitmap.createBackgroundBlurImage(
+                    context = context,
+                    viewportSize = renderState.blurViewportSize,
+                    blurRadius = BACKGROUND_BLUR_RADIUS,
+                )
+            }
+        } else {
+            renderState.blurImageBitmap = null
+        }
+    }
+
+    renderState.imagePainter = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(context)
+            .data(uri)
+            .allowHardware(false)
+            .crossfade(true)
+            .build(),
+        onError = { error ->
+            Log.e("ThemeSystem", "背景加载失败: ${error.result.throwable.message}")
+            renderState.imageBitmap = null
+            themeConfig.customBackgroundUri = null
+        },
+        onSuccess = {
+            val bitmap = it.result.drawable.toBitmap()
+            renderState.imageBitmap = bitmap.asImageBitmap()
+            Log.d("ThemeSystem", "背景加载成功")
+            themeConfig.backgroundImageLoaded = true
+            themeConfig.isThemeChanging = false
+
+            if (
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                themeConfig.isEnableBlurExp &&
+                renderState.blurViewportSize.width > 0 &&
+                renderState.blurViewportSize.height > 0
+            ) {
+                coroutineScope.launch {
+                    renderState.blurImageBitmap = bitmap.createBackgroundBlurImage(
+                        context = context,
+                        viewportSize = renderState.blurViewportSize,
+                        blurRadius = BACKGROUND_BLUR_RADIUS,
+                    )
+                }
+            } else {
+                renderState.blurImageBitmap = null
+            }
+        },
+    )
 }
