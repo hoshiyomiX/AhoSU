@@ -19,8 +19,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -32,22 +30,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.RestartAlt
-import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTooltipState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.getValue
@@ -62,13 +48,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.IntRect
-import androidx.compose.ui.unit.IntSize
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.window.PopupPositionProvider
 import com.yalantis.ucrop.UCrop
 import com.yalantis.ucrop.callback.BitmapCropCallback
 import com.yalantis.ucrop.view.OverlayView
@@ -81,6 +62,14 @@ import org.bakasu.bakasu.R
 import org.bakasu.bakasu.ui.component.KeyPointSlider
 import org.bakasu.bakasu.ui.theme.AhoSUTheme
 import org.bakasu.bakasu.ui.util.adaptiveScaffoldWindowInsets
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.IconButton
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.TooltipBox
+import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 class BackgroundCropActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -167,7 +156,6 @@ class BackgroundCropActivity : ComponentActivity() {
 }
 
 @SuppressLint("AutoboxingStateCreation")
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun BackgroundCropScreen(
     inputUri: Uri,
@@ -188,8 +176,7 @@ private fun BackgroundCropScreen(
     var loadFailed by remember { mutableStateOf(false) }
     var rotationAngle by remember { mutableFloatStateOf(0f) }
     var cropViewReloadToken by remember { mutableIntStateOf(0) }
-    val topAppBarState = rememberTopAppBarState()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
+    val scrollBehavior = MiuixScrollBehavior()
 
     val primaryColor = MaterialTheme.colorScheme.primary.toArgb()
     val onSurfaceColor = MaterialTheme.colorScheme.onSurface.toArgb()
@@ -217,8 +204,8 @@ private fun BackgroundCropScreen(
     }
 
     SideEffect {
-        topAppBarState.heightOffset = topAppBarState.heightOffsetLimit
-        topAppBarState.contentOffset = 0f
+        scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffsetLimit
+        scrollBehavior.state.contentOffset = 0f
     }
 
     fun cropCurrentImage() {
@@ -252,11 +239,11 @@ private fun BackgroundCropScreen(
         )
     }
 
-    Scaffold(
+    MiuixScaffold(
         contentWindowInsets = adaptiveScaffoldWindowInsets(),
         topBar = {
-            LargeFlexibleTopAppBar(
-                title = { Text(stringResource(R.string.background_crop_title)) },
+            MiuixTopAppBar(
+                title = stringResource(R.string.background_crop_title),
                 navigationIcon = {
                     CropTooltipIconButton(
                         tooltip = stringResource(R.string.cancel),
@@ -287,11 +274,7 @@ private fun BackgroundCropScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceContainer,
-                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer,
-                ),
-                windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
+                color = MaterialTheme.colorScheme.surfaceContainer,
                 scrollBehavior = scrollBehavior,
             )
         },
@@ -454,7 +437,7 @@ private fun BackgroundCropScreen(
                     verticalArrangement = Arrangement.Center,
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
-                    LoadingIndicator()
+                    InfiniteProgressIndicator(color = MiuixTheme.colorScheme.primary)
                     Text(
                         text = stringResource(R.string.background_crop_loading),
                         style = MaterialTheme.typography.bodyMedium,
@@ -467,8 +450,6 @@ private fun BackgroundCropScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Suppress("DEPRECATION")
 @Composable
 private fun CropTooltipIconButton(
     tooltip: String,
@@ -477,13 +458,8 @@ private fun CropTooltipIconButton(
     icon: @Composable () -> Unit,
 ) {
     TooltipBox(
-        positionProvider = remember { BelowAnchorTooltipPositionProvider() },
-        tooltip = {
-            PlainTooltip {
-                Text(tooltip)
-            }
-        },
-        state = rememberTooltipState(),
+        text = tooltip,
+        enabled = enabled,
     ) {
         IconButton(
             onClick = onClick,
@@ -664,26 +640,6 @@ private data class CropTouchPoint(
     val x: Float,
     val y: Float,
 )
-
-private class BelowAnchorTooltipPositionProvider : PopupPositionProvider {
-    override fun calculatePosition(
-        anchorBounds: IntRect,
-        windowSize: IntSize,
-        layoutDirection: LayoutDirection,
-        popupContentSize: IntSize,
-    ): IntOffset {
-        val centeredX = anchorBounds.left + (anchorBounds.width - popupContentSize.width) / 2
-        val x = centeredX.coerceIn(0, windowSize.width - popupContentSize.width)
-        val preferredY = anchorBounds.bottom + 8
-        val fallbackY = anchorBounds.top - popupContentSize.height - 8
-        val y = if (preferredY + popupContentSize.height <= windowSize.height) {
-            preferredY
-        } else {
-            fallbackY.coerceAtLeast(0)
-        }
-        return IntOffset(x, y)
-    }
-}
 
 private inline fun <reified T> Intent.getParcelableExtraCompat(name: String): T? = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
     getParcelableExtra(name, T::class.java)
