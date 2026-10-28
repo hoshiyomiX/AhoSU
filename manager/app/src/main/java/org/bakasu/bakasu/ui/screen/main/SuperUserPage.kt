@@ -6,7 +6,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -19,28 +18,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Article
+import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material.icons.twotone.SearchOff
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
-import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -92,6 +80,17 @@ import org.bakasu.bakasu.ui.viewmodel.SuperUserUiEvent
 import org.bakasu.bakasu.ui.viewmodel.SuperUserUiState
 import org.bakasu.bakasu.ui.viewmodel.SuperUserViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
+import top.yukonga.miuix.kmp.basic.ListPopupColumn
+import top.yukonga.miuix.kmp.basic.PullToRefresh
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
+import top.yukonga.miuix.kmp.overlay.OverlayListPopup
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private data class SuperUserMenuItem(
     val checked: Boolean = false,
@@ -100,7 +99,7 @@ private data class SuperUserMenuItem(
     val closeOnClick: Boolean = true,
 )
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SuperUserPage(bottomPadding: Dp) {
     val context = LocalContext.current
@@ -185,14 +184,14 @@ fun SuperUserPage(bottomPadding: Dp) {
         if (isPageVisible) viewModel.dispatch(SuperUserUiAction.LoadInitialData)
     }
 
-    Scaffold(
+    MiuixScaffold(
         topBar = {
             SearchAppBar(
                 title = stringResource(R.string.superuser),
                 searchText = uiState.search,
                 onSearchTextChange = { viewModel.dispatch(SuperUserUiAction.Search(it)) },
                 dropdownContent = {
-                    IconButton(onClick = { showDropdown = true }) {
+                    MiuixIconButton(onClick = { showDropdown = true }) {
                         Icon(
                             imageVector = Icons.TwoTone.MoreVert,
                             contentDescription = stringResource(id = R.string.settings),
@@ -213,7 +212,7 @@ fun SuperUserPage(bottomPadding: Dp) {
                     }
                 },
                 navigationContent = {
-                    IconButton(onClick = {
+                    MiuixIconButton(onClick = {
                         navigator.push(Route.Sulog)
                     }) {
                         Icon(
@@ -227,7 +226,6 @@ fun SuperUserPage(bottomPadding: Dp) {
             )
         },
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
         snackbarHost = {
             SwipeableSnackbarHost(
                 modifier = Modifier.padding(bottom = bottomPadding),
@@ -279,7 +277,10 @@ private fun SuperUserLoadError(failure: SuperUserLoadFailure, onRetry: () -> Uni
     val message = stringResource(failure.resId)
     Column(modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(12.dp)) {
         WarningCard(message = message)
-        FilledTonalButton(onClick = onRetry) { Text(stringResource(R.string.network_retry)) }
+        TextButton(
+            text = stringResource(R.string.network_retry),
+            onClick = onRetry,
+        )
     }
 }
 
@@ -288,7 +289,7 @@ private fun createAllowlistBackupFileName(): String {
     return "ksu_allowlist_backup_$timestamp.dat"
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SuperUserContent(
     innerPadding: PaddingValues,
@@ -309,7 +310,7 @@ private fun SuperUserContent(
             contentAlignment = Alignment.Center,
         ) {
             if (uiState.isRefreshing) {
-                LoadingIndicator()
+                InfiniteProgressIndicator(color = MiuixTheme.colorScheme.primary)
             } else if (uiState.loadFailure != null || uiState.search.isEmpty()) {
                 SuperUserLoadError(
                     failure = uiState.loadFailure ?: SuperUserLoadFailure.PACKAGE_LOAD_FAILED,
@@ -340,22 +341,14 @@ private fun SuperUserContent(
         return
     }
 
-    PullToRefreshBox(
-        state = pullRefreshState,
-        onRefresh = { viewModel.dispatch(SuperUserUiAction.Refresh) },
+    PullToRefresh(
         isRefreshing = uiState.isRefreshing,
+        onRefresh = { viewModel.dispatch(SuperUserUiAction.Refresh) },
         modifier = Modifier
             .fillMaxSize()
             .blurSource(),
-        indicator = {
-            PullToRefreshDefaults.LoadingIndicator(
-                modifier = Modifier
-                    .padding(top = innerPadding.calculateTopPadding())
-                    .align(Alignment.TopCenter),
-                state = pullRefreshState,
-                isRefreshing = uiState.isRefreshing,
-            )
-        },
+        pullToRefreshState = pullRefreshState,
+        contentPadding = PaddingValues(top = innerPadding.calculateTopPadding()),
     ) {
         LazyColumn(
             state = listState,
@@ -395,7 +388,6 @@ private fun SuperUserContent(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun SuperUserDropdown(
     expanded: Boolean,
@@ -439,52 +431,55 @@ private fun SuperUserDropdown(
         )
     }
 
-    DropdownMenuPopup(
-        expanded = expanded,
+    OverlayListPopup(
+        show = expanded,
         onDismissRequest = onDismissRequest,
     ) {
-        DropdownMenuGroup(
-            shapes = MenuDefaults.groupShapes(),
-        ) {
-            SortType.entries.forEachIndexed { index, sortType ->
-                SelectableDropdownMenuItem(
-                    selected = uiState.currentSortType == sortType,
+        ListPopupColumn {
+            SortType.entries.forEach { sortType ->
+                BasicComponent(
+                    title = stringResource(sortType.displayNameRes),
+                    endActions = {
+                        if (uiState.currentSortType == sortType) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Check,
+                                contentDescription = null,
+                                tint = MiuixTheme.colorScheme.primary,
+                            )
+                        }
+                    },
                     onClick = {
                         viewModel.dispatch(SuperUserUiAction.SetSort(sortType))
                     },
-                    text = { Text(stringResource(sortType.displayNameRes)) },
-                    shapes = MenuDefaults.itemShape(
-                        index = index,
-                        count = SortType.entries.size,
-                    ),
                 )
             }
-        }
 
-        Spacer(modifier = Modifier.height(4.dp))
+            HorizontalDivider(
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+            )
 
-        DropdownMenuGroup(
-            shapes = MenuDefaults.groupShapes(),
-        ) {
-            menuItems.forEachIndexed { index, menuItem ->
-                SelectableDropdownMenuItem(
-                    selected = menuItem.checked,
+            menuItems.forEach { menuItem ->
+                BasicComponent(
+                    title = stringResource(menuItem.titleRes),
+                    endActions = {
+                        if (menuItem.checked) {
+                            Icon(
+                                imageVector = Icons.TwoTone.Check,
+                                contentDescription = null,
+                                tint = MiuixTheme.colorScheme.primary,
+                            )
+                        }
+                    },
                     onClick = {
                         if (menuItem.closeOnClick) onDismissRequest()
                         menuItem.onClick()
                     },
-                    text = { Text(stringResource(menuItem.titleRes)) },
-                    shapes = MenuDefaults.itemShape(
-                        index = index,
-                        count = menuItems.size,
-                    ),
                 )
             }
         }
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun AppGroupItem(
     appGroup: InstalledAppGroup,
