@@ -121,18 +121,7 @@
     <string name="allowlist_restore_failed">Falha na restauração do Allowlist: %1$s</string>
     <string name="backup_allowlist">Backup Permitido</string>
     <string name="restore_allowlist">Restaurar Allowlist</string>
-    <string name="settings_custom_background">Fundo personalizado do App</string>
-    <string name="settings_custom_background_summary">Selecione uma imagem como plano de fundo</string>
-    <string name="background_crop_method_title">Select crop method</string>
-    <string name="background_crop_method_in_app">In-app crop</string>
-    <string name="background_crop_method_external">External crop</string>
     <string name="background_external_crop_unavailable">External crop is unavailable. Using in-app crop instead.</string>
-    <string name="background_crop_failed">Failed to crop image</string>
-    <string name="background_crop_title">Crop background</string>
-    <string name="background_crop_apply">Apply</string>
-    <string name="background_crop_reset">Reset</string>
-    <string name="background_crop_loading">Loading image</string>
-    <string name="background_crop_rotation_angle">Rotation</string>
     <string name="home_android_version">Android Version:</string>
     <string name="home_device_model">Modelo do aparelho</string>
     <string name="su_not_allowed">Conceder superusuário à %s não é permitido</string>
@@ -142,8 +131,6 @@
     <string name="theme_follow_system">Seguir o sistema</string>
     <string name="theme_light">Claro</string>
     <string name="theme_dark">Escuro</string>
-    <string name="dynamic_color_title">Cor dinâmica</string>
-    <string name="dynamic_color_summary">Cores dinâmicas usando temas de sistema</string>
     <string name="choose_theme_color">Escolha uma cor temática</string>
     <string name="horizon_kernel">Install Anykernel3</string>
     <string name="horizon_kernel_summary">Instalar o arquivo kernel AnyKernel3</string>

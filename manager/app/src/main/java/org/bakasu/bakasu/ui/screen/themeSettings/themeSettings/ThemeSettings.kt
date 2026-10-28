@@ -26,7 +26,6 @@ import androidx.compose.material.icons.twotone.Brush
 import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.Contrast
 import androidx.compose.material.icons.twotone.DarkMode
-import androidx.compose.material.icons.twotone.Dock
 import androidx.compose.material.icons.twotone.Draw
 import androidx.compose.material.icons.twotone.FormatSize
 import androidx.compose.material.icons.twotone.Info

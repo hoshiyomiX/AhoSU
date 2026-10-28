@@ -126,8 +126,6 @@
     <string name="allowlist_restore_failed">許可リストの復元に失敗: %1$s</string>
     <string name="backup_allowlist">許可リストをバックアップ</string>
     <string name="restore_allowlist">許可リストを復元</string>
-    <string name="settings_custom_background">アプリの背景を変更</string>
-    <string name="settings_custom_background_summary">背景にする画像を選択してください</string>
     <string name="home_android_version">Android バージョン</string>
     <string name="home_device_model">デバイスモデル</string>
     <string name="su_not_allowed">「%s」にスーパーユーザー権限を付与することはできません</string>
@@ -144,8 +142,6 @@
     <string name="theme_follow_system">システムに従う</string>
     <string name="theme_light">ライト</string>
     <string name="theme_dark">ダーク</string>
-    <string name="dynamic_color_title">ダイナミックカラー</string>
-    <string name="dynamic_color_summary">システムテーマのダイナミックカラーを使用します。</string>
     <string name="choose_theme_color">テーマカラーを選択</string>
     <string name="horizon_kernel">AnyKernel3 をインストール</string>
     <string name="horizon_kernel_summary">AnyKernel3 カーネルファイルをフラッシュします</string>

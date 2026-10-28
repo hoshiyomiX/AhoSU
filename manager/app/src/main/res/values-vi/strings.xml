@@ -134,8 +134,6 @@
     <string name="allowlist_restore_failed">Khôi phục danh sách cho phép thất bại: %1$s</string>
     <string name="backup_allowlist">Sao lưu danh sách cho phép</string>
     <string name="restore_allowlist">Khôi phục danh sách cho phép</string>
-    <string name="settings_custom_background">Tuỳ chỉnh nền ứng dụng</string>
-    <string name="settings_custom_background_summary">Chọn một hình ảnh làm nền</string>
     <string name="home_android_version">Phiên bản Android</string>
     <string name="home_device_model">Mẫu thiết bị</string>
     <string name="su_not_allowed">Cấp Superuser cho %s là không được phép</string>
@@ -152,8 +150,6 @@
     <string name="theme_follow_system">Theo hệ thống</string>
     <string name="theme_light">Sáng</string>
     <string name="theme_dark">Tối</string>
-    <string name="dynamic_color_title">Màu sắc động</string>
-    <string name="dynamic_color_summary">Màu sắc động sử dụng chủ đề hệ thống</string>
     <string name="choose_theme_color">Chọn một màu chủ đề</string>
     <string name="horizon_kernel">Cài đặt AnyKernel3</string>
     <string name="horizon_kernel_summary">Flash file AnyKernel3</string>
@@ -322,8 +318,6 @@
     <string name="settings_config_enable_blur">Bật Làm mờ</string>
     <string name="settings_config_enable_blur_summary">Bật tiến trình làm mờ cho ứng dụng này</string>
     <string name="settings_exp_draw_background_to_blur_description">Tính năng thử nghiệm, tự chịu rủi ro khi sử dụng</string>
-    <string name="settings_config_use_custom_background_seed_color">Lấy màu từ hình nền tùy chỉnh</string>
-    <string name="settings_config_use_custom_background_seed_color_summary">Trích xuất màu gốc động từ hình nền tùy chỉnh</string>
     <string name="settings_custom_enable_high_contrast">Chế độ tương phản cao</string>
     <string name="settings_card_alpha">Độ trong suốt của các thẻ</string>
     <string name="settings_mode_disable_until_reboot">Tắt cho đến khi khởi động lại</string>
@@ -331,10 +325,6 @@
     <string name="settings_sulog">Nhật ký SU</string>
     <string name="settings_sulog_summary">Ghi lại các sự kiện liên quan đến root vào các tệp sulog của KernelSU.</string>
     <string name="theme_settings">Cài đặt chủ đề</string>
-    <string name="background_crop_apply">Áp dụng</string>
-    <string name="background_crop_reset">Khôi phục</string>
-    <string name="background_crop_loading">Đang tải hình ảnh</string>
-    <string name="background_crop_rotation_angle">Xoay</string>
     <string name="slot_a">Slot A</string>
     <string name="slot_b">Slot B</string>
     <string name="predictive_back_settings">Dự đoán cử chỉ quay lại</string>
@@ -393,8 +383,6 @@
     <string name="notification_permission_description">Cần có Quyền truy cập vào thông báo để có thể hiện tiến trình tải.</string>
     <string name="notification_permission_denied">Tải thất bại: Cần có Quyền truy cập thông báo</string>
     <string name="profile_flags">Cờ</string>
-    <string name="background_crop_method_title">Chọn 1 phương thức crop</string>
-    <string name="background_crop_failed">Cắt ảnh thất bại</string>
     <string name="enable_adb">Buộc bật adb khi khởi động</string>
     <string name="settings_soft_reboot_summary">Sử dụng khởi động lại mềm thay vì khởi động lại đầy đủ khi cài đặt, cập nhật hoặc bật/tắt các mô-đun.</string>
     <string name="enable_adb_summary">Buộc bật chế độ gỡ lỗi USB và tắt xác thực adb. Không bật cái này trừ khi thực sự cần thiết.</string>
@@ -409,10 +397,7 @@
     <string name="home_learn_kernelsu_url">https://kernelsu.org/vi_VN/guide/what-is-kernelsu.html</string>
     <string name="install_force_backup">Sao lưu dưới dạng image gốc</string>
     <string name="install_force_backup_summary">Hãy đảm bảo boot image mà bạn chọn là một image gốc</string>
-    <string name="background_crop_method_in_app">Cắt trong ứng dụng</string>
-    <string name="background_crop_method_external">Cắt bên ngoài</string>
     <string name="background_external_crop_unavailable">Cắt bên ngoài không khả dụng. Sử dụng cắt trong ứng dụng thay vào đó.</string>
-    <string name="background_crop_title">Cắt nền</string>
     <string name="settings_exp_draw_background_to_blur">Vẽ nền tùy chỉnh để làm mờ</string>
     <string name="settings_custom_enable_high_contrast_summary">Kết xuất bóng quanh văn bản</string>
     <string name="settings_custom_monospace_font">Sử dụng phông chữ monospace được tích hợp</string>
@@ -421,8 +406,6 @@
     <string name="navigation_bar_badge_summary">Hiện số Superuser / Mô-đun ở thanh điều hướng</string>
     <string name="home_card_icons">Hiện biểu tượng trên các thẻ trang chủ</string>
     <string name="home_card_icons_summary">Thêm biểu tượng vào các thẻ thông tin trang chủ</string>
-    <string name="dynamic_palette_style">Kiểu bảng màu</string>
-    <string name="dynamic_color_spec">Thông số màu</string>
     <string name="both_kernel_and_module_files">Các zip đầu vào bao gồm cả anykernel3 và các mô-đun</string>
     <string name="more_than_one_kernel_file">Nhiều hơn 1 tệp anykernel3 được tìm thấy trong các tệp đầu vào</string>
     <string name="module_shortcut_copy_scheme">Sao chép cơ chế URL</string>

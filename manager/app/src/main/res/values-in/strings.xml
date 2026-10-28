@@ -120,15 +120,6 @@
     <string name="allowlist_restore_failed">Gagal memulihkan daftar izin: %1$s</string>
     <string name="backup_allowlist">Cadangkan Daftar Izin</string>
     <string name="restore_allowlist">Pulihkan Daftar Izin</string>
-    <string name="settings_custom_background">Latar belakang kustom</string>
-    <string name="settings_custom_background_summary">Pilih gambar sebagai latar belakang</string>
-    <string name="background_crop_method_title">Pilih metode krop</string>
-    <string name="background_crop_failed">Gagal meng-krop gambar</string>
-    <string name="background_crop_title">Krop latar belakang</string>
-    <string name="background_crop_apply">Terapkan</string>
-    <string name="background_crop_reset">Reset</string>
-    <string name="background_crop_loading">Memuat gambar</string>
-    <string name="background_crop_rotation_angle">Rotasi</string>
     <string name="home_android_version">Versi Android</string>
     <string name="home_device_model">Model Perangkat</string>
     <string name="su_not_allowed">Memberikan hak superuser kepada %s tidak diizinkan</string>
@@ -139,8 +130,6 @@
     <string name="theme_follow_system">Mengikuti sistem</string>
     <string name="theme_light">Terang</string>
     <string name="theme_dark">Hitam</string>
-    <string name="dynamic_color_title">Warna dinamis</string>
-    <string name="dynamic_color_summary">Warna dinamis menggunakan tema sistem</string>
     <string name="choose_theme_color">Pilih warna tema</string>
     <string name="horizon_kernel">Pilih Berkas</string>
     <string name="horizon_kernel_summary">Pilih berkas Anykernel3 untuk dipasang</string>
@@ -317,8 +306,6 @@
     <string name="settings_config_enable_blur_summary">Aktifkan proses buram untuk aplikasi ini</string>
     <string name="settings_exp_draw_background_to_blur">Muat latar belakang kustom untuk diburamkan</string>
     <string name="settings_exp_draw_background_to_blur_description">Fitur eksperimental, lanjutkan dengan risiko anda sendiri</string>
-    <string name="settings_config_use_custom_background_seed_color">Pilih warna dari latar belakang kustom</string>
-    <string name="settings_config_use_custom_background_seed_color_summary">Ekstrak warna dasar dinamis dari latar belakang kustom</string>
     <string name="settings_custom_enable_high_contrast">Mode Kontras Tinggi</string>
     <string name="settings_custom_enable_high_contrast_summary">Tampilkan bayangan di sekitar teks</string>
     <string name="settings_card_alpha">Transparansi kartu</string>
@@ -329,8 +316,6 @@
     <string name="settings_sulog_summary">Catat peristiwa terkait root ke dalam file sulog KernelSU.</string>
     <string name="feature_status_managed_summary">Fitur ini dikelola oleh modul</string>
     <string name="theme_settings">Pengaturan tema</string>
-    <string name="dynamic_palette_style">Gaya palet</string>
-    <string name="dynamic_color_spec">Spesifikasi Warna</string>
     <string name="predictive_back_animation_none">Tidak ada</string>
     <string name="predictive_back_animation_aosp">AOSP</string>
     <string name="predictive_back_animation_scale">Skala</string>
@@ -345,9 +330,7 @@
     <string name="settings_background_dim">Penyesuaian Keredupan Latar Belakang</string>
     <string name="warning_of_meta_module_title">Memerlukan Meta modul</string>
     <string name="warning_of_meta_module_summary">Modul ini ingin me-mount /system yang ditangani oleh meta modul. Tanpa modul ini, kemungkin tidak akan berfungsi</string>
-    <string name="background_crop_method_external">Krop Eksternal</string>
     <string name="background_external_crop_unavailable">Krop eksternal tidak tersedia. Gunakan krop bawaan aplikasi.</string>
-    <string name="background_crop_method_in_app">Krop Bawaan</string>
     <string name="predictive_back_animation">Animasi Predictive Back</string>
     <string name="predictive_back_exit_direction">Arah Keluar</string>
     <string name="search_modules">Cari modul</string>
