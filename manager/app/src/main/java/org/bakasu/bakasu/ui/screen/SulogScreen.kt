@@ -1,6 +1,4 @@
 package org.bakasu.bakasu.ui.screen
-
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -13,7 +11,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -51,7 +48,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -78,10 +74,8 @@ import org.bakasu.bakasu.ui.component.SearchAppBar
 import org.bakasu.bakasu.ui.component.WarningCard
 import org.bakasu.bakasu.ui.component.rememberSearchAppBarScrollBehavior
 import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsChooseWidget
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
-import org.bakasu.bakasu.ui.theme.CardConfig
 import org.bakasu.bakasu.ui.theme.blurSource
 import org.bakasu.bakasu.ui.util.ActivityResumeEffect
 import org.bakasu.bakasu.ui.util.LocalBlurState
@@ -91,8 +85,10 @@ import org.bakasu.bakasu.ui.viewmodel.SulogFileSelector
 import org.bakasu.bakasu.ui.viewmodel.SulogScreenState
 import org.bakasu.bakasu.ui.viewmodel.SulogUiAction
 import org.bakasu.bakasu.ui.viewmodel.SulogViewModel
-import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.BreadcrumbBar
+import top.yukonga.miuix.kmp.basic.BreadcrumbItem
+import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.VerticalScrollBar
 import top.yukonga.miuix.kmp.basic.rememberScrollBarAdapter
 import top.yukonga.miuix.kmp.interfaces.ExperimentalScrollBarApi
@@ -144,7 +140,6 @@ private fun SulogScreenContent(
     state: SulogScreenState,
     actions: SulogActions,
 ) {
-    val cardConfig: CardConfig = koinInject()
     val scrollBehavior = rememberSearchAppBarScrollBehavior(
         TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
             rememberTopAppBarState(
@@ -280,27 +275,22 @@ private fun SulogScreenContent(
                         }
 
                         item {
-                            Box(
-                                modifier = Modifier
-                                    .padding(bottom = 16.dp)
-                                    .padding(horizontal = 16.dp),
-                            ) {
+                            if (state.files.isNotEmpty()) {
                                 Column(
                                     modifier = Modifier
-                                        .clip(RoundedCornerShape(16.dp))
-                                        .background(
-                                            MaterialTheme.colorScheme.surfaceBright.copy(
-                                                alpha = cardConfig.cardAlpha,
-                                            ),
-                                        ),
+                                        .padding(bottom = 16.dp)
+                                        .padding(horizontal = 16.dp),
                                 ) {
-                                    SettingsChooseWidget(
-                                        iconPlaceholder = false,
-                                        title = stringResource(R.string.sulog_log_files),
-                                        items = fileSelector.items,
-                                        enabled = fileSelector.items.isNotEmpty(),
-                                        selectedIndex = fileSelector.selectedIndex,
-                                        onSelectedIndexChange = { index ->
+                                    SmallTitle(text = stringResource(R.string.sulog_log_files))
+                                    BreadcrumbBar(
+                                        items = state.files.map { file ->
+                                            BreadcrumbItem(
+                                                path = file.name,
+                                                text = file.name.toSulogDisplayName(),
+                                            )
+                                        },
+                                        highlightIndex = fileSelector.selectedIndex,
+                                        onItemClick = { index ->
                                             state.files.getOrNull(index)?.let { file ->
                                                 actions.onSelectFile(file.path)
                                             }
