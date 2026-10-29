@@ -383,33 +383,45 @@ fun AhoSUTheme(
                 motionScheme = MotionScheme.expressive(),
                 typography = generateTypography(themeConfig),
             ) {
-                val backgroundMotionConnection = remember(backgroundRenderState) {
-                    object : NestedScrollConnection {
-                        override fun onPostScroll(
-                            consumed: Offset,
-                            available: Offset,
-                            source: NestedScrollSource,
-                        ): Offset {
-                            backgroundRenderState.scrollActive = true
-                            return Offset.Zero
-                        }
+                // Material3's LocalContentColor defaults to Color.Black and is
+                // only overridden inside m3 components (Surface, Button, ...).
+                // This app root has no m3 Surface wrapper, so every legacy m3
+                // Text/Icon placed on a plain background rendered permanently
+                // black - including dark theme, where black-on-dark is close to
+                // unreadable and visibly clashes with miuix onSurface text.
+                // Providing the bridged onSurface here makes every "naked" m3
+                // Text/Icon resolve to the same ink the miuix components use.
+                CompositionLocalProvider(
+                    androidx.compose.material3.LocalContentColor provides colorScheme.onSurface,
+                ) {
+                    val backgroundMotionConnection = remember(backgroundRenderState) {
+                        object : NestedScrollConnection {
+                            override fun onPostScroll(
+                                consumed: Offset,
+                                available: Offset,
+                                source: NestedScrollSource,
+                            ): Offset {
+                                backgroundRenderState.scrollActive = true
+                                return Offset.Zero
+                            }
 
-                        override suspend fun onPostFling(
-                            consumed: Velocity,
-                            available: Velocity,
-                        ): Velocity {
-                            backgroundRenderState.scrollActive = false
-                            return Velocity.Zero
+                            override suspend fun onPostFling(
+                                consumed: Velocity,
+                                available: Velocity,
+                            ): Velocity {
+                                backgroundRenderState.scrollActive = false
+                                return Velocity.Zero
+                            }
                         }
                     }
-                }
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .nestedScroll(backgroundMotionConnection),
-                ) {
-                    BackgroundLayer(themeConfig, settings, backgroundRenderState)
-                    content()
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(backgroundMotionConnection),
+                    ) {
+                        BackgroundLayer(themeConfig, settings, backgroundRenderState)
+                        content()
+                    }
                 }
             }
         }
@@ -459,6 +471,7 @@ private fun miuixMaterialColorScheme(darkTheme: Boolean, colors: Colors): ColorS
         surfaceContainerHighest = colors.surfaceContainerHighest,
         surfaceContainerLow = colors.surfaceVariant,
         surfaceContainerLowest = colors.background,
+        surfaceBright = colors.surfaceContainerHighest,
     )
 } else {
     materialLightColorScheme(
@@ -495,6 +508,7 @@ private fun miuixMaterialColorScheme(darkTheme: Boolean, colors: Colors): ColorS
         surfaceContainerHighest = colors.surfaceContainerHighest,
         surfaceContainerLow = colors.surfaceVariant,
         surfaceContainerLowest = colors.background,
+        surfaceBright = colors.surfaceContainerHighest,
     )
 }
 
