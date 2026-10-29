@@ -387,10 +387,15 @@ class SettingsViewModel(
             SettingsUiAction.LoadFeatureSettings -> loadFeatureSettings()
 
             is SettingsUiAction.SetThemeMode -> handleThemeModeChange(action.index)
+
             is SettingsUiAction.SetCustomBackground -> handleCustomBackground(action.uri)
+
             SettingsUiAction.RemoveCustomBackground -> handleRemoveCustomBackground()
+
             is SettingsUiAction.SetCardAlpha -> handleCardAlphaChange(action.value)
+
             is SettingsUiAction.SetBackgroundDim -> handleBackgroundDimChange(action.value)
+
             SettingsUiAction.SaveCardConfig -> saveCardConfig()
 
             is SettingsUiAction.SetPredictiveBackAnimation ->
