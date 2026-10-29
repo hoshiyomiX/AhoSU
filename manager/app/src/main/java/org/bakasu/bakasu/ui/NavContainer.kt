@@ -109,6 +109,7 @@ import org.bakasu.bakasu.ui.util.rememberDeviceCornerRadius
 import org.bakasu.bakasu.ui.viewmodel.PredictiveBackAnimation
 import org.bakasu.bakasu.ui.viewmodel.SettingsViewModel
 import org.koin.compose.koinInject
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
 import top.yukonga.miuix.kmp.blur.rememberLayerBackdrop
 import top.yukonga.miuix.kmp.nav.core.LocalNavTransitionScope
@@ -619,7 +620,7 @@ private fun ManagerNavEntry(
         isBackEnabled = interceptPredictiveBack,
         onBackCompleted = onBack,
     )
-    val snackBarHostState = remember { androidx.compose.material3.SnackbarHostState() }
+    val snackBarHostState = remember { SnackbarHostState() }
     var backgroundBlurAnchorCoordinates by remember {
         mutableStateOf<LayoutCoordinates?>(null)
     }

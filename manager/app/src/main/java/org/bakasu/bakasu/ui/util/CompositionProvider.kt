@@ -1,12 +1,12 @@
 package org.bakasu.bakasu.ui.util
 
 import androidx.compose.foundation.pager.PagerState
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.layout.LayoutCoordinates
 import org.bakasu.bakasu.ui.activity.PermissionRequestInterface
 import org.bakasu.bakasu.ui.overscroll.StretchOverscrollCompensationState
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.blur.LayerBackdrop
 
 val LocalSnackbarHost = compositionLocalOf<SnackbarHostState> {

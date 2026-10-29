@@ -1,8 +1,8 @@
 package org.bakasu.bakasu.ui.util
 
-import androidx.compose.material3.SnackbarDuration
-import androidx.compose.material3.SnackbarHostState
-import androidx.compose.material3.SnackbarResult
+import top.yukonga.miuix.kmp.basic.SnackbarDuration
+import top.yukonga.miuix.kmp.basic.SnackbarHostState
+import top.yukonga.miuix.kmp.basic.SnackbarResult
 
 suspend fun SnackbarHostState.showReplacingSnackbar(
     message: String,
@@ -11,7 +11,7 @@ suspend fun SnackbarHostState.showReplacingSnackbar(
     duration: SnackbarDuration =
         if (actionLabel == null) SnackbarDuration.Short else SnackbarDuration.Indefinite,
 ): SnackbarResult {
-    currentSnackbarData?.dismiss()
+    newestSnackbarData()?.dismiss()
     return showSnackbar(
         message = message,
         actionLabel = actionLabel,
