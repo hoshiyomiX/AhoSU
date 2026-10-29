@@ -654,8 +654,9 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
 }
 
 /**
- * The 3:4 status tile: headline + APK icon on top, mode badges and a fact
- * sheet pinned to the bottom by a flexible spacer.
+ * The 4:3 landscape status tile: a headline block on the left with the APK
+ * icon on the right, and the fact sheet pinned to the bottom by a flexible
+ * spacer.
  */
 @Composable
 private fun StatusHeroCard(
@@ -682,9 +683,9 @@ private fun StatusHeroCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(3f / 4f)
-            // Landscape/rail layouts would blow the portrait ratio up to a
-            // wall-sized tile; the cap only kicks in there.
+            .aspectRatio(4f / 3f)
+            // Rail layouts would inflate the landscape ratio even further;
+            // the cap only kicks in there.
             .heightIn(max = 560.dp),
         colors = CardDefaults.defaultColors(
             color = color.copy(alpha = cardConfig.cardAlpha),
@@ -701,20 +702,24 @@ private fun StatusHeroCard(
             Column(
                 modifier = Modifier.weight(1f),
             ) {
-                MiuixIcon(
-                    imageVector = statusIcon,
-                    contentDescription = null,
-                    tint = contentColor,
-                    modifier = Modifier.size(28.dp),
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                MiuixText(
-                    text = title,
-                    style = MiuixTheme.textStyles.title3,
-                    color = contentColor,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    MiuixIcon(
+                        imageVector = statusIcon,
+                        contentDescription = null,
+                        tint = contentColor,
+                        modifier = Modifier.size(24.dp),
+                    )
+                    MiuixText(
+                        text = title,
+                        style = MiuixTheme.textStyles.title3,
+                        color = contentColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 Spacer(modifier = Modifier.height(6.dp))
                 MiuixText(
                     text = summary,
@@ -723,6 +728,10 @@ private fun StatusHeroCard(
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
                 )
+                badges?.let {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    it()
+                }
             }
 
             Image(
@@ -734,15 +743,10 @@ private fun StatusHeroCard(
             )
         }
 
-        if (badges != null || infoRows.isNotEmpty() || bottomAction != null) {
+        if (infoRows.isNotEmpty() || bottomAction != null) {
             Spacer(modifier = Modifier.weight(1f))
 
-            badges?.invoke()
-
             if (infoRows.isNotEmpty()) {
-                if (badges != null) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
                 HorizontalDivider(
                     thickness = Dp.Hairline,
                     color = dividerColor,
@@ -775,7 +779,9 @@ private fun StatusHeroCard(
             }
 
             bottomAction?.let {
-                Spacer(modifier = Modifier.height(16.dp))
+                if (infoRows.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
                 it()
             }
         }
