@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
@@ -27,14 +29,12 @@ import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material.icons.twotone.PlayArrow
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -101,9 +101,13 @@ import org.bakasu.bakasu.ui.viewmodel.ScriptRunViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.FloatingToolbar
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.NumberPicker
 import top.yukonga.miuix.kmp.basic.Slider
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
@@ -177,6 +181,48 @@ fun ScriptRunScreen(route: Route.ScriptRun) {
                 ),
             )
         },
+        bottomBar = {
+            if (state.prepared != null || route.offerInstall) {
+                FloatingToolbar(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 8.dp, vertical = 6.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
+                        if (route.offerInstall) {
+                            MiuixTextButton(
+                                text = stringResource(R.string.script_install_anyway),
+                                onClick = { navigator.replace(Route.Flash.modules(listOf(route.uri))) },
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                        if (state.prepared != null) {
+                            Button(
+                                onClick = {
+                                    if (state.canRun) confirm.showConfirm(title = confirmTitle, content = confirmContent, confirm = confirmButton)
+                                },
+                                modifier = if (route.offerInstall) Modifier.weight(1f) else Modifier.fillMaxWidth(),
+                                enabled = state.canRun,
+                            ) {
+                                MiuixIcon(
+                                    imageVector = Icons.TwoTone.PlayArrow,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(20.dp),
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                MiuixText(text = confirmButton)
+                            }
+                        }
+                    }
+                }
+            }
+        },
         containerColor = Color.Transparent,
         contentWindowInsets = adaptiveScaffoldWindowInsets(),
     ) { padding ->
@@ -233,25 +279,15 @@ fun ScriptRunScreen(route: Route.ScriptRun) {
                         ScriptParamField(param, state, viewModel::setValue)
                     }
                     item { ScriptSource(prepared) }
-                    item {
-                        Button(
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                            enabled = state.canRun,
-                            onClick = { if (state.canRun) confirm.showConfirm(title = confirmTitle, content = confirmContent, confirm = confirmButton) },
-                        ) {
-                            Icon(Icons.TwoTone.PlayArrow, contentDescription = null)
-                            Text(confirmButton, modifier = Modifier.padding(start = 8.dp))
-                        }
-                    }
                 }
                 if (route.offerInstall) {
                     item {
-                        Column(Modifier.padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                            Text(stringResource(R.string.script_local_notice), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            OutlinedButton(onClick = { navigator.replace(Route.Flash.modules(listOf(route.uri))) }) {
-                                Text(stringResource(R.string.script_install_anyway))
-                            }
-                        }
+                        Text(
+                            text = stringResource(R.string.script_local_notice),
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                        )
                     }
                 }
                 item { Spacer(Modifier.height(16.dp)) }
