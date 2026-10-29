@@ -11,10 +11,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.KeyboardActionHandler
@@ -33,8 +31,6 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.window.DialogProperties
 import org.bakasu.bakasu.ui.theme.CardConfig
 import org.bakasu.bakasu.ui.theme.ThemeConfig
 import org.bakasu.bakasu.ui.theme.renderBackgroundBlur
@@ -42,10 +38,10 @@ import org.koin.compose.koinInject
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Icon
-import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TextField
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.preference.ArrowPreference
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
@@ -532,8 +528,9 @@ private fun PreferenceRowIcon(icon: ImageVector) {
 }
 
 /**
- * The HyperOS-style single-choice dialog: a miuix surface with the dialog title, a list of
- * miuix [RadioButtonPreference] options, and cancel/confirm [TextButton]s.
+ * The HyperOS-style single-choice dialog: the app-standard miuix [OverlayDialog] shell with
+ * the dialog title, a list of miuix [RadioButtonPreference] options, and cancel/confirm
+ * [TextButton]s that stay visible below the scrolling option list.
  */
 @Composable
 private fun MiuixChoiceDialog(
@@ -545,68 +542,50 @@ private fun MiuixChoiceDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    Dialog(
+    OverlayDialog(
+        show = true,
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        title = title,
     ) {
-        Surface(
+        LazyColumn(
             modifier = Modifier
-                .sizeIn(minWidth = 280.dp, maxWidth = 560.dp)
-                .padding(horizontal = 32.dp),
-            shape = RoundedCornerShape(24.dp),
-            color = MiuixTheme.colorScheme.surfaceContainerHigh,
+                .fillMaxWidth()
+                .heightIn(max = 400.dp),
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = title,
-                    style = MiuixTheme.textStyles.title3,
-                    color = MiuixTheme.colorScheme.onBackground,
+            itemsIndexed(items) { index, item ->
+                RadioButtonPreference(
+                    title = item,
+                    selected = index == currentIndex,
+                    onClick = { onCurrentIndexChange(index) },
+                    summary = itemDescriptions.getOrNull(index),
                 )
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 400.dp)
-                        .padding(top = 16.dp),
-                ) {
-                    itemsIndexed(items) { index, item ->
-                        RadioButtonPreference(
-                            title = item,
-                            selected = index == currentIndex,
-                            onClick = { onCurrentIndexChange(index) },
-                            summary = itemDescriptions.getOrNull(index),
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    TextButton(
-                        text = stringResource(id = R.string.cancel),
-                        onClick = onDismiss,
-                    )
-                    TextButton(
-                        text = stringResource(id = R.string.ok),
-                        onClick = onConfirm,
-                    )
-                }
             }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextButton(
+                text = stringResource(id = R.string.cancel),
+                onClick = onDismiss,
+            )
+            TextButton(
+                text = stringResource(id = R.string.ok),
+                onClick = onConfirm,
+            )
         }
     }
 }
 
 /**
- * The HyperOS-style multi-choice dialog: a miuix surface with the dialog title, a list of miuix
- * [CheckboxPreference] options, and cancel/confirm [TextButton]s. The selection is only
- * committed through [onConfirm]; dismissing the dialog discards any pending toggles.
+ * The HyperOS-style multi-choice dialog: the app-standard miuix [OverlayDialog] shell with the
+ * dialog title, a list of miuix [CheckboxPreference] options, and cancel/confirm [TextButton]s.
+ * The selection is only committed through [onConfirm]; dismissing the dialog discards any
+ * pending toggles.
  */
 @Composable
 private fun MiuixMultiChoiceDialog(
@@ -618,60 +597,41 @@ private fun MiuixMultiChoiceDialog(
     onDismiss: () -> Unit,
     onConfirm: () -> Unit,
 ) {
-    Dialog(
+    OverlayDialog(
+        show = true,
         onDismissRequest = onDismiss,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
+        title = title,
     ) {
-        Surface(
+        LazyColumn(
             modifier = Modifier
-                .sizeIn(minWidth = 280.dp, maxWidth = 560.dp)
-                .padding(horizontal = 32.dp),
-            shape = RoundedCornerShape(24.dp),
-            color = MiuixTheme.colorScheme.surfaceContainerHigh,
+                .fillMaxWidth()
+                .heightIn(max = 400.dp),
         ) {
-            Column(
-                modifier = Modifier.padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Text(
-                    text = title,
-                    style = MiuixTheme.textStyles.title3,
-                    color = MiuixTheme.colorScheme.onBackground,
+            itemsIndexed(items) { index, item ->
+                CheckboxPreference(
+                    title = item,
+                    checked = index in currentIndices,
+                    onCheckedChange = { onToggle(index) },
+                    summary = itemDescriptions.getOrNull(index),
                 )
-
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(max = 400.dp)
-                        .padding(top = 16.dp),
-                ) {
-                    itemsIndexed(items) { index, item ->
-                        CheckboxPreference(
-                            title = item,
-                            checked = index in currentIndices,
-                            onCheckedChange = { onToggle(index) },
-                            summary = itemDescriptions.getOrNull(index),
-                        )
-                    }
-                }
-
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 12.dp),
-                    horizontalArrangement = Arrangement.End,
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    TextButton(
-                        text = stringResource(id = R.string.cancel),
-                        onClick = onDismiss,
-                    )
-                    TextButton(
-                        text = stringResource(id = R.string.ok),
-                        onClick = onConfirm,
-                    )
-                }
             }
+        }
+
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 12.dp),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            TextButton(
+                text = stringResource(id = R.string.cancel),
+                onClick = onDismiss,
+            )
+            TextButton(
+                text = stringResource(id = R.string.ok),
+                onClick = onConfirm,
+            )
         }
     }
 }
