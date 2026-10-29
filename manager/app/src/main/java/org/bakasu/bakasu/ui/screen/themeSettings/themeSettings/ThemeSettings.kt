@@ -61,7 +61,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -87,9 +86,10 @@ import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumnScope
 import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
 import org.bakasu.bakasu.ui.component.settings.SettingsChooseDialog
-import org.bakasu.bakasu.ui.component.settings.SettingsChooseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsSwitchWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsChooseRow
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
+import org.bakasu.bakasu.ui.component.settings.SettingsSliderRow
+import org.bakasu.bakasu.ui.component.settings.SettingsSwitchRow
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.screen.themeSettings.component.LanguageSelectionDialog
 import org.bakasu.bakasu.ui.screen.themeSettings.crop.BackgroundCropActivity
@@ -353,10 +353,10 @@ fun ThemeSettingsScreen(
                     title = stringResource(R.string.settings_pager_gesture_mode),
                 ) {
                     item {
-                        SettingsSwitchWidget(
+                        SettingsSwitchRow(
                             icon = Icons.TwoTone.Swipe,
                             title = stringResource(R.string.settings_enable_swipe_dismiss),
-                            description = stringResource(R.string.settings_enable_swipe_dismiss_summary),
+                            summary = stringResource(R.string.settings_enable_swipe_dismiss_summary),
                             checked = settingsState.enableSwipeDismiss,
                             onCheckedChange = { enabled ->
                                 settingsViewModel.dispatch(
@@ -366,7 +366,7 @@ fun ThemeSettingsScreen(
                         )
                     }
                     item {
-                        SettingsChooseWidget(
+                        SettingsChooseRow(
                             icon = Icons.TwoTone.ViewCarousel,
                             title = stringResource(R.string.settings_pager_gesture_mode),
                             items = listOf(
@@ -410,7 +410,7 @@ fun PredictiveBackAnimationWidget(
     uiState: SettingsUiState,
     onSelect: (PredictiveBackAnimation) -> Unit,
 ) {
-    SettingsChooseWidget(
+    SettingsChooseRow(
         icon = Icons.TwoTone.Animation,
         title = stringResource(R.string.predictive_back_animation),
         items = PredictiveBackAnimation.entries.map { stringResource(it.resId) },
@@ -426,7 +426,7 @@ fun PredictiveBackAnimationDirectionWidget(
     uiState: SettingsUiState,
     onSelect: (PredictiveBackExitDirection) -> Unit,
 ) {
-    SettingsChooseWidget(
+    SettingsChooseRow(
         icon = Icons.TwoTone.SwapHoriz,
         title = stringResource(R.string.predictive_back_exit_direction),
         items = PredictiveBackExitDirection.entries.map { stringResource(it.resId) },
@@ -458,7 +458,7 @@ private fun AppearanceSettings(
 
         item {
             // 主题模式
-            SettingsChooseWidget(
+            SettingsChooseRow(
                 icon = Icons.TwoTone.DarkMode,
                 title = stringResource(R.string.theme_mode),
                 items = state.themeOptions.map { stringResource(it) },
@@ -512,10 +512,10 @@ private fun AppearanceSettings(
         }
 
         item(visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            SettingsSwitchWidget(
+            SettingsSwitchRow(
                 icon = Icons.TwoTone.BlurOn,
                 title = stringResource(id = R.string.settings_config_enable_blur),
-                description = stringResource(id = R.string.settings_config_enable_blur_summary),
+                summary = stringResource(id = R.string.settings_config_enable_blur_summary),
                 checked = themeConfig.isEnableBlur,
                 onCheckedChange = { isChecked ->
                     backgroundManager.saveEnableBlur(isChecked)
@@ -527,10 +527,10 @@ private fun AppearanceSettings(
         }
 
         item(visible = isPortrait) {
-            SettingsSwitchWidget(
+            SettingsSwitchRow(
                 icon = Icons.TwoTone.Dock,
                 title = stringResource(R.string.enable_floating_bottom_bar),
-                description = stringResource(R.string.enable_floating_bottom_bar_summary),
+                summary = stringResource(R.string.enable_floating_bottom_bar_summary),
                 checked = themeConfig.bottomBarStyle == BottomBarStyle.FLOATING,
                 onCheckedChange = { enabled ->
                     val style = if (enabled) BottomBarStyle.FLOATING else BottomBarStyle.MATERIAL3_EXPRESSIVE
@@ -540,10 +540,10 @@ private fun AppearanceSettings(
         }
 
         item(visible = themeConfig.isEnableBlur, topPadding = 1.dp) {
-            SettingsSwitchWidget(
+            SettingsSwitchRow(
                 icon = Icons.TwoTone.Draw,
                 title = stringResource(id = R.string.settings_exp_draw_background_to_blur),
-                description = stringResource(id = R.string.settings_exp_draw_background_to_blur_description),
+                summary = stringResource(id = R.string.settings_exp_draw_background_to_blur_description),
                 isError = true,
                 checked = themeConfig.isEnableBlurExp,
                 onCheckedChange = { isChecked ->
@@ -556,10 +556,10 @@ private fun AppearanceSettings(
             visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
             topPadding = 1.dp,
         ) {
-            SettingsSwitchWidget(
+            SettingsSwitchRow(
                 icon = Icons.TwoTone.Contrast,
                 title = stringResource(id = R.string.settings_custom_enable_high_contrast),
-                description = stringResource(id = R.string.settings_custom_enable_high_contrast_summary),
+                summary = stringResource(id = R.string.settings_custom_enable_high_contrast_summary),
                 checked = themeConfig.isHighContrastMode,
                 onCheckedChange = { isChecked ->
                     backgroundManager.saveEnableHighContrastMode(isChecked)
@@ -599,10 +599,10 @@ private fun CustomizationSettings(
     SegmentedColumn(title = stringResource(R.string.custom_settings)) {
         item {
             // 图标切换
-            SettingsSwitchWidget(
+            SettingsSwitchRow(
                 icon = Icons.TwoTone.Android,
                 title = stringResource(R.string.icon_switch_title),
-                description = stringResource(R.string.icon_switch_summary),
+                summary = stringResource(R.string.icon_switch_summary),
                 checked = settingsUiState.useAltIcon,
                 onCheckedChange = { enabled ->
                     settingsViewModel.dispatch(SettingsUiAction.SetAlternateIcon(enabled))
@@ -612,10 +612,10 @@ private fun CustomizationSettings(
 
         item {
             // 显示更多模块信息
-            SettingsSwitchWidget(
+            SettingsSwitchRow(
                 icon = Icons.TwoTone.Info,
                 title = stringResource(R.string.show_more_module_info),
-                description = stringResource(R.string.show_more_module_info_summary),
+                summary = stringResource(R.string.show_more_module_info_summary),
                 checked = moduleUiState.showMoreModuleInfo,
                 onCheckedChange = { enabled ->
                     moduleViewModel.dispatch(ModuleUiAction.SetShowMoreInfo(enabled))
@@ -625,10 +625,10 @@ private fun CustomizationSettings(
 
         item {
             // 使用内置Mono字体开关
-            SettingsSwitchWidget(
+            SettingsSwitchRow(
                 icon = Icons.TwoTone.FormatSize,
                 title = stringResource(R.string.settings_custom_monospace_font),
-                description = stringResource(R.string.settings_custom_monospace_font_summary),
+                summary = stringResource(R.string.settings_custom_monospace_font_summary),
                 checked = settingsUiState.useBuiltinMonoFont,
                 onCheckedChange = { settingsViewModel.handleBuiltinMonospaceFontChange(it) },
             )
@@ -636,10 +636,10 @@ private fun CustomizationSettings(
 
         item {
             // 简洁模式开关
-            SettingsSwitchWidget(
+            SettingsSwitchRow(
                 icon = Icons.TwoTone.Brush,
                 title = stringResource(R.string.simple_mode),
-                description = stringResource(R.string.simple_mode_summary),
+                summary = stringResource(R.string.simple_mode_summary),
                 checked = homeUiState.isSimpleMode,
                 onCheckedChange = { enabled ->
                     homeViewModel.dispatch(HomeUiAction.SetSimpleMode(enabled))
@@ -648,10 +648,10 @@ private fun CustomizationSettings(
         }
 
         item {
-            SettingsSwitchWidget(
+            SettingsSwitchRow(
                 icon = Icons.TwoTone.Pin,
                 title = stringResource(R.string.navigation_bar_badge),
-                description = stringResource(R.string.navigation_bar_badge_summary),
+                summary = stringResource(R.string.navigation_bar_badge_summary),
                 checked = homeUiState.showNavigationBarBadge,
                 onCheckedChange = { enabled ->
                     homeViewModel.dispatch(HomeUiAction.SetNavigationBarBadge(enabled))
@@ -660,10 +660,10 @@ private fun CustomizationSettings(
         }
 
         item {
-            SettingsSwitchWidget(
+            SettingsSwitchRow(
                 icon = Icons.TwoTone.Badge,
                 title = stringResource(R.string.home_card_icons),
-                description = stringResource(R.string.home_card_icons_summary),
+                summary = stringResource(R.string.home_card_icons_summary),
                 checked = homeUiState.showHomeCardIcons,
                 onCheckedChange = { enabled ->
                     homeViewModel.dispatch(HomeUiAction.SetHomeCardIcons(enabled))
@@ -797,10 +797,10 @@ private fun LanguageSetting(state: SettingsUiState, viewModel: SettingsViewModel
         }
     }
 
-    SettingsJumpPageWidget(
+    SettingsJumpRow(
         icon = Icons.TwoTone.Translate,
         title = language,
-        description = currentLanguageDisplay,
+        summary = currentLanguageDisplay,
         onClick = {
             viewModel.dispatch(SettingsUiAction.SetLanguageDialogVisible(true))
         },
@@ -833,10 +833,10 @@ private fun CustomBackgroundSettings(
 ) {
     // TODO Portrait/Landscape wallpaper split
 
-    SettingsSwitchWidget(
+    SettingsSwitchRow(
         icon = Icons.TwoTone.Wallpaper,
         title = stringResource(id = R.string.settings_custom_background),
-        description = stringResource(id = R.string.settings_custom_background_summary),
+        summary = stringResource(id = R.string.settings_custom_background_summary),
         checked = state.isCustomBackgroundEnabled,
         onCheckedChange = { isChecked ->
             if (isChecked) {
@@ -880,42 +880,22 @@ private fun AlphaSlider(
     viewModel: SettingsViewModel,
     coroutineScope: CoroutineScope,
 ) {
-    SettingsBaseWidget(
+    SettingsSliderRow(
         icon = Icons.TwoTone.Opacity,
         title = stringResource(R.string.settings_card_alpha),
-        descriptionColumnContent = {
-            val alphaSliderValue by animateFloatAsState(
-                targetValue = state.cardAlpha,
-                label = "Alpha Slider Animation",
-            )
-
-            KeyPointSlider(
-                value = alphaSliderValue,
-                onValueChange = { newValue ->
-                    viewModel.dispatch(SettingsUiAction.SetCardAlpha(newValue))
-                },
-                onValueChangeFinished = {
-                    coroutineScope.launch(Dispatchers.IO) {
-                        viewModel.dispatch(SettingsUiAction.SaveCardConfig)
-                    }
-                },
-                valueRange = 0f..1f,
-                keyPoints = listOf(0.25f, 0.5f, 0.75f),
-            )
+        value = state.cardAlpha,
+        onValueChange = { newValue ->
+            viewModel.dispatch(SettingsUiAction.SetCardAlpha(newValue))
         },
-    ) {
-        Box(contentAlignment = Alignment.CenterEnd) {
-            Text( // Some stupid way to solve measure problem
-                text = "100%",
-                style = MaterialTheme.typography.labelMediumEmphasized,
-                modifier = Modifier.alpha(0f),
-            )
-            Text(
-                text = "${(state.cardAlpha * 100).roundToInt()}%",
-                style = MaterialTheme.typography.labelMediumEmphasized,
-            )
-        }
-    }
+        onValueChangeFinished = {
+            coroutineScope.launch(Dispatchers.IO) {
+                viewModel.dispatch(SettingsUiAction.SaveCardConfig)
+            }
+        },
+        valueRange = 0f..1f,
+        keyPoints = listOf(0.25f, 0.5f, 0.75f),
+        valueText = "${(state.cardAlpha * 100).roundToInt()}%",
+    )
 }
 
 @Composable
@@ -924,43 +904,22 @@ private fun DimSlider(
     viewModel: SettingsViewModel,
     coroutineScope: CoroutineScope,
 ) {
-    SettingsBaseWidget(
+    SettingsSliderRow(
         icon = Icons.TwoTone.LightMode,
         title = stringResource(R.string.settings_background_dim),
-        descriptionColumnContent = {
-            val dimSliderValue by animateFloatAsState(
-                targetValue = state.backgroundDim,
-                label = "Dim Slider Animation",
-            )
-
-            KeyPointSlider(
-                value = dimSliderValue,
-                onValueChange = { newValue ->
-                    viewModel.dispatch(SettingsUiAction.SetBackgroundDim(newValue))
-                },
-                onValueChangeFinished = {
-                    coroutineScope.launch(Dispatchers.IO) {
-                        viewModel.dispatch(SettingsUiAction.SaveCardConfig)
-                    }
-                },
-                valueRange = 0f..1f,
-                keyPoints = listOf(0.25f, 0.5f, 0.75f),
-            )
+        value = state.backgroundDim,
+        onValueChange = { newValue ->
+            viewModel.dispatch(SettingsUiAction.SetBackgroundDim(newValue))
         },
-    ) {
-        Box(contentAlignment = Alignment.CenterEnd) {
-            Text( // Some stupid way to solve measure problem
-                text = "100%",
-                style = MaterialTheme.typography.labelMediumEmphasized,
-                modifier = Modifier.alpha(0f),
-            )
-
-            Text(
-                text = "${(state.backgroundDim * 100).roundToInt()}%",
-                style = MaterialTheme.typography.labelMediumEmphasized,
-            )
-        }
-    }
+        onValueChangeFinished = {
+            coroutineScope.launch(Dispatchers.IO) {
+                viewModel.dispatch(SettingsUiAction.SaveCardConfig)
+            }
+        },
+        valueRange = 0f..1f,
+        keyPoints = listOf(0.25f, 0.5f, 0.75f),
+        valueText = "${(state.backgroundDim * 100).roundToInt()}%",
+    )
 }
 
 private fun Context.backgroundCropSize(): Pair<Int, Int> {
