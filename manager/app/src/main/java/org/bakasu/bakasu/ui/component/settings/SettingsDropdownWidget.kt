@@ -2,13 +2,7 @@ package org.bakasu.bakasu.ui.component.settings
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.offset
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuPopup
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MenuDefaults
-import androidx.compose.material3.SelectableDropdownMenuItem
-import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -19,8 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.dp
+import top.yukonga.miuix.kmp.basic.BasicComponent
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.ListPopupColumn
+import top.yukonga.miuix.kmp.basic.OverlayListPopup
+import top.yukonga.miuix.kmp.icon.MiuixIcons
+import top.yukonga.miuix.kmp.icon.basic.Check
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SettingsDropdownWidget(
     modifier: Modifier = Modifier,
@@ -69,29 +69,31 @@ fun SettingsDropdownWidget(
                 .align(Alignment.TopStart)
                 .offset(offsetX, offsetY),
         ) {
-            // Use DropdownMenuPopup to provide the foundation for building a custom menu
-            DropdownMenuPopup(
-                expanded = expanded,
+            OverlayListPopup(
+                show = expanded,
                 onDismissRequest = { expanded = false },
             ) {
-                // Use DropdownMenuGroup to create a visually distinct group
-                DropdownMenuGroup(
-                    shapes = MenuDefaults.groupShapes(),
-                ) {
+                ListPopupColumn {
                     data.forEachIndexed { index, item ->
                         val isSelected = index == choice
 
-                        SelectableDropdownMenuItem(
-                            selected = isSelected,
+                        BasicComponent(
+                            title = item,
                             onClick = {
                                 onChoiceChange(index)
                                 expanded = false
                             },
-                            text = { Text(text = item) },
-                            shapes = MenuDefaults.itemShape(
-                                index = index,
-                                count = data.size,
-                            ),
+                            endActions = if (isSelected) {
+                                {
+                                    Icon(
+                                        imageVector = MiuixIcons.Basic.Check,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp),
+                                    )
+                                }
+                            } else {
+                                null
+                            },
                         )
                     }
                 }

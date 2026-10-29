@@ -14,14 +14,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -35,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
@@ -43,6 +40,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import top.yukonga.miuix.kmp.basic.Checkbox
+import top.yukonga.miuix.kmp.basic.RadioButton
+import top.yukonga.miuix.kmp.basic.Surface
+import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -327,8 +329,8 @@ fun SettingsChooseWidget(
                         },
                         leadingContent = {
                             Checkbox(
-                                checked = isSelected,
-                                onCheckedChange = null,
+                                state = ToggleableState(isSelected),
+                                onClick = null,
                             )
                         },
                     ) {
@@ -355,7 +357,7 @@ private fun SettingsChooseDialogFrame(
             .sizeIn(minWidth = 280.dp, maxWidth = 560.dp)
             .padding(horizontal = 32.dp),
         shape = MaterialTheme.shapes.extraLarge,
-        color = MaterialTheme.colorScheme.surfaceContainerHigh,
+        color = MiuixTheme.colorScheme.surfaceContainerHigh,
     ) {
         Column(
             modifier = Modifier
@@ -393,13 +395,15 @@ private fun SettingsChooseDialogFrame(
                     }
                     Spacer(modifier = Modifier.weight(1f))
                 }
-                TextButton(onClick = onDismiss) {
-                    Text(text = stringResource(id = R.string.cancel))
-                }
+                TextButton(
+                    text = stringResource(id = R.string.cancel),
+                    onClick = onDismiss,
+                )
                 if (showConfirmButton) {
-                    TextButton(onClick = onConfirm) {
-                        Text(text = stringResource(id = R.string.ok))
-                    }
+                    TextButton(
+                        text = stringResource(id = R.string.ok),
+                        onClick = onConfirm,
+                    )
                 }
             }
         }

@@ -5,10 +5,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,6 +13,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.bakasu.bakasu.R
+import top.yukonga.miuix.kmp.basic.Icon
+import top.yukonga.miuix.kmp.basic.IconButton
 
 /**
  * A standardized back button for the application.
@@ -29,7 +27,6 @@ import org.bakasu.bakasu.R
  * @param icon The vector asset to be displayed inside the button. Defaults to a back arrow.
  * @param contentDescription The content description for accessibility.
  */
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun AppBackButton(
     modifier: Modifier = Modifier,
@@ -42,22 +39,13 @@ fun AppBackButton(
         IconButton(
             onClick = onClick,
             modifier = modifier.size(36.dp),
-            // Consistent shapes for the button.
-            shapes = IconButtonDefaults.shapes(
-                // shape = CircleShape
-            ),
-            // Consistent colors for the button.
-            colors = IconButtonDefaults.iconButtonColors(
-                // The color of the icon inside the button.
-                contentColor = MaterialTheme.colorScheme.onSurface,
-                // The background color of the button.
-                // Using a more standard color for a filled icon button variant.
-                containerColor = containerColor,
-            ),
+            // The background color of the button.
+            backgroundColor = containerColor,
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = contentDescription,
+                tint = MaterialTheme.colorScheme.onSurface,
             )
         }
 
