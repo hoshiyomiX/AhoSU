@@ -111,8 +111,10 @@ import org.koin.compose.koinInject
 import top.yukonga.miuix.kmp.blur.BackdropEffectScope
 import top.yukonga.miuix.kmp.blur.BlendColorEntry
 import top.yukonga.miuix.kmp.blur.BlurColors
+import top.yukonga.miuix.kmp.blur.ProgressiveBlur
 import top.yukonga.miuix.kmp.blur.drawBackdrop
 import top.yukonga.miuix.kmp.blur.layerBackdrop
+import top.yukonga.miuix.kmp.blur.progressiveTextureBlurEffect
 import top.yukonga.miuix.kmp.blur.runtimeShaderEffect
 import top.yukonga.miuix.kmp.blur.textureBlurEffect
 import top.yukonga.miuix.kmp.theme.Colors
@@ -628,6 +630,9 @@ fun Modifier.blurSource(): Modifier {
  * @param compensateVerticalOverscroll reverse vertical stretch in the sampled background
  * @param useFixedSurfaceBoundsForOverscroll use this surface's bounds with the published stretch
  * amount; fixed navigation surfaces use this to stay visually stationary outside the scroller
+ * @param progressive when true the surface blur ramps from full strength at the top edge to clear
+ * at the bottom edge (miuix ProgressiveBlur.Top) instead of blurring uniformly — the frost-fade
+ * treatment for edge bands such as top app bars
  * @return modified modifier
  */
 @Composable
@@ -635,6 +640,7 @@ fun Modifier.blurEffect(
     compensateHorizontalOverscroll: Boolean = true,
     compensateVerticalOverscroll: Boolean = false,
     useFixedSurfaceBoundsForOverscroll: Boolean = false,
+    progressive: Boolean = false,
 ): Modifier {
     val themeConfig = koinInject<ThemeConfig>()
     val cardConfig = koinInject<CardConfig>()
@@ -672,18 +678,31 @@ fun Modifier.blurEffect(
                 .drawBackdrop(
                     backdrop = backdrop,
                     shape = { RectangleShape },
+                    progressiveGradient = if (progressive) ProgressiveBlur.Top else null,
                     effects = {
                         renderState.blurFrameTick
                         stretchOverscrollState?.version
 
-                        textureBlurEffect(
-                            blurRadiusX = 25f,
-                            colors = BlurColors(
-                                blendColors = listOf(
-                                    BlendColorEntry(color = blendColor),
+                        if (progressive) {
+                            progressiveTextureBlurEffect(
+                                blurRadiusX = 25f,
+                                gradient = ProgressiveBlur.Top,
+                                colors = BlurColors(
+                                    blendColors = listOf(
+                                        BlendColorEntry(color = blendColor),
+                                    ),
                                 ),
-                            ),
-                        )
+                            )
+                        } else {
+                            textureBlurEffect(
+                                blurRadiusX = 25f,
+                                colors = BlurColors(
+                                    blendColors = listOf(
+                                        BlendColorEntry(color = blendColor),
+                                    ),
+                                ),
+                            )
+                        }
 
                         val boundsInBackground =
                             coordinates?.boundsInBackgroundNow(backgroundAnchor)

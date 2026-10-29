@@ -461,7 +461,7 @@ private fun TopBar(
     val navigator = LocalNavigator.current
 
     MiuixTopAppBar(
-        modifier = Modifier.blurEffect(),
+        modifier = Modifier.blurEffect(progressive = true),
         title = stringResource(R.string.app_name),
         color = if (themeConfig.isEnableBlur) {
             Color.Transparent
