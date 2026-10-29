@@ -29,7 +29,11 @@ use crate::{
 pub fn grant_root(global_mnt: bool) -> Result<()> {
     crate::android::ksucalls::grant_root()?;
 
-    let mut command = Command::new("sh");
+    // Use the absolute shell path. This runs before the SELinux context switch,
+    // so a relative "sh" would make execvp() search every PATH entry; ROMs that
+    // leak /data/local/tests into PATH then log an AVC denial per spawn even
+    // though the shell is always resolved from /system/bin.
+    let mut command = Command::new("/system/bin/sh");
     let command = unsafe {
         command.pre_exec(move || {
             if global_mnt {
