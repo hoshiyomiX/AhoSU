@@ -5,7 +5,6 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.AnimationState
 import androidx.compose.animation.core.DecayAnimationSpec
@@ -20,7 +19,6 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.add
@@ -28,11 +26,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.isImeVisible
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
 import androidx.compose.foundation.text.input.rememberTextFieldState
@@ -44,10 +39,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SearchBarDefaults.inputFieldColors
-import androidx.compose.material3.SearchBarDefaults.inputFieldShape
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.TopAppBarScrollBehavior
 import androidx.compose.runtime.Composable
@@ -60,7 +52,6 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -68,16 +59,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.ColorProducer
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.layout.layout
@@ -94,7 +80,6 @@ import androidx.lifecycle.compose.currentStateAsState
 import kotlin.math.roundToInt
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
 import org.bakasu.bakasu.ui.theme.CardConfig
 import org.bakasu.bakasu.ui.theme.ThemeConfig
@@ -103,6 +88,8 @@ import org.bakasu.bakasu.ui.theme.renderBackgroundBlur
 import org.bakasu.bakasu.ui.util.LocalPagerPage
 import org.bakasu.bakasu.ui.util.LocalSelectedPage
 import org.koin.compose.koinInject
+import top.yukonga.miuix.kmp.basic.InputField
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private val SearchBarInitialHeight = 77.dp
 
@@ -303,11 +290,6 @@ fun rememberSearchAppBarScrollBehavior(
     }
 }
 
-private fun Modifier.textFieldBackground(color: ColorProducer, shape: Shape): Modifier = this.drawWithCache {
-    val outline = shape.createOutline(size, layoutDirection, this)
-    onDrawBehind { drawOutline(outline, color = color()) }
-}
-
 private fun Modifier.collapseWithTopAppBar(scrollBehavior: SearchAppBarScrollBehavior?): Modifier = clipToBounds().layout { measurable, constraints ->
     val placeable = measurable.measure(constraints.copy(minHeight = 0))
     scrollBehavior?.updateSearchBarHeight(placeable.height.toFloat())
@@ -322,17 +304,12 @@ private fun Modifier.collapseWithTopAppBar(scrollBehavior: SearchAppBarScrollBeh
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 private fun CompactSearchBar(
     modifier: Modifier = Modifier,
     onSearch: (String) -> Unit,
     textFieldState: TextFieldState,
-    placeholder: @Composable (() -> Unit)? = null,
-    leadingIcon: @Composable (() -> Unit)? = null,
-    trailingIcon: @Composable (() -> Unit)? = null,
-    interactionSource: MutableInteractionSource? = null,
-    shape: Shape = inputFieldShape,
+    searchBarPlaceHolderText: String,
     requestFocus: Boolean = false,
     onFocusRequestHandled: () -> Unit = {},
 ) {
@@ -340,29 +317,28 @@ private fun CompactSearchBar(
     val cardConfig: CardConfig = koinInject()
     val focusManager = LocalFocusManager.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    val interactionSource = interactionSource ?: remember { MutableInteractionSource() }
+    val interactionSource = remember { MutableInteractionSource() }
     val focused by interactionSource.collectIsFocusedAsState()
     val pressed by interactionSource.collectIsPressedAsState()
-    val colors = inputFieldColors()
-    val coroutineScope = rememberCoroutineScope()
 
     val isImeVisible = WindowInsets.isImeVisible
     val hasFocusReassignBug = Build.VERSION.SDK_INT <= Build.VERSION_CODES.O_MR1
     var allowFocus by remember { mutableStateOf(!hasFocusReassignBug) }
+    var expanded by remember { mutableStateOf(false) }
     val focusRequester = remember { FocusRequester() }
+
+    // The miuix InputField contract ties the label (placeholder) visibility to the
+    // collapsed state, so the expansion flag tracks the input focus: the label is
+    // shown whenever the field is empty and not focused.
+    LaunchedEffect(focused) {
+        if (!focused) {
+            expanded = false
+        }
+    }
 
     LaunchedEffect(pressed) {
         if (pressed && hasFocusReassignBug && !allowFocus) {
             allowFocus = true
-        }
-    }
-
-    LaunchedEffect(allowFocus) {
-        if (allowFocus && hasFocusReassignBug) {
-            delay(100.milliseconds)
-            if (lifecycle.currentState.isAtLeast(Lifecycle.State.RESUMED)) {
-                focusRequester.requestFocus()
-            }
         }
     }
 
@@ -388,10 +364,8 @@ private fun CompactSearchBar(
             if (hasFocusReassignBug) {
                 allowFocus = false
                 delay(100.milliseconds)
-                focusManager.clearFocus()
-            } else {
-                focusManager.clearFocus()
             }
+            focusManager.clearFocus()
         }
     }
 
@@ -399,71 +373,27 @@ private fun CompactSearchBar(
         textFieldState.clearText()
     }
 
-    BasicTextField(
-        state = textFieldState,
-        modifier = modifier
-            .fillMaxWidth()
-            .background(
-                if (themeConfig.isEnableBlurExp) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainerHighest.copy(alpha = cardConfig.cardAlpha)
-                },
-            )
-            .heightIn(0.dp, 45.dp)
-            .focusRequester(focusRequester)
-            .focusProperties {
-                canFocus = allowFocus
-            },
-        textStyle = MaterialTheme.typography.bodyMedium.copy(
-            color = MaterialTheme.colorScheme.onSurface,
-        ),
-        interactionSource = interactionSource,
-        onKeyboardAction = {
-            onSearch(textFieldState.text.toString())
-            if (hasFocusReassignBug) {
-                coroutineScope.launch {
-                    allowFocus = false
-                    delay(100.milliseconds)
-                    focusManager.clearFocus()
-                }
-            } else {
-                focusManager.clearFocus()
+    InputField(
+        query = textFieldState.text.toString(),
+        onQueryChange = { newValue ->
+            textFieldState.edit {
+                replace(0, length, newValue)
             }
         },
-        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-        lineLimits = TextFieldLineLimits.SingleLine,
-        decorator = TextFieldDefaults.decorator(
-            state = textFieldState,
-            placeholder = placeholder,
-            leadingIcon =
-                leadingIcon?.let { leading ->
-                    { Box(Modifier.offset(x = 4.dp)) { leading() } }
-                },
-            trailingIcon =
-                trailingIcon?.let { trailing ->
-                    { Box(Modifier.offset(x = (-4).dp)) { trailing() } }
-                },
-            colors = colors,
-            contentPadding = PaddingValues(),
-            container = {
-                val containerColor =
-                    animateColorAsState(
-                        targetValue =
-                            colors.containerColor(
-                                enabled = true,
-                                isError = false,
-                                focused = focused,
-                            ),
-                        animationSpec = MaterialTheme.motionScheme.fastEffectsSpec(),
-                    )
-                Box(Modifier.textFieldBackground(containerColor::value, shape))
-            },
-            enabled = true,
-            lineLimits = TextFieldLineLimits.SingleLine,
-            interactionSource = interactionSource,
-            outputTransformation = null,
-        ),
+        onSearch = onSearch,
+        expanded = expanded,
+        onExpandedChange = { expanded = it },
+        modifier = modifier
+            .heightIn(0.dp, 45.dp)
+            .focusProperties { canFocus = allowFocus }
+            .focusRequester(focusRequester),
+        label = searchBarPlaceHolderText,
+        color = if (themeConfig.isEnableBlurExp) {
+            Color.Transparent
+        } else {
+            MiuixTheme.colorScheme.surfaceContainerHighest.copy(alpha = cardConfig.cardAlpha)
+        },
+        interactionSource = interactionSource,
     )
 }
 
@@ -622,23 +552,11 @@ fun SearchAppBar(
                         .padding(top = 16.dp)
                         .padding(horizontal = 16.dp)
                         .clip(CircleShape)
-                        .renderBackgroundBlur(MaterialTheme.colorScheme.surfaceContainerHighest),
+                        .renderBackgroundBlur(MiuixTheme.colorScheme.surfaceContainerHighest),
                     textFieldState = textFieldState,
+                    searchBarPlaceHolderText = searchBarPlaceHolderText,
                     onSearch = {
                         keyboardController?.hide()
-                    },
-                    placeholder = {
-                        Text(
-                            text = searchBarPlaceHolderText,
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.TwoTone.Search,
-                            contentDescription = null,
-                            modifier = Modifier.padding(start = 8.dp),
-                        )
                     },
                     requestFocus = requestSearchFocus,
                     onFocusRequestHandled = {
