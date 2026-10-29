@@ -93,6 +93,9 @@ import org.bakasu.bakasu.ui.viewmodel.SulogUiAction
 import org.bakasu.bakasu.ui.viewmodel.SulogViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.VerticalScrollBar
+import top.yukonga.miuix.kmp.basic.rememberScrollBarAdapter
+import top.yukonga.miuix.kmp.interfaces.ExperimentalScrollBarApi
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -134,7 +137,7 @@ fun SulogScreen() {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class, ExperimentalScrollBarApi::class)
 @Composable
 private fun SulogScreenContent(
     state: SulogScreenState,
@@ -258,62 +261,73 @@ private fun SulogScreenContent(
                     LoadingIndicator()
                 }
             } else {
-                LazyColumn(
-                    state = listState,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .nestedScroll(scrollBehavior.nestedScrollConnection),
+                Box(
+                    modifier = Modifier.fillMaxSize(),
                 ) {
-                    item {
-                        Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
-                    }
+                    LazyColumn(
+                        state = listState,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .nestedScroll(scrollBehavior.nestedScrollConnection),
+                    ) {
+                        item {
+                            Spacer(modifier = Modifier.height(innerPadding.calculateTopPadding()))
+                        }
 
-                    item {
-                        SulogStatusSection(state, actions)
-                    }
+                        item {
+                            SulogStatusSection(state, actions)
+                        }
 
-                    item {
-                        Box(
-                            modifier = Modifier
-                                .padding(bottom = 16.dp)
-                                .padding(horizontal = 16.dp),
-                        ) {
-                            Column(
+                        item {
+                            Box(
                                 modifier = Modifier
-                                    .clip(RoundedCornerShape(16.dp))
-                                    .background(
-                                        MaterialTheme.colorScheme.surfaceBright.copy(
-                                            alpha = cardConfig.cardAlpha,
-                                        ),
-                                    ),
+                                    .padding(bottom = 16.dp)
+                                    .padding(horizontal = 16.dp),
                             ) {
-                                SettingsChooseWidget(
-                                    iconPlaceholder = false,
-                                    title = stringResource(R.string.sulog_log_files),
-                                    items = fileSelector.items,
-                                    enabled = fileSelector.items.isNotEmpty(),
-                                    selectedIndex = fileSelector.selectedIndex,
-                                    onSelectedIndexChange = { index ->
-                                        state.files.getOrNull(index)?.let { file ->
-                                            actions.onSelectFile(file.path)
-                                        }
-                                    },
-                                )
+                                Column(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(16.dp))
+                                        .background(
+                                            MaterialTheme.colorScheme.surfaceBright.copy(
+                                                alpha = cardConfig.cardAlpha,
+                                            ),
+                                        ),
+                                ) {
+                                    SettingsChooseWidget(
+                                        iconPlaceholder = false,
+                                        title = stringResource(R.string.sulog_log_files),
+                                        items = fileSelector.items,
+                                        enabled = fileSelector.items.isNotEmpty(),
+                                        selectedIndex = fileSelector.selectedIndex,
+                                        onSelectedIndexChange = { index ->
+                                            state.files.getOrNull(index)?.let { file ->
+                                                actions.onSelectFile(file.path)
+                                            }
+                                        },
+                                    )
+                                }
                             }
+                        }
+
+                        sulogEntriesSection(
+                            entries = state.visibleEntries,
+                            errorMessage = state.errorMessage,
+                            onEntryClick = { selectedEntry = it },
+                        )
+
+                        item {
+                            Spacer(
+                                Modifier.height(innerPadding.calculateBottomPadding() + 16.dp),
+                            )
                         }
                     }
 
-                    sulogEntriesSection(
-                        entries = state.visibleEntries,
-                        errorMessage = state.errorMessage,
-                        onEntryClick = { selectedEntry = it },
+                    VerticalScrollBar(
+                        modifier = Modifier
+                            .align(Alignment.CenterEnd)
+                            .padding(end = 2.dp),
+                        adapter = rememberScrollBarAdapter(listState),
                     )
-
-                    item {
-                        Spacer(
-                            Modifier.height(innerPadding.calculateBottomPadding() + 16.dp),
-                        )
-                    }
                 }
             }
         }
