@@ -448,7 +448,7 @@ fun LabelText(
     ) {
         MiuixText(
             text = label,
-            style = MiuixTheme.typography.footnote2,
+            style = MiuixTheme.textStyles.footnote2,
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
             color = contentColor,
             maxLines = 1,

@@ -17,6 +17,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
@@ -60,6 +61,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -708,7 +710,7 @@ private fun StatusHeroCard(
                 Spacer(modifier = Modifier.height(12.dp))
                 MiuixText(
                     text = title,
-                    style = MiuixTheme.typography.title3,
+                    style = MiuixTheme.textStyles.title3,
                     color = contentColor,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -716,7 +718,7 @@ private fun StatusHeroCard(
                 Spacer(modifier = Modifier.height(6.dp))
                 MiuixText(
                     text = summary,
-                    style = MiuixTheme.typography.footnote1,
+                    style = MiuixTheme.textStyles.footnote1,
                     color = summaryColor,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
@@ -755,13 +757,13 @@ private fun StatusHeroCard(
                     ) {
                         MiuixText(
                             text = label,
-                            style = MiuixTheme.typography.footnote1,
+                            style = MiuixTheme.textStyles.footnote1,
                             color = infoLabelColor,
                         )
                         Spacer(modifier = Modifier.width(12.dp))
                         MiuixText(
                             text = value,
-                            style = MiuixTheme.typography.footnote1,
+                            style = MiuixTheme.textStyles.footnote1,
                             color = contentColor,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
