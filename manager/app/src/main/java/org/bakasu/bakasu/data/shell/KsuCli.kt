@@ -34,12 +34,49 @@ import org.json.JSONObject
 class KsuCliRepository(context: Context) {
     private companion object {
         const val TAG = "KsuCli"
+
+        /**
+         * Shell-probe results only change when the module set or a kernel feature
+         * toggle changes, yet HomeViewModel's combine() re-reads them on every
+         * upstream emission and the settings screen re-queries all feature flags
+         * on each page entry. A short TTL turns those bursts into a single
+         * `ksud` spawn while still picking up external changes (WebUI, root
+         * terminal) within the window.
+         */
+        const val SHELL_PROBE_CACHE_TTL_MS = 5_000L
     }
+
+    private data class CachedProbe(val value: String, val at: Long)
 
     private val nativeLibraryDir = context.applicationInfo.nativeLibraryDir
     private val shellLock = Any()
     private var rootShell: Shell? = null
     private var globalMountShell: Shell? = null
+    private val probeCacheLock = Any()
+    private val probeCache = HashMap<String, CachedProbe>()
+
+    /**
+     * Drops every cached shell-probe value. Call after any operation that can
+     * change the module set or a kernel feature, so the next read observes the
+     * new state immediately instead of waiting for the TTL to expire.
+     */
+    private fun invalidateProbeCache() = synchronized(probeCacheLock) {
+        probeCache.clear()
+    }
+
+    private fun probeCached(key: String, probe: () -> String): String {
+        val now = SystemClock.elapsedRealtime()
+        synchronized(probeCacheLock) {
+            probeCache[key]?.let { cached ->
+                if (now - cached.at < SHELL_PROBE_CACHE_TTL_MS) return cached.value
+            }
+        }
+        val fresh = probe()
+        synchronized(probeCacheLock) {
+            probeCache[key] = CachedProbe(fresh, now)
+        }
+        return fresh
+    }
 
     private fun getNativeLibraryPath(name: String): String {
         val library = File(nativeLibraryDir, System.mapLibraryName(name))
@@ -115,9 +152,10 @@ class KsuCliRepository(context: Context) {
     fun execKsud(args: String, newShell: Boolean = false, globalMnt: Boolean = false): Boolean = if (newShell) {
         withNewRootShell(globalMnt = globalMnt) {
             ShellUtils.fastCmdResult(this, "${getKsuDaemonPath()} $args")
-        }
+        }.also { if (it) invalidateProbeCache() }
     } else {
         ShellUtils.fastCmdResult(getRootShell(globalMnt), "${getKsuDaemonPath()} $args")
+            .also { if (it) invalidateProbeCache() }
     }
 
     private fun shellQuote(value: String): String = "'${value.replace("'", "'\"'\"'")}'"
@@ -188,11 +226,13 @@ class KsuCliRepository(context: Context) {
     }
 
     suspend fun getFeatureStatus(feature: String): String = withContext(Dispatchers.IO) {
-        val shell = getRootShell()
-        val out = shell.newJob()
-            .add("${getKsuDaemonPath()} feature check $feature").to(ArrayList<String>(), null)
-            .exec().out
-        out.firstOrNull()?.trim().orEmpty()
+        probeCached("feature:$feature") {
+            val shell = getRootShell()
+            val out = shell.newJob()
+                .add("${getKsuDaemonPath()} feature check $feature").to(ArrayList<String>(), null)
+                .exec().out
+            out.firstOrNull()?.trim().orEmpty()
+        }
     }
 
     suspend fun getFeaturePersistValue(feature: String): Long? = withContext(Dispatchers.IO) {
@@ -658,12 +698,12 @@ class KsuCliRepository(context: Context) {
         launchApp(packageName)
     }
 
-    fun getMetaModuleImplement(): String {
+    fun getMetaModuleImplement(): String = probeCached("implement:meta") {
         try {
             val metaModuleProp = SuFile.open("/data/adb/metamodule/module.prop")
             if (!metaModuleProp.isFile) {
                 Log.i(TAG, "Meta module implement: None")
-                return "None"
+                return@probeCached "None"
             }
 
             val prop = Properties()
@@ -671,14 +711,14 @@ class KsuCliRepository(context: Context) {
 
             val name = prop.getProperty("name")
             Log.i(TAG, "Meta module implement: $name")
-            return name
+            name
         } catch (_: Throwable) {
             Log.i(TAG, "Meta module implement: None")
-            return "None"
+            "None"
         }
     }
 
-    fun getZygiskImplement(): String {
+    fun getZygiskImplement(): String = probeCached("implement:zygisk") {
         val zygiskModuleIds = listOf(
             "zygisksu",
             "rezygisk",
@@ -695,11 +735,11 @@ class KsuCliRepository(context: Context) {
 
             val name = prop.getProperty("name")
             Log.i(TAG, "Zygisk implement: $name")
-            return name
+            return@probeCached name
         }
 
         Log.i(TAG, "Zygisk implement: None")
-        return "None"
+        "None"
     }
 
     fun addKernelUmountPath(path: String, flags: Int): Boolean {
