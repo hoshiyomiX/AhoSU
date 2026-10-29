@@ -13,17 +13,21 @@ import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.MenuBook
@@ -46,11 +50,8 @@ import androidx.compose.material.icons.twotone.TaskAlt
 import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.VolunteerActivism
 import androidx.compose.material.icons.twotone.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,15 +60,20 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.drawablepainter.rememberDrawablePainter
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -106,8 +112,11 @@ import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.BasicComponentColors
 import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
+import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
@@ -115,11 +124,13 @@ import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.SmallTitle
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.basic.ArrowRight
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
+import top.yukonga.miuix.kmp.utils.PressFeedbackType
 
 /**
  * @author ShirkNeko
@@ -514,7 +525,12 @@ private fun TopBar(
 }
 
 /**
- * The home status card: working / not-installed / unsupported verdicts.
+ * The home status hero card: working / not-installed / unsupported verdicts.
+ *
+ * Redesigned as a 3:4 portrait tile - the manager APK icon occupies the
+ * right side, the verdict headline with its status glyph and the mode badges
+ * stack on the left, and a kernel/SELinux fact sheet closes the card at the
+ * bottom. Pressing the card gets the HyperOS-style sink feedback.
  */
 @Composable
 private fun StatusCard(
@@ -523,6 +539,7 @@ private fun StatusCard(
     onClickJailbreak: () -> Unit = {},
 ) {
     val systemStatus = uiState.systemStatus
+    val systemInfo = uiState.systemInfo
     val onClick = {
         if (systemStatus.isRootAvailable || systemStatus.kernelVersion.isGKI()) {
             onClickInstall()
@@ -536,100 +553,228 @@ private fun StatusCard(
                 else -> stringResource(id = R.string.home_working)
             }
 
-            val workingModeSurfaceText = when {
-                systemStatus.lkmMode == true -> "LKM"
-                else -> "Built-in"
-            }
-
-            HomeCard {
-                BasicComponent(
-                    title = workingModeText,
-                    summary = stringResource(
-                        R.string.home_short_info,
-                        uiState.systemInfo.superuserCount,
-                        uiState.systemInfo.moduleCount,
-                    ),
-                    startAction = {
-                        HomeCardIcon(Icons.TwoTone.TaskAlt)
+            StatusHeroCard(
+                title = workingModeText,
+                summary = stringResource(
+                    R.string.home_short_info,
+                    systemInfo.superuserCount,
+                    systemInfo.moduleCount,
+                ),
+                statusIcon = Icons.TwoTone.TaskAlt,
+                onClick = onClick,
+                badges = {
+                    HeroModeBadges(systemStatus)
+                },
+                infoRows = listOfNotNull(
+                    stringResource(R.string.home_kernel) to systemInfo.kernelRelease,
+                    systemStatus.ksuFullVersion?.let {
+                        stringResource(R.string.home_kernel_version) to it
                     },
-                    endActions = {
-                        // 工作模式标签
-                        LabelText(
-                            label = workingModeSurfaceText,
-                            containerColor = MiuixTheme.colorScheme.primary,
-                        )
-
-                        if (systemStatus.isLateLoadMode) {
-                            Spacer(Modifier.width(6.dp))
-                            LabelText(
-                                label = stringResource(id = R.string.jailbreak_mode),
-                                containerColor = MiuixTheme.colorScheme.primary,
-                            )
-                        }
-
-                        // 架构标签
-                        if (Os.uname().machine != "aarch64") {
-                            Spacer(Modifier.width(6.dp))
-                            LabelText(
-                                label = Os.uname().machine,
-                                containerColor = MiuixTheme.colorScheme.primary,
-                            )
-                        }
-                    },
-                    onClick = onClick,
-                )
-            }
+                    stringResource(R.string.home_selinux_status) to systemInfo.selinuxStatus,
+                ),
+            )
         }
 
         systemStatus.kernelVersion.isGKI() -> {
-            val onErrorContainer = MiuixTheme.colorScheme.onErrorContainer
-            HomeCard(
+            StatusHeroCard(
+                title = stringResource(R.string.home_not_installed),
+                summary = stringResource(R.string.home_click_to_install),
+                statusIcon = Icons.TwoTone.Warning,
                 color = MiuixTheme.colorScheme.errorContainer,
-                contentColor = onErrorContainer,
-            ) {
-                BasicComponent(
-                    title = stringResource(R.string.home_not_installed),
-                    summary = stringResource(R.string.home_click_to_install),
-                    titleColor = homeTitleColors(onErrorContainer),
-                    summaryColor = homeSummaryColors(onErrorContainer),
-                    startAction = {
-                        HomeCardIcon(Icons.TwoTone.Warning)
-                    },
-                    onClick = onClick,
-                    endActions = if (systemStatus.isSELinuxPermissive) {
-                        {
-                            Button(
-                                onClick = onClickJailbreak,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.error,
-                                    contentColor = MaterialTheme.colorScheme.onError,
-                                ),
-                            ) {
-                                Text(stringResource(R.string.home_jailbreak))
-                            }
+                contentColor = MiuixTheme.colorScheme.onErrorContainer,
+                onClick = onClick,
+                infoRows = listOf(
+                    stringResource(R.string.home_kernel) to systemInfo.kernelRelease,
+                    stringResource(R.string.home_selinux_status) to systemInfo.selinuxStatus,
+                ),
+                bottomAction = if (systemStatus.isSELinuxPermissive) {
+                    {
+                        Button(
+                            onClick = onClickJailbreak,
+                            colors = ButtonDefaults.buttonColors(
+                                color = MiuixTheme.colorScheme.error,
+                                contentColor = MiuixTheme.colorScheme.onError,
+                            ),
+                        ) {
+                            MiuixText(stringResource(R.string.home_jailbreak))
                         }
-                    } else {
-                        null
-                    },
-                )
-            }
+                    }
+                } else {
+                    null
+                },
+            )
         }
 
         else -> {
-            val onErrorContainer = MiuixTheme.colorScheme.onErrorContainer
-            HomeCard(
+            StatusHeroCard(
+                title = stringResource(R.string.home_unsupported),
+                summary = stringResource(R.string.home_unsupported_reason),
+                statusIcon = Icons.TwoTone.Block,
                 color = MiuixTheme.colorScheme.errorContainer,
-                contentColor = onErrorContainer,
+                contentColor = MiuixTheme.colorScheme.onErrorContainer,
+            )
+        }
+    }
+}
+
+/**
+ * The working-mode chips shown on the status hero card.
+ */
+@Composable
+private fun HeroModeBadges(systemStatus: KernelStatus) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+    ) {
+        LabelText(
+            label = if (systemStatus.lkmMode == true) {
+                "LKM"
+            } else {
+                "Built-in"
+            },
+            containerColor = MiuixTheme.colorScheme.primary,
+        )
+
+        if (systemStatus.isLateLoadMode) {
+            LabelText(
+                label = stringResource(id = R.string.jailbreak_mode),
+                containerColor = MiuixTheme.colorScheme.primary,
+            )
+        }
+
+        if (Os.uname().machine != "aarch64") {
+            LabelText(
+                label = Os.uname().machine,
+                containerColor = MiuixTheme.colorScheme.primary,
+            )
+        }
+    }
+}
+
+/**
+ * The 3:4 status tile: headline + APK icon on top, mode badges and a fact
+ * sheet pinned to the bottom by a flexible spacer.
+ */
+@Composable
+private fun StatusHeroCard(
+    title: String,
+    summary: String,
+    statusIcon: ImageVector,
+    color: Color = MiuixTheme.colorScheme.surfaceContainer,
+    contentColor: Color = MiuixTheme.colorScheme.onSurfaceContainer,
+    onClick: (() -> Unit)? = null,
+    badges: (@Composable () -> Unit)? = null,
+    infoRows: List<Pair<String, String>> = emptyList(),
+    bottomAction: (@Composable () -> Unit)? = null,
+) {
+    val cardConfig: CardConfig = koinInject()
+    val context = LocalContext.current
+    val appIconPainter = rememberDrawablePainter(
+        drawable = ContextCompat.getDrawable(context, R.mipmap.ic_launcher),
+    )
+    val appName = stringResource(R.string.app_name)
+    val summaryColor = contentColor.copy(alpha = 0.75f)
+    val infoLabelColor = contentColor.copy(alpha = 0.60f)
+    val dividerColor = contentColor.copy(alpha = 0.15f)
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .aspectRatio(3f / 4f)
+            // Landscape/rail layouts would blow the portrait ratio up to a
+            // wall-sized tile; the cap only kicks in there.
+            .heightIn(max = 560.dp),
+        colors = CardDefaults.defaultColors(
+            color = color.copy(alpha = cardConfig.cardAlpha),
+            contentColor = contentColor,
+        ),
+        insideMargin = PaddingValues(24.dp),
+        pressFeedbackType = PressFeedbackType.Sink,
+        onClick = onClick,
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        ) {
+            Column(
+                modifier = Modifier.weight(1f),
             ) {
-                BasicComponent(
-                    title = stringResource(R.string.home_unsupported),
-                    summary = stringResource(R.string.home_unsupported_reason),
-                    titleColor = homeTitleColors(onErrorContainer),
-                    summaryColor = homeSummaryColors(onErrorContainer),
-                    startAction = {
-                        HomeCardIcon(Icons.TwoTone.Block)
-                    },
+                MiuixIcon(
+                    imageVector = statusIcon,
+                    contentDescription = null,
+                    tint = contentColor,
+                    modifier = Modifier.size(28.dp),
                 )
+                Spacer(modifier = Modifier.height(12.dp))
+                MiuixText(
+                    text = title,
+                    style = MiuixTheme.typography.title3,
+                    color = contentColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                MiuixText(
+                    text = summary,
+                    style = MiuixTheme.typography.footnote1,
+                    color = summaryColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+            }
+
+            Image(
+                painter = appIconPainter,
+                contentDescription = appName,
+                modifier = Modifier
+                    .size(96.dp)
+                    .clip(RoundedCornerShape(24.dp)),
+            )
+        }
+
+        if (badges != null || infoRows.isNotEmpty() || bottomAction != null) {
+            Spacer(modifier = Modifier.weight(1f))
+
+            badges?.invoke()
+
+            if (infoRows.isNotEmpty()) {
+                if (badges != null) {
+                    Spacer(modifier = Modifier.height(16.dp))
+                }
+                HorizontalDivider(
+                    thickness = Dp.Hairline,
+                    color = dividerColor,
+                )
+                Spacer(modifier = Modifier.height(12.dp))
+                infoRows.forEach { (label, value) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        MiuixText(
+                            text = label,
+                            style = MiuixTheme.typography.footnote1,
+                            color = infoLabelColor,
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        MiuixText(
+                            text = value,
+                            style = MiuixTheme.typography.footnote1,
+                            color = contentColor,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            textAlign = TextAlign.End,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                }
+            }
+
+            bottomAction?.let {
+                Spacer(modifier = Modifier.height(16.dp))
+                it()
             }
         }
     }
