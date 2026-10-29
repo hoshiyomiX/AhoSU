@@ -169,7 +169,6 @@
     <string name="profile_flags">Flags</string>
     <string name="profile_flags_desc_no_new_privs">Impeça a escalada de privilégios adicional via KernelSU a partir do contexto deste perfil de root.</string>
     <string name="debug_version_notice">Você está usando uma versão DEBUG do gerenciador. Se não sabe o que é uma versão DEBUG, mude imediatamente para uma versão RELEASE</string>
-    <string name="unofficial_version_notice">O gerenciador que você está usando não é o gerenciador oficial do %s e você pode não conseguir obter as permissões necessárias.</string>
     <string name="conflict_with_apatch">Detectado APatch, tudo pode parar de funcionar.</string>
     <string name="module_action_success">A ação do módulo foi executada com sucesso.</string>
     <string name="manage_app_profile">Gerenciar modelo de perfil de aplicativo</string>
@@ -180,7 +179,6 @@
     <string name="settings_check_manager_update_summary">Verificação automática de atualizações do gerenciador</string>
     <string name="settings_check_module_update">Verifique as atualizações do módulo</string>
     <string name="settings_check_module_update_summary">Verificação automática de atualizações de módulos instalados</string>
-    <string name="home_pr_build_warning">Esta é uma versão de depuração para teste (PR). NÃO a utilize em produção!</string>
     <string name="close">Fechar</string>
     <string name="install_select_partition">Selecione a partição</string>
     <string name="install_upload_lkm_file">Use o arquivo LKM local</string>

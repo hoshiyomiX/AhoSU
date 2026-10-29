@@ -298,7 +298,6 @@
     <string name="profile_flags">Flag</string>
     <string name="profile_flags_desc_no_new_privs">Cegah peningkatan hak akses lebih lanjut melalui KernelSU dari dalam konteks profil root ini.</string>
     <string name="debug_version_notice">Anda sedang menggunakan build DEBUG dari manajer. Jika Anda tidak tahu apa itu versi DEBUG, segera beralih ke build RELEASE</string>
-    <string name="unofficial_version_notice">Manajer yang Anda gunakan tidak resmi %s, mungkin izin akses tidak akan diberikan.</string>
     <string name="sulog_filter_root_execve">Root execve</string>
     <string name="conflict_with_apatch">APatch terdeteksi, semua fungsi mungkin akan berhenti bekerja.</string>
     <string name="module_action_success">Tindakan modul berhasil dijalankan.</string>
@@ -309,7 +308,6 @@
     <string name="settings_check_manager_update_summary">Memeriksa pembaruan manajer secara otomatis</string>
     <string name="settings_check_module_update">Periksa pembaruan modul</string>
     <string name="settings_check_module_update_summary">Memeriksa pembaruan modul yang terinstal secara otomatis</string>
-    <string name="home_pr_build_warning">Ini adalah build debug PR. JANGAN gunakan untuk penggunaan harian!</string>
     <string name="install_select_partition">Pilih partisi</string>
     <string name="settings_config_enable_blur">Aktifkan Buram</string>
     <string name="settings_config_enable_blur_summary">Aktifkan proses buram untuk aplikasi ini</string>

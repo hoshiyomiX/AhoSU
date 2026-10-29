@@ -166,13 +166,11 @@
     <string name="profile_flags">Flagi</string>
     <string name="profile_flags_desc_no_new_privs">Zapobiegaj przed dalszą eskalacją uprawnień poprzez KernelSU w przestrzeni tego profilu root.</string>
     <string name="debug_version_notice">Używasz wersji DEBUG menadżera. Jeśli nie wiesz czym jest wersja DEBUG, natychmiast zmień ją na wersję RELEASE</string>
-    <string name="unofficial_version_notice">Menadżer którego używasz, nie jest oficjalnym %s menadżerem i może nie być w stanie uzyskać uprawnień.</string>
     <string name="conflict_with_apatch">Wykryto APatch, możliwe problemy z działaniem wszystkich funkcji.</string>
     <string name="module_action_success">Akcja modułu wykonana pomyślnie.</string>
     <string name="manage_app_profile">Zarządzaj szablonem profilu aplikacji</string>
     <string name="recently_installed">Ostatnio zainstalowane</string>
     <string name="affected_applications">Dotknięte aplikacje</string>
-    <string name="home_pr_build_warning">To jest wersja debugowa PR. Nie używaj jej w produkcji!</string>
     <string name="close">Zamknij</string>
     <string name="install_select_partition">Wybierz partycję</string>
     <string name="install_upload_lkm_file">Użyj lokalnego pliku LKM</string>

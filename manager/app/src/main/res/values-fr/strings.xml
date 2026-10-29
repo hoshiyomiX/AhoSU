@@ -236,7 +236,6 @@
     <string name="profile_flags">Drapeaux</string>
     <string name="profile_flags_desc_no_new_privs">Empêche toute élévation de privilèges supplémentaire via KernelSU dans le contexte de ce profil root.</string>
     <string name="debug_version_notice">Ceci est une version \"DEBUG\" du gestionnaire, en cas de doute sur ce qu\'est une version \"DEBUG\", désinstaller cette application et installer une version \"RELEASE\" à la place.</string>
-    <string name="unofficial_version_notice">Ce gestionnaire n\'est pas le gestionnaire officiel de %s, certaines permissions pourraient par conséquent être impossibles à obtenir.</string>
     <string name="conflict_with_apatch">APatch détecté, tout le système pourrait cesser de fonctionner.</string>
     <string name="module_action_success">Action du module exécutée avec succès.</string>
     <string name="manage_app_profile">Gestion des modèles de profils d\'application</string>
@@ -249,7 +248,6 @@
     <string name="settings_check_manager_update_summary">Recherche automatiquement les mises à jour du gestionnaire</string>
     <string name="settings_check_module_update">Recherche des mises à jour de modules</string>
     <string name="settings_check_module_update_summary">Recherche automatiquement les mises à jour des modules installés</string>
-    <string name="home_pr_build_warning">Ceci est une version de débogage. Ne PAS utiliser en production !</string>
     <string name="install_select_partition">Sélectionner la partition</string>
     <string name="install_upload_lkm_file">Utiliser un fichier local d\'image LKM</string>
     <string name="install_only_support_ko_file">Seuls les fichier .ko sont pris en charge</string>

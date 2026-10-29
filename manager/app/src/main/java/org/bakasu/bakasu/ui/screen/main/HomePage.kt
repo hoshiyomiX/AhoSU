@@ -238,27 +238,9 @@ fun HomePage(
                     Spacer(modifier = Modifier.height(10.dp))
                 }
 
-                if (!uiState.systemStatus.isOfficialSignature) {
-                    HomeNoticeCard(
-                        message = stringResource(
-                            R.string.unofficial_version_notice,
-                            stringResource(R.string.app_name),
-                        ),
-                        icon = Icons.TwoTone.Error,
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
-
-                if (BuildConfig.IS_PR_BUILD || uiState.systemStatus.isPrBuild) {
-                    HomeNoticeCard(
-                        message = stringResource(
-                            id = R.string.home_pr_build_warning,
-                        ),
-                        icon = Icons.TwoTone.Error,
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
-                }
-
+                // The unofficial-signature and PR-build notices are
+                // intentionally not shown on this fork: every build here is
+                // self-signed and tested straight from internal PR builds.
                 if (uiState.systemStatus.kernelPatchImplementation == KernelPatchImplementation.OFFICIAL) {
                     HomeNoticeCard(
                         message = stringResource(

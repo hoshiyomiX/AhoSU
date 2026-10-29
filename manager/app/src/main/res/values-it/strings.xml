@@ -186,13 +186,11 @@
     <string name="profile_namespace_individual">Individuale</string>
     <string name="profile_flags">Flag</string>
     <string name="profile_flags_desc_no_new_privs">Impedisci ulteriori aumenti di privilegi tramite KernelSU dall\'interno del contesto di questo profilo di root.</string>
-    <string name="unofficial_version_notice">Il manager che stai usando non è il manager ufficiale %s, potresti non essere in grado di ottenere i permessi.</string>
     <string name="conflict_with_apatch">APatch rilevato, tutto potrebbe smettere di funzionare.</string>
     <string name="manage_app_profile">Gestisci i Template dei Profili delle App</string>
     <string name="settings_check_manager_update_summary">Controllo automatico degli aggiornamenti del manager</string>
     <string name="settings_check_module_update">Cerca aggiornamenti dei moduli</string>
     <string name="settings_check_module_update_summary">Controllo automatico degli aggiornamenti per i moduli installati</string>
-    <string name="home_pr_build_warning">Questa è una build di debug PR. NON usarla in produzione!</string>
     <string name="action">Azione</string>
     <string name="close">Chiudi</string>
     <string name="install_upload_lkm_file">Usa file LKM locale</string>

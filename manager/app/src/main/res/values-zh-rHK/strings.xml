@@ -106,7 +106,6 @@
     <string name="profile_umount_modules">解除安裝模組</string>
     <string name="failed_to_update_app_profile">為 %s 更新 App Profile 失敗</string>
     <string name="debug_version_notice">你正在使用管理器嘅除錯版本，若唔清楚咩係除錯版本，請立即切換至正式版本</string>
-    <string name="unofficial_version_notice">你使用嘅管理器並非 %s 官方管理器，你可能無法獲得權限。</string>
     <string name="settings_umount_modules_default">預設卸載模組</string>
     <string name="settings_umount_modules_default_summary">App Profile 中\"卸載模組\"嘅全局預設值，如果啟用，將會為未設定 Profile 嘅應用程式移除所有模組針對系統嘅修改</string>
     <string name="profile_umount_modules_summary">啟用呢個選項後將允許 KernelSU 為本應用程式還原被模組修改過嘅檔案</string>
@@ -377,7 +376,6 @@
     <string name="conflict_with_apatch">偵測到 APatch，所有功能可能無法運作。</string>
     <string name="manage_app_profile">管理 App Profile 模版</string>
     <string name="recently_installed">最近安裝</string>
-    <string name="home_pr_build_warning">當前為 PR 除錯構建，請勿喺生產環境中使用！</string>
     <string name="background_crop_method_title">選擇裁切方式</string>
     <string name="background_crop_method_in_app">應用程式內裁切</string>
     <string name="background_crop_method_external">外部裁切</string>

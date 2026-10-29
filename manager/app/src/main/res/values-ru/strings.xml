@@ -107,7 +107,6 @@
     <string name="profile_umount_modules">Размонтировать модули</string>
     <string name="failed_to_update_app_profile">Не удалось обновить профиль приложения для %s</string>
     <string name="debug_version_notice">Вы используете DEBUG-сборку менеджера. Если вы не знаете, что это такое, немедленно переключитесь на RELEASE-сборку</string>
-    <string name="unofficial_version_notice">Менеджер, который вы используете, не является официальным менеджером %s, и вы можете не иметь возможности получить необходимые разрешения.</string>
     <string name="conflict_with_apatch">Обнаружен APatch, возможны сбои в работе системы.</string>
     <string name="settings_umount_modules_default">Размонтировать модули по умолчанию</string>
     <string name="settings_umount_modules_default_summary">Глобальное значение по умолчанию для \"Размонтировать модули\" в профиле приложения. При включении будут удалены все модификации модулей в системе для приложений, у которых не задан профиль</string>
@@ -147,7 +146,6 @@
     <string name="affected_applications">Затрагиваемые приложения</string>
     <string name="module_changelog_failed">Не удалось получить список изменений: %s</string>
     <string name="grant_root_failed">Не удалось выдать права root!</string>
-    <string name="home_pr_build_warning">Это debug-сборка из PR. Не рекомендуется для публичного релиза</string>
     <string name="action">Действие</string>
     <string name="close">Закрыть</string>
     <string name="direct_install">Прямая установка (Рекомендуется)</string>

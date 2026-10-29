@@ -145,7 +145,6 @@
     <string name="profile_flags">Flagek</string>
     <string name="profile_flags_desc_no_new_privs">Megakadályozza a további KernelSU jogosultságok kisajátítását ezen root profil kontextus keretein belül.</string>
     <string name="debug_version_notice">Úgy tűnik az applikáció fejlesztői változatát (DEBUG build) használod, amennyiben nem tudod mi ez, töltsd le és telepítsd a felhasználói (RELEASE build) változatot</string>
-    <string name="unofficial_version_notice">Úgy tűnik az applikáció amit használsz nem a hivatalos %s kiadás, így a megfelelő jogosultságkezelés nem garantált.</string>
     <string name="conflict_with_apatch">Úgy tűnik az APatch is telepítve van, megfelelő és zavartalan működés nem garantált.</string>
     <string name="module_action_success">Modul előprogramozott művelet sikeresen végigfutott.</string>
     <string name="recently_installed">Újonnan telepített</string>
@@ -157,7 +156,6 @@
     <string name="install_select_partition">Partíció kiválasztása</string>
     <string name="install_upload_lkm_file">Helyi LKM fájl használata</string>
     <string name="install_only_support_ko_file">Kizárólag .ko fájlok támogatottak</string>
-    <string name="home_pr_build_warning">Ez egy pr_debug fejlesztői változat. Éles környezetben való használatra kifejezetten nem ajánlott!</string>
     <string name="close">Bezár</string>
     <string name="unknown_module">Ismeretlen modul</string>
     <string name="confirm">Megerősít</string>

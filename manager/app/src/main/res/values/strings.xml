@@ -115,7 +115,6 @@
     <string name="profile_umount_modules">Umount modules</string>
     <string name="failed_to_update_app_profile">Failed to update App Profile for %s</string>
     <string name="debug_version_notice">You are using a DEBUG build of manager, if you don\'t know what a DEBUG version is, switch into a RELEASE build immediately</string>
-    <string name="unofficial_version_notice">"The manager you are using is not the official %s manager, and you may not be able to obtain permissions."</string>
     <string name="conflict_with_apatch">Detected APatch, everything might stop working.</string>
     <string name="settings_umount_modules_default">Umount modules by default</string>
     <string name="settings_umount_modules_default_summary">The global default value for \"Umount modules\" in App Profile. If enabled, it will remove all module modifications to the system for apps that don\'t have a profile set</string>
@@ -162,7 +161,6 @@
     <string name="settings_check_module_update">Check module updates</string>
     <string name="settings_check_module_update_summary">Auto-check for installed module updates</string>
     <string name="grant_root_failed">Failed to grant root!</string>
-    <string name="home_pr_build_warning">This is a PR debug build. Do NOT use it in production!</string>
     <string name="action">Action</string>
     <string name="close">Close</string>
     <string name="direct_install">Direct install (Recommended)</string>

@@ -241,7 +241,6 @@
     <string name="settings_selinux_hide">أخفي تعديلات SELinux</string>
     <string name="settings_selinux_hide_summary">إمنع التطبيقات من اكتشاف التعديلات على SELinux</string>
     <string name="debug_version_notice">انت تستخدم نسخة المطورين من التطبيق، اذا لم تكن تعلم ماهي نسخة المطورين انتقل الى نسخة الإصدار الرسمي فوراً</string>
-    <string name="unofficial_version_notice">المدير الذي تستعمله ليس مدير %s الرسمي، وقد لاتتمكن من الحصول على الأذون.</string>
     <string name="manage_app_profile">إدارة قالب ملف تعريف التطبيق</string>
     <string name="recently_installed">تثبتت حديثاً</string>
     <string name="affected_applications">البرامج المتأثرة</string>
@@ -249,7 +248,6 @@
     <string name="settings_check_manager_update_summary">تحقق من تحديثات المدير تلقائياً</string>
     <string name="settings_check_module_update">تحقق من تحديثات الإضافات</string>
     <string name="settings_check_module_update_summary">تحقق من تحديثات الإضافات المثبتة تلقائياً</string>
-    <string name="home_pr_build_warning">هذه نسخة مطورين عامّة. لاتستعملها في التصدير!</string>
     <string name="install_select_partition">إختر القسم</string>
     <string name="install_upload_lkm_file">استعمل ملف LKM محلّي</string>
     <string name="install_only_support_ko_file">فقط الملفات بصيغة ko. مدعومة</string>

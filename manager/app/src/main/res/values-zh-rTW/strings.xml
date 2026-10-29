@@ -112,7 +112,6 @@
     <string name="profile_umount_modules">卸載模組</string>
     <string name="failed_to_update_app_profile">為 %s 更新 App Profile 失敗</string>
     <string name="debug_version_notice">您正在使用 DEBUG 組建的管理器，如果你不知道什麼是 DEBUG 組建，請立即切換至 RELEASE 組建</string>
-    <string name="unofficial_version_notice">您使用的管理器不是 %s 官方管理器，您可能無法取得權限。</string>
     <string name="conflict_with_apatch">檢測到APatch，所有功能均可能停止運作。</string>
     <string name="settings_umount_modules_default">預設卸載模組</string>
     <string name="settings_umount_modules_default_summary">App Profile 裡面「卸載模組」的全域預設值。如果啟用，將會為沒有配置 Profile 的應用程式移除所有針對系統修改的模組</string>
@@ -158,7 +157,6 @@
     <string name="settings_check_module_update">檢查模組更新</string>
     <string name="settings_check_module_update_summary">自動檢查已安裝模組的更新</string>
     <string name="grant_root_failed">取得 root 權限失敗！</string>
-    <string name="home_pr_build_warning">當前為 PR 除錯構建，請勿在生產環境中使用！</string>
     <string name="action">執行</string>
     <string name="close">關閉</string>
     <string name="direct_install">直接安裝（推薦）</string>

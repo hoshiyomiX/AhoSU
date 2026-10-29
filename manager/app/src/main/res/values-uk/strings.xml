@@ -110,7 +110,6 @@
     <string name="profile_umount_modules">Розмонтувати модулі</string>
     <string name="failed_to_update_app_profile">Не вдалося оновити профіль додатка для %s</string>
     <string name="debug_version_notice">Ви використовуєте налагоджувальну збірку менеджера. Якщо ви не знаєте, що таке налагоджувальна версія, негайно перейдіть на випускну збірку.</string>
-    <string name="unofficial_version_notice">Менеджер, який ви використовуєте, не є офіційним менеджером %s, і ви можете не отримати необхідних дозволів.</string>
     <string name="conflict_with_apatch">Виявлено APatch. Деякі функції можуть не працювати.</string>
     <string name="settings_umount_modules_default">Розмонтовувати модулі за замовчуванням</string>
     <string name="settings_umount_modules_default_summary">Глобальне значення за замовчуванням для \"Розмонтувати модулі\" у профілі додатка. Якщо ввімкнено, це видалить усі зміни системи, зроблені модулями, для додатків без встановленого профілю</string>
@@ -152,7 +151,6 @@
     <string name="affected_applications">Додатки, що зазнають впливу</string>
     <string name="module_changelog_failed">Не вдалося завантажити список змін: %s</string>
     <string name="grant_root_failed">Не вдалося надати root-права!</string>
-    <string name="home_pr_build_warning">Це PR debug-збірка. НЕ використовуйте її в робочому середовищі!</string>
     <string name="action">Дія</string>
     <string name="close">Закрити</string>
     <string name="direct_install">Пряме встановлення (рекомендовано)</string>
