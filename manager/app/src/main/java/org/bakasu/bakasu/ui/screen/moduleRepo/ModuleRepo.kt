@@ -530,12 +530,20 @@ fun OnlineModuleItem(
             verticalArrangement = Arrangement.spacedBy(4.dp),
             itemVerticalAlignment = Alignment.CenterVertically,
         ) {
-            LabelText(label = module.moduleId, containerColor = MaterialTheme.colorScheme.primary)
+            LabelText(label = module.moduleId, containerColor = MiuixTheme.colorScheme.primary)
             if (module.metamodule) {
-                LabelText(label = stringResource(R.string.module_meta_label), containerColor = MaterialTheme.colorScheme.tertiary)
+                LabelText(
+                    label = stringResource(R.string.module_meta_label),
+                    containerColor = MiuixTheme.colorScheme.primaryVariant,
+                    contentColor = MiuixTheme.colorScheme.onPrimaryVariant,
+                )
             }
             if (module.isScript) {
-                LabelText(label = stringResource(R.string.module_repo_script_badge), containerColor = MaterialTheme.colorScheme.tertiary)
+                LabelText(
+                    label = stringResource(R.string.module_repo_script_badge),
+                    containerColor = MiuixTheme.colorScheme.primaryVariant,
+                    contentColor = MiuixTheme.colorScheme.onPrimaryVariant,
+                )
             }
         }
         Spacer(Modifier.height(16.dp))
