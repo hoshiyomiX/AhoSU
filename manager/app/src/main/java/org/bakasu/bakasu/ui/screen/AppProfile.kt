@@ -272,14 +272,15 @@ private fun AppProfileInner(
                     ),
                     selectedIndex = -1,
                     showValue = false,
-                ) { choice ->
-                    when (choice) {
-                        0 -> onControlApp(AppControlAction.LAUNCH)
-                        1 -> onControlApp(AppControlAction.FORCE_STOP)
-                        2 -> onControlApp(AppControlAction.RESTART)
-                        else -> throw IllegalStateException("Illegal choice: $choice")
-                    }
-                }
+                    onSelectedIndexChange = { choice ->
+                        when (choice) {
+                            0 -> onControlApp(AppControlAction.LAUNCH)
+                            1 -> onControlApp(AppControlAction.FORCE_STOP)
+                            2 -> onControlApp(AppControlAction.RESTART)
+                            else -> throw IllegalStateException("Illegal choice: $choice")
+                        }
+                    },
+                )
             }
         }
 
