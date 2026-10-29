@@ -26,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material.icons.twotone.PlayArrow
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
@@ -36,6 +37,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -99,6 +101,10 @@ import org.bakasu.bakasu.ui.viewmodel.ScriptRunViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import top.yukonga.miuix.kmp.basic.NumberPicker
+import top.yukonga.miuix.kmp.basic.Slider
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -269,22 +275,177 @@ private fun ScriptParamField(param: ScriptParam, state: ScriptRunUiState, onValu
             onChoiceChange = { onValue(param.key, param.options[it].value) },
         )
 
-        is ScriptParam.Text, is ScriptParam.Integer -> {
-            val field = rememberTextFieldState(initialText = value)
-            LaunchedEffect(field, param.key) { snapshotFlow { field.text.toString() }.collect { onValue(param.key, it) } }
-            val error = state.errors[param.key]?.let { paramErrorText(param, it) }
-            Column {
-                SettingsTextFieldWidget(
-                    state = field,
+        is ScriptParam.Text, is ScriptParam.Integer -> when {
+            param is ScriptParam.Integer && param.min != null && param.max != null && param.max > param.min -> {
+                if (param.max - param.min + 1 > NUMBER_PICKER_RANGE_LIMIT) {
+                    ScriptIntegerSliderParam(param = param, value = value, onValue = onValue)
+                } else {
+                    ScriptIntegerPickerParam(param = param, value = value, onValue = onValue)
+                }
+            }
+
+            param is ScriptParam.Integer && param.min != null && param.max != null -> {
+                // min == max: a single allowed value, nothing to pick.
+                SettingsBaseWidget(
                     title = param.label,
-                    error = error.orEmpty(),
-                    lineLimits = TextFieldLineLimits.SingleLine,
-                    keyboardOptions = if (param is ScriptParam.Integer) KeyboardOptions(keyboardType = if ((param.min ?: Int.MIN_VALUE) < 0) KeyboardType.Ascii else KeyboardType.Number) else KeyboardOptions.Default,
-                )
-                if (param.description != null && error == null) Text(param.description.orEmpty(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+                    description = param.description,
+                    iconPlaceholder = false,
+                ) {
+                    MiuixText(
+                        text = param.min.toString(),
+                        style = MiuixTheme.textStyles.footnote2,
+                        color = MiuixTheme.colorScheme.primary,
+                    )
+                }
+            }
+
+            else -> {
+                val field = rememberTextFieldState(initialText = value)
+                LaunchedEffect(field, param.key) { snapshotFlow { field.text.toString() }.collect { onValue(param.key, it) } }
+                val error = state.errors[param.key]?.let { paramErrorText(param, it) }
+                Column {
+                    SettingsTextFieldWidget(
+                        state = field,
+                        title = param.label,
+                        error = error.orEmpty(),
+                        lineLimits = TextFieldLineLimits.SingleLine,
+                        keyboardOptions = if (param is ScriptParam.Integer) KeyboardOptions(keyboardType = if ((param.min ?: Int.MIN_VALUE) < 0) KeyboardType.Ascii else KeyboardType.Number) else KeyboardOptions.Default,
+                    )
+                    if (param.description != null && error == null) Text(param.description.orEmpty(), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp))
+                }
             }
         }
     }
+}
+
+/** Bounded integer ranges up to this many values render as a wheel picker instead of a slider. */
+private const val NUMBER_PICKER_RANGE_LIMIT = 15
+
+/**
+ * A bounded integer parameter with a large range: a miuix slider between the
+ * min/max endpoints, with the current value shown on the row itself.
+ */
+@Composable
+private fun ScriptIntegerSliderParam(
+    param: ScriptParam.Integer,
+    value: String,
+    onValue: (String, String) -> Unit,
+) {
+    val min = param.min ?: Int.MIN_VALUE
+    val max = param.max ?: Int.MAX_VALUE
+    val current = (ScriptParam.Integer.parseInteger(value) ?: param.default).coerceIn(min, max)
+    val hintColor = MaterialTheme.colorScheme.onSurfaceVariant
+    SettingsBaseWidget(
+        title = param.label,
+        description = param.description,
+        iconPlaceholder = false,
+        descriptionColumnContent = {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                MiuixText(text = min.toString(), style = MiuixTheme.textStyles.footnote2, color = hintColor)
+                Slider(
+                    value = current.toFloat(),
+                    onValueChange = { onValue(param.key, it.toInt().toString()) },
+                    valueRange = min.toFloat()..max.toFloat(),
+                    steps = (max - min - 1).coerceAtLeast(0),
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 12.dp),
+                )
+                MiuixText(text = max.toString(), style = MiuixTheme.textStyles.footnote2, color = hintColor)
+            }
+        },
+    ) {
+        MiuixText(
+            text = current.toString(),
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.primary,
+        )
+    }
+}
+
+/**
+ * A bounded integer parameter with a small range: the row carries the current
+ * value and opens a dialog hosting the miuix wheel picker.
+ */
+@Composable
+private fun ScriptIntegerPickerParam(
+    param: ScriptParam.Integer,
+    value: String,
+    onValue: (String, String) -> Unit,
+) {
+    var showPicker by rememberSaveable(param.key) { mutableStateOf(false) }
+    val min = param.min ?: Int.MIN_VALUE
+    val max = param.max ?: Int.MAX_VALUE
+    val current = (ScriptParam.Integer.parseInteger(value) ?: param.default).coerceIn(min, max)
+    SettingsBaseWidget(
+        title = param.label,
+        description = param.description,
+        iconPlaceholder = false,
+        onClick = { showPicker = true },
+    ) {
+        MiuixText(
+            text = current.toString(),
+            style = MiuixTheme.textStyles.footnote2,
+            color = MiuixTheme.colorScheme.primary,
+        )
+    }
+    if (showPicker) {
+        ScriptIntegerPickerDialog(
+            title = param.label,
+            range = min..max,
+            initial = current,
+            onDismiss = { showPicker = false },
+            onConfirm = {
+                onValue(param.key, it.toString())
+                showPicker = false
+            },
+        )
+    }
+}
+
+@Composable
+private fun ScriptIntegerPickerDialog(
+    title: String,
+    range: IntRange,
+    initial: Int,
+    onDismiss: () -> Unit,
+    onConfirm: (Int) -> Unit,
+) {
+    var picked by remember { mutableStateOf(initial.coerceIn(range.first, range.last)) }
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title) },
+        text = {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                NumberPicker(
+                    value = picked,
+                    onValueChange = { picked = it },
+                    range = range,
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "${range.first} - ${range.last}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = { onConfirm(picked) }) {
+                Text(stringResource(android.R.string.ok))
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text(stringResource(android.R.string.cancel))
+            }
+        },
+    )
 }
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
