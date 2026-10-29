@@ -55,7 +55,7 @@ import org.bakasu.bakasu.ui.component.NetworkRefreshContent
 import org.bakasu.bakasu.ui.component.profile.rootProfileConfig
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldRow
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.theme.blurEffect
 import org.bakasu.bakasu.ui.theme.blurSource
@@ -355,10 +355,11 @@ private fun TextEdit(
     val state = rememberTextFieldState(initialText = text)
     var lastEmittedText by remember { mutableStateOf(text) }
 
-    SettingsTextFieldWidget(
+    SettingsTextFieldRow(
         modifier = Modifier.fillMaxWidth(),
-        state = state,
         title = label,
+        state = state,
+        error = errorHint,
         keyboardOptions = KeyboardOptions(
             keyboardType = KeyboardType.Ascii,
             imeAction = ImeAction.Next,
@@ -366,7 +367,6 @@ private fun TextEdit(
         onKeyboardAction = {
             keyboardController?.hide()
         },
-        error = errorHint,
     )
 
     LaunchedEffect(text) {

@@ -60,10 +60,10 @@ import org.bakasu.bakasu.ui.component.profile.RootProfileConfig
 import org.bakasu.bakasu.ui.component.profile.TemplateConfig
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsDropdownWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsSwitchWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsDropdownRow
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
+import org.bakasu.bakasu.ui.component.settings.SettingsSwitchRow
+import org.bakasu.bakasu.ui.component.settings.SettingsValueRow
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.navigation.Route
@@ -249,30 +249,29 @@ private fun AppProfileInner(
 
         item {
             if (isSpecial) {
-                SettingsBaseWidget(
+                SettingsValueRow(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     title = appGroup.mainApp.label,
-                    description = appGroup.mainApp.displayIdentifier,
-                    iconPlaceholder = false,
+                    summary = appGroup.mainApp.displayIdentifier,
                     leadingContent = {
                         iconContent()
                     },
                 )
             } else {
-                SettingsDropdownWidget(
+                SettingsDropdownRow(
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     title = appGroup.mainApp.label,
-                    description = appGroup.mainApp.displayIdentifier,
-                    iconPlaceholder = false,
+                    summary = appGroup.mainApp.displayIdentifier,
                     leadingContent = {
                         iconContent()
                     },
-                    choice = -1,
-                    data = listOf(
+                    items = listOf(
                         stringResource(id = R.string.launch_app),
                         stringResource(id = R.string.force_stop_app),
                         stringResource(id = R.string.restart_app),
                     ),
+                    selectedIndex = -1,
+                    showValue = false,
                 ) { choice ->
                     when (choice) {
                         0 -> onControlApp(AppControlAction.LAUNCH)
@@ -286,24 +285,13 @@ private fun AppProfileInner(
 
         if (!isSpecial) {
             item {
-                Surface(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 8.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    color = MaterialTheme.colorScheme.surfaceBright.copy(
-                        alpha = cardConfig.cardAlpha,
-                    ),
-                    contentColor = MaterialTheme.colorScheme.onSurface,
+                SettingsSwitchRow(
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    icon = Icons.TwoTone.Security,
+                    title = stringResource(id = R.string.superuser),
+                    checked = isRootGranted,
+                    onCheckedChange = { onProfileChange(profile.copy(allowSu = it)) },
                 )
-                {
-                    SettingsSwitchWidget(
-                        icon = Icons.TwoTone.Security,
-                        title = stringResource(id = R.string.superuser),
-                        checked = isRootGranted,
-                        onCheckedChange = { onProfileChange(profile.copy(allowSu = it)) },
-                    )
-                }
             }
         }
 
@@ -378,10 +366,10 @@ private fun AppProfileInner(
                                             }
 
                                             item {
-                                                SettingsJumpPageWidget(
+                                                SettingsJumpRow(
                                                     icon = Icons.TwoTone.Edit,
                                                     title = stringResource(R.string.manage_app_profile),
-                                                    description = stringResource(R.string.settings_profile_template_summary),
+                                                    summary = stringResource(R.string.settings_profile_template_summary),
                                                     onClick = {
                                                         onManageTemplate()
                                                     },
@@ -463,11 +451,9 @@ private fun AppProfileInner(
                 title = affectedApplicationsTitle,
                 key = { _, app -> app.packageName },
             ) { _, app ->
-                SettingsBaseWidget(
+                SettingsValueRow(
                     title = app.label,
-                    description = app.packageName,
-                    enabled = false,
-                    iconPlaceholder = false,
+                    summary = app.packageName,
                     leadingContent = {
                         PackageIcon(
                             packageName = app.packageName,
@@ -478,7 +464,7 @@ private fun AppProfileInner(
                                 .height(48.dp),
                         )
                     },
-                ) {}
+                )
             }
         }
 
@@ -525,14 +511,11 @@ private fun ProfileBox(
     }
 
     Column {
-        SettingsBaseWidget(
+        SettingsValueRow(
             icon = Icons.TwoTone.AccountCircle,
-            iconColor = MaterialTheme.colorScheme.onSurface,
             title = stringResource(R.string.profile),
-            description = mode.text,
-            isOnBackground = false,
-            containerColor = Color.Transparent,
-            contentColor = MaterialTheme.colorScheme.onSurface,
+            summary = mode.text,
+            transparentContainer = true,
         )
 
         TabRow(

@@ -11,7 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.model.AppProfile
-import org.bakasu.bakasu.ui.component.settings.SettingsSwitchWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsSwitchRow
 
 @Composable
 fun AppProfileConfig(
@@ -20,10 +20,10 @@ fun AppProfileConfig(
     defaultUmountModules: Boolean = profile.umountModules,
     onProfileChange: (AppProfile) -> Unit,
 ) {
-    SettingsSwitchWidget(
+    SettingsSwitchRow(
         icon = Icons.TwoTone.FolderDelete,
         title = stringResource(R.string.profile_umount_modules),
-        description = stringResource(R.string.profile_umount_modules_summary),
+        summary = stringResource(R.string.profile_umount_modules_summary),
         checked = if (enabled) {
             profile.umountModules
         } else {

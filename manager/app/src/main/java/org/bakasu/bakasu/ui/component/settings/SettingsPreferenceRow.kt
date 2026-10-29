@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -14,6 +15,10 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.InputTransformation
+import androidx.compose.foundation.text.input.KeyboardActionHandler
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -34,15 +39,19 @@ import org.bakasu.bakasu.ui.theme.CardConfig
 import org.bakasu.bakasu.ui.theme.ThemeConfig
 import org.bakasu.bakasu.ui.theme.renderBackgroundBlur
 import org.koin.compose.koinInject
+import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Icon
 import top.yukonga.miuix.kmp.basic.Surface
 import top.yukonga.miuix.kmp.basic.Text
 import top.yukonga.miuix.kmp.basic.TextButton
+import top.yukonga.miuix.kmp.basic.TextField
 import top.yukonga.miuix.kmp.preference.ArrowPreference
+import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.preference.SliderPreference
 import top.yukonga.miuix.kmp.preference.SwitchPreference
+import top.yukonga.miuix.kmp.preference.WindowDropdownPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
@@ -231,6 +240,253 @@ fun SettingsSliderRow(
 }
 
 /**
+ * A display or clickable value row built on the miuix [BasicComponent]: title, optional summary,
+ * an optional start-side slot (icon or custom leading content), an optional end-side slot for the
+ * current value, and an optional bottom slot for extra content such as selection chips.
+ *
+ * @param icon The [ImageVector] to be displayed at the start of the row.
+ * @param title The primary text displayed in the row.
+ * @param summary Optional supporting text displayed below the title.
+ * @param enabled Whether the row is enabled and interactive.
+ * @param isError If true, renders the summary with the miuix error color.
+ * @param onClick Optional callback to be invoked when the row is clicked.
+ * @param modifier The modifier to be applied to the row container.
+ * @param leadingContent Custom composable rendered at the start of the row instead of [icon].
+ * @param endContent Optional composable rendered at the end of the row, e.g. the current value.
+ * @param bottomContent Optional composable rendered below the title and summary.
+ * @param transparentContainer When true, renders the row bare, without the glass card container,
+ *   for rows that already sit inside their own card surface.
+ */
+@Composable
+fun SettingsValueRow(
+    icon: ImageVector? = null,
+    title: String,
+    summary: String? = null,
+    enabled: Boolean = true,
+    isError: Boolean = false,
+    onClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+    leadingContent: (@Composable () -> Unit)? = null,
+    endContent: (@Composable RowScope.() -> Unit)? = null,
+    bottomContent: (@Composable () -> Unit)? = null,
+    transparentContainer: Boolean = false,
+) {
+    val summaryColor = BasicComponentDefaults.summaryColor(
+        color = if (isError) {
+            MiuixTheme.colorScheme.error
+        } else {
+            MiuixTheme.colorScheme.onSurfaceVariantSummary
+        },
+    )
+
+    val row: @Composable () -> Unit = {
+        BasicComponent(
+            title = title,
+            summary = summary,
+            summaryColor = summaryColor,
+            enabled = enabled,
+            onClick = if (enabled) onClick else null,
+            startAction = leadingContent ?: icon?.let { vector -> { PreferenceRowIcon(vector) } },
+            endActions = endContent,
+            bottomAction = bottomContent,
+        )
+    }
+
+    if (transparentContainer) {
+        Box(modifier = modifier) {
+            row()
+        }
+    } else {
+        PreferenceRowContainer(modifier = modifier) {
+            row()
+        }
+    }
+}
+
+/**
+ * A multi-select settings row built on the miuix [ArrowPreference] that opens a choice dialog
+ * whose options are miuix [CheckboxPreference] rows. The confirmed selection is reported as a
+ * set of indices into [items]; an optional [maxSelected] cap is enforced while toggling.
+ *
+ * @param icon The [ImageVector] to be displayed at the start of the row.
+ * @param title The primary text displayed in the row.
+ * @param items The selectable option labels.
+ * @param selectedIndices The currently selected indices into [items].
+ * @param onSelectedIndicesChange Callback invoked with the confirmed selection when the user
+ *   confirms the dialog.
+ * @param modifier The modifier to be applied to the row container.
+ * @param enabled Whether the row is enabled and interactive.
+ * @param summary Optional supporting text below the title.
+ * @param itemDescriptions Optional per-option supporting text shown inside the dialog.
+ * @param maxSelected Optional cap on how many options may be selected at once.
+ * @param bottomContent Optional composable rendered below the title and summary (selection
+ *   chips).
+ */
+@Composable
+fun SettingsMultiChooseRow(
+    icon: ImageVector? = null,
+    title: String,
+    items: List<String>,
+    selectedIndices: Set<Int>,
+    onSelectedIndicesChange: (Set<Int>) -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    summary: String? = null,
+    itemDescriptions: List<String?> = emptyList(),
+    maxSelected: Int? = null,
+    bottomContent: (@Composable () -> Unit)? = null,
+) {
+    var showDialog by remember { mutableStateOf(false) }
+    var currentIndices by remember { mutableStateOf(selectedIndices) }
+
+    PreferenceRowContainer(modifier = modifier) {
+        ArrowPreference(
+            title = title,
+            summary = summary,
+            enabled = enabled,
+            onClick = if (enabled) {
+                {
+                    currentIndices = selectedIndices
+                    showDialog = true
+                }
+            } else {
+                null
+            },
+            startAction = icon?.let { vector -> { PreferenceRowIcon(vector) } },
+            bottomAction = bottomContent,
+        )
+    }
+
+    if (showDialog && items.isNotEmpty()) {
+        MiuixMultiChoiceDialog(
+            title = title,
+            items = items,
+            itemDescriptions = itemDescriptions,
+            currentIndices = currentIndices,
+            onToggle = { index ->
+                currentIndices = if (index in currentIndices) {
+                    currentIndices - index
+                } else if (maxSelected == null || currentIndices.size < maxSelected) {
+                    currentIndices + index
+                } else {
+                    currentIndices
+                }
+            },
+            onDismiss = { showDialog = false },
+            onConfirm = {
+                onSelectedIndicesChange(currentIndices)
+                showDialog = false
+            },
+        )
+    }
+}
+
+/**
+ * A settings input row built on the miuix [TextField]: the row label doubles as the field
+ * placeholder (the HyperOS floating-label pattern), and an optional error line renders below
+ * the field in the miuix error color.
+ *
+ * @param title The row label, also used as the field placeholder.
+ * @param state The [TextFieldState] backing the input.
+ * @param modifier The modifier to be applied to the row container.
+ * @param error Optional error hint rendered below the field.
+ * @param enabled Whether the input is enabled.
+ * @param readOnly Whether the input is read-only.
+ * @param inputTransformation Optional [InputTransformation] applied to the input.
+ * @param keyboardOptions The soft-keyboard options for the input.
+ * @param onKeyboardAction Optional handler for IME actions.
+ * @param leadingIcon Optional composable rendered inside the field on the leading side.
+ * @param trailingIcon Optional composable rendered inside the field on the trailing side.
+ */
+@Composable
+fun SettingsTextFieldRow(
+    title: String,
+    state: TextFieldState,
+    modifier: Modifier = Modifier,
+    error: String = "",
+    enabled: Boolean = true,
+    readOnly: Boolean = false,
+    inputTransformation: InputTransformation? = null,
+    keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
+    onKeyboardAction: KeyboardActionHandler? = null,
+    leadingIcon: (@Composable () -> Unit)? = null,
+    trailingIcon: (@Composable () -> Unit)? = null,
+) {
+    PreferenceRowContainer(modifier = modifier) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+        ) {
+            TextField(
+                state = state,
+                modifier = Modifier.fillMaxWidth(),
+                label = title,
+                useLabelAsPlaceholder = true,
+                enabled = enabled,
+                readOnly = readOnly,
+                inputTransformation = inputTransformation,
+                keyboardOptions = keyboardOptions,
+                onKeyboardAction = onKeyboardAction,
+                leadingIcon = leadingIcon,
+                trailingIcon = trailingIcon,
+            )
+
+            if (error.isNotBlank()) {
+                Text(
+                    text = error,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = MiuixTheme.colorScheme.error,
+                    modifier = Modifier.padding(top = 4.dp),
+                )
+            }
+        }
+    }
+}
+
+/**
+ * A settings row built on the miuix [WindowDropdownPreference]: clicking the row opens a
+ * dropdown rendered in the window layer and anchored to the row. With [showValue] disabled the
+ * row acts as a plain action menu (no persistent selection is rendered on the row).
+ *
+ * @param title The primary text displayed in the row.
+ * @param items The dropdown option labels.
+ * @param selectedIndex The currently selected index into [items], or -1 when nothing is
+ *   selected (action-menu mode).
+ * @param onSelectedIndexChange Callback to be invoked when an option is picked.
+ * @param modifier The modifier to be applied to the row container.
+ * @param icon The [ImageVector] to be displayed at the start of the row.
+ * @param summary Optional supporting text displayed below the title.
+ * @param enabled Whether the row is enabled and interactive.
+ * @param showValue Whether the currently selected value is rendered at the end of the row.
+ * @param leadingContent Custom composable rendered at the start of the row instead of [icon].
+ */
+@Composable
+fun SettingsDropdownRow(
+    title: String,
+    items: List<String>,
+    selectedIndex: Int,
+    onSelectedIndexChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    summary: String? = null,
+    enabled: Boolean = true,
+    showValue: Boolean = true,
+    leadingContent: (@Composable () -> Unit)? = null,
+) {
+    PreferenceRowContainer(modifier = modifier) {
+        WindowDropdownPreference(
+            items = items,
+            selectedIndex = selectedIndex,
+            title = title,
+            summary = summary,
+            enabled = enabled,
+            showValue = showValue,
+            onSelectedIndexChange = onSelectedIndexChange,
+            startAction = leadingContent ?: icon?.let { vector -> { PreferenceRowIcon(vector) } },
+        )
+    }
+}
+
+/**
  * The glass card every preference row lives in. Mirrors the container treatment of
  * [SettingsBaseWidget]: clipped to the segmented item shape, tinted with the card alpha,
  * and translucent when the experimental group blur takes over the background rendering.
@@ -321,6 +577,79 @@ private fun MiuixChoiceDialog(
                             title = item,
                             selected = index == currentIndex,
                             onClick = { onCurrentIndexChange(index) },
+                            summary = itemDescriptions.getOrNull(index),
+                        )
+                    }
+                }
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 12.dp),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TextButton(
+                        text = stringResource(id = R.string.cancel),
+                        onClick = onDismiss,
+                    )
+                    TextButton(
+                        text = stringResource(id = R.string.ok),
+                        onClick = onConfirm,
+                    )
+                }
+            }
+        }
+    }
+}
+
+/**
+ * The HyperOS-style multi-choice dialog: a miuix surface with the dialog title, a list of miuix
+ * [CheckboxPreference] options, and cancel/confirm [TextButton]s. The selection is only
+ * committed through [onConfirm]; dismissing the dialog discards any pending toggles.
+ */
+@Composable
+private fun MiuixMultiChoiceDialog(
+    title: String,
+    items: List<String>,
+    itemDescriptions: List<String?> = emptyList(),
+    currentIndices: Set<Int>,
+    onToggle: (Int) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    Dialog(
+        onDismissRequest = onDismiss,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+    ) {
+        Surface(
+            modifier = Modifier
+                .sizeIn(minWidth = 280.dp, maxWidth = 560.dp)
+                .padding(horizontal = 32.dp),
+            shape = RoundedCornerShape(24.dp),
+            color = MiuixTheme.colorScheme.surfaceContainerHigh,
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    text = title,
+                    style = MiuixTheme.textStyles.title3,
+                    color = MiuixTheme.colorScheme.onBackground,
+                )
+
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 400.dp)
+                        .padding(top = 16.dp),
+                ) {
+                    itemsIndexed(items) { index, item ->
+                        CheckboxPreference(
+                            title = item,
+                            checked = index in currentIndices,
+                            onCheckedChange = { onToggle(index) },
                             summary = itemDescriptions.getOrNull(index),
                         )
                     }

@@ -84,12 +84,12 @@ import org.bakasu.bakasu.ui.component.rememberConfirmDialog
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumnScope
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
 import org.bakasu.bakasu.ui.component.settings.SettingsChooseDialog
 import org.bakasu.bakasu.ui.component.settings.SettingsChooseRow
 import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
 import org.bakasu.bakasu.ui.component.settings.SettingsSliderRow
 import org.bakasu.bakasu.ui.component.settings.SettingsSwitchRow
+import org.bakasu.bakasu.ui.component.settings.SettingsValueRow
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.screen.themeSettings.component.LanguageSelectionDialog
 import org.bakasu.bakasu.ui.screen.themeSettings.crop.BackgroundCropActivity
@@ -118,6 +118,7 @@ import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @SuppressLint(
     "LocalContextConfigurationRead",
@@ -472,18 +473,18 @@ private fun AppearanceSettings(
         item(
             forceFlatBottom = true,
         ) {
-            SettingsBaseWidget(
+            SettingsValueRow(
                 icon = Icons.TwoTone.FormatSize,
                 title = stringResource(R.string.app_dpi_title),
-                description = stringResource(R.string.app_dpi_summary),
-                onClick = {},
-            ) {
-                Text(
-                    text = stringResource(dpiFriendlyNameRes(state.tempDpi)),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                )
-            }
+                summary = stringResource(R.string.app_dpi_summary),
+                endContent = {
+                    Text(
+                        text = stringResource(dpiFriendlyNameRes(state.tempDpi)),
+                        style = MiuixTheme.textStyles.main,
+                        color = MiuixTheme.colorScheme.primary,
+                    )
+                },
+            )
         }
 
         item(

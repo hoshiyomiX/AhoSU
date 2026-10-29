@@ -5,14 +5,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -39,9 +36,11 @@ import org.bakasu.bakasu.toRawFlags
 import org.bakasu.bakasu.toRootProfileFlags
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumnScope
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsChooseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsChooseRow
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
+import org.bakasu.bakasu.ui.component.settings.SettingsMultiChooseRow
+import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldRow
+import org.bakasu.bakasu.ui.screen.LabelText
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -182,9 +181,8 @@ fun GroupsPanel(selected: List<Groups>, closeSelection: (selection: Set<Groups>)
         groups.mapIndexedNotNull { index, group -> index.takeIf { group in selected } }.toSet()
     }
 
-    SettingsChooseWidget(
+    SettingsMultiChooseRow(
         title = stringResource(R.string.profile_groups),
-        iconPlaceholder = false,
         items = groups.map { it.display },
         itemDescriptions = groups.map { it.desc },
         selectedIndices = selectedIndices,
@@ -192,14 +190,10 @@ fun GroupsPanel(selected: List<Groups>, closeSelection: (selection: Set<Groups>)
         onSelectedIndicesChange = { indices ->
             closeSelection(indices.mapNotNull { index -> groups.getOrNull(index) }.toSet())
         },
-        descriptionColumnContent = {
-            FlowRow {
+        bottomContent = {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                 selected.forEach { group ->
-                    AssistChip(
-                        modifier = Modifier.padding(3.dp),
-                        onClick = {},
-                        label = { Text(group.display) },
-                    )
+                    LabelText(group.display)
                 }
             }
         },
@@ -223,23 +217,18 @@ fun CapsPanel(
             .toSet()
     }
 
-    SettingsChooseWidget(
+    SettingsMultiChooseRow(
         title = stringResource(R.string.profile_capabilities),
-        iconPlaceholder = false,
         items = caps.map { it.display },
         itemDescriptions = caps.map { it.desc },
         selectedIndices = selectedIndices,
         onSelectedIndicesChange = { indices ->
             closeSelection(indices.mapNotNull { index -> caps.getOrNull(index) }.toSet())
         },
-        descriptionColumnContent = {
-            FlowRow {
-                selected.forEach { group ->
-                    AssistChip(
-                        modifier = Modifier.padding(3.dp),
-                        onClick = {},
-                        label = { Text(group.display) },
-                    )
+        bottomContent = {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                selected.forEach { capability ->
+                    LabelText(capability.display)
                 }
             }
         },
@@ -253,10 +242,9 @@ private fun UidPanel(uid: Int, label: String, onUidChange: (Int) -> Unit) {
 
     val state = rememberTextFieldState(initialText = uid.toString())
 
-    SettingsTextFieldWidget(
+    SettingsTextFieldRow(
         modifier = Modifier
             .fillMaxWidth(),
-        labelColor = MaterialTheme.colorScheme.onSurface,
         title = label,
         state = state,
         keyboardOptions = KeyboardOptions(
@@ -293,8 +281,7 @@ fun MountNameSpacePanel(
     profile: AppProfile,
     onMntNamespaceChange: (namespaceType: Int) -> Unit,
 ) {
-    SettingsChooseWidget(
-        iconPlaceholder = false,
+    SettingsChooseRow(
         title = stringResource(id = R.string.profile_namespace),
         items = listOf(
             stringResource(id = R.string.profile_namespace_inherited),
@@ -325,23 +312,18 @@ fun RootProfileFlagPanel(
     }
     val descriptions = caps.map { stringResource(it.desc) }
 
-    SettingsChooseWidget(
+    SettingsMultiChooseRow(
         title = stringResource(R.string.profile_flags),
-        iconPlaceholder = false,
         items = caps.map { it.display },
         itemDescriptions = descriptions,
         selectedIndices = selectedIndices,
         onSelectedIndicesChange = { indices ->
             onFlagChange(indices.mapNotNull { index -> caps.getOrNull(index) })
         },
-        descriptionColumnContent = {
-            FlowRow {
-                selected.forEach { group ->
-                    AssistChip(
-                        modifier = Modifier.padding(3.dp),
-                        onClick = {},
-                        label = { Text(group.display) },
-                    )
+        bottomContent = {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                selected.forEach { flag ->
+                    LabelText(flag.display)
                 }
             }
         },
@@ -358,14 +340,13 @@ private fun SELinuxPanel(
 ) {
     var showDialog by remember { mutableStateOf(false) }
 
-    SettingsBaseWidget(
+    SettingsJumpRow(
         title = stringResource(R.string.profile_selinux_context),
-        iconPlaceholder = false,
-        description = profile.context,
+        summary = profile.context,
         onClick = {
             showDialog = true
         },
-    ) {}
+    )
 
     if (showDialog) {
         var domain by remember(profile.context) { mutableStateOf(profile.context) }
