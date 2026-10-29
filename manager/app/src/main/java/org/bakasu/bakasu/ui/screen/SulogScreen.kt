@@ -96,6 +96,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.VerticalScrollBar
 import top.yukonga.miuix.kmp.basic.rememberScrollBarAdapter
 import top.yukonga.miuix.kmp.interfaces.ExperimentalScrollBarApi
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -628,15 +629,18 @@ private fun LazyListScope.sulogEntriesSection(
                                 )
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(2.dp)) {
-                                val colors = listOf(
-                                    MaterialTheme.colorScheme.primary,
-                                    MaterialTheme.colorScheme.secondary,
-                                    MaterialTheme.colorScheme.tertiary,
+                                val tagStyles = listOf(
+                                    MiuixTheme.colorScheme.primary to MiuixTheme.colorScheme.onPrimary,
+                                    MiuixTheme.colorScheme.secondary to MiuixTheme.colorScheme.onSecondary,
+                                    MiuixTheme.colorScheme.primaryVariant to MiuixTheme.colorScheme.onPrimaryVariant,
                                 )
                                 sulogEntrySummaryTags(entry).forEachIndexed { index, tag ->
+                                    val (containerColor, contentColor) =
+                                        tagStyles.getOrElse(index) { tagStyles.last() }
                                     LabelText(
                                         label = tag,
-                                        containerColor = colors.getOrElse(index) { colors.last() },
+                                        containerColor = containerColor,
+                                        contentColor = contentColor,
                                     )
                                 }
                             }

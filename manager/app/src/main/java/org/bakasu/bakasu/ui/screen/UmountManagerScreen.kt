@@ -76,6 +76,7 @@ import org.bakasu.bakasu.ui.viewmodel.UmountManagerUiAction
 import org.bakasu.bakasu.ui.viewmodel.UmountManagerUiEvent
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -242,7 +243,8 @@ fun UmountManagerScreen() {
                                     )
                                     LabelText(
                                         label = entry.flags.toUmountFlagName(),
-                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        containerColor = MiuixTheme.colorScheme.secondaryContainer,
+                                        contentColor = MiuixTheme.colorScheme.onSecondaryContainer,
                                     )
                                 }
                             },

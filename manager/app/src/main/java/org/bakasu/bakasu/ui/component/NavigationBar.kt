@@ -49,6 +49,7 @@ import top.yukonga.miuix.kmp.basic.NavigationBarDisplayMode
 import top.yukonga.miuix.kmp.basic.NavigationBarItem as MiuixNavigationBarItem
 import top.yukonga.miuix.kmp.basic.NavigationRail as MiuixNavigationRail
 import top.yukonga.miuix.kmp.basic.NavigationRailItem as MiuixNavigationRailItem
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @Composable
@@ -224,7 +225,7 @@ private fun DestinationBadge(
         MiuixBadge(
             containerColor = MiuixTheme.colorScheme.primary,
         ) {
-            Text(count.toString())
+            MiuixText(count.toString())
         }
     }
 }

@@ -1386,17 +1386,19 @@ fun ModuleItem(
             ) {
                 LabelText(
                     label = module.dirId,
-                    containerColor = MaterialTheme.colorScheme.primary,
+                    containerColor = MiuixTheme.colorScheme.primary,
                 )
                 if (module.metamodule) {
                     LabelText(
                         label = "META",
-                        containerColor = MaterialTheme.colorScheme.tertiary,
+                        containerColor = MiuixTheme.colorScheme.primaryVariant,
+                        contentColor = MiuixTheme.colorScheme.onPrimaryVariant,
                     )
                 }
                 LabelText(
                     label = sizeStr ?: "0 KB",
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    containerColor = MiuixTheme.colorScheme.secondaryContainer,
+                    contentColor = MiuixTheme.colorScheme.onSecondaryContainer,
                 )
             }
 

@@ -84,6 +84,9 @@ import org.bakasu.bakasu.ui.viewmodel.TemplateUiEvent
 import org.bakasu.bakasu.ui.viewmodel.TemplateViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.Surface as MiuixSurface
+import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * @author weishu
@@ -313,21 +316,21 @@ private fun TemplateItem(
                 LabelText("UID: ${template.uid}")
                 LabelText(
                     label = "GID: ${template.gid}",
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    containerColor = MiuixTheme.colorScheme.secondaryContainer,
                 )
                 LabelText(
                     label = template.context,
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                    containerColor = MiuixTheme.colorScheme.secondaryContainer,
                 )
                 if (template.local) {
                     LabelText(
                         label = stringResource(R.string.local),
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        containerColor = MiuixTheme.colorScheme.secondaryContainer,
                     )
                 } else {
                     LabelText(
                         label = stringResource(R.string.remote),
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                        containerColor = MiuixTheme.colorScheme.secondaryContainer,
                     )
                 }
             }
@@ -435,16 +438,17 @@ private fun TopBar(
 @Composable
 fun LabelText(
     label: String,
-    containerColor: Color = MaterialTheme.colorScheme.primary,
-    contentColor: Color = contentColorFor(containerColor),
+    containerColor: Color = MiuixTheme.colorScheme.primary,
+    contentColor: Color = MiuixTheme.colorScheme.onPrimary,
 ) {
-    Surface(
+    MiuixSurface(
         shape = RoundedCornerShape(4.dp),
         color = containerColor,
+        contentColor = contentColor,
     ) {
-        Text(
+        MiuixText(
             text = label,
-            style = MaterialTheme.typography.labelSmallEmphasized,
+            style = MiuixTheme.typography.footnote2,
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
             color = contentColor,
             maxLines = 1,

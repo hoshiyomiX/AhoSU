@@ -510,39 +510,45 @@ private fun AppGroupItem(
                     if (appGroup.shouldUmount) {
                         LabelText(
                             label = "UMOUNT",
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            containerColor = MiuixTheme.colorScheme.secondaryContainer,
+                            contentColor = MiuixTheme.colorScheme.onSecondaryContainer,
                         )
                     }
                 }
                 if (appGroup.hasCustomProfile) {
                     LabelText(
                         label = "CUSTOM",
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        containerColor = MiuixTheme.colorScheme.tertiaryContainer,
+                        contentColor = MiuixTheme.colorScheme.onTertiaryContainer,
                     )
                 } else if (!appGroup.allowSu) {
                     LabelText(
                         label = "DEFAULT",
-                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        containerColor = MiuixTheme.colorScheme.primaryContainer,
+                        contentColor = MiuixTheme.colorScheme.onPrimaryContainer,
                     )
                 }
                 if (isManager) {
                     LabelText(
                         label = "MANAGER",
-                        containerColor = MaterialTheme.colorScheme.errorContainer,
+                        containerColor = MiuixTheme.colorScheme.errorContainer,
+                        contentColor = MiuixTheme.colorScheme.onErrorContainer,
                     )
                 }
                 if (appGroup.apps.size > 1) {
                     appGroup.userName?.let {
                         LabelText(
                             label = it,
-                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            containerColor = MiuixTheme.colorScheme.secondaryContainer,
+                            contentColor = MiuixTheme.colorScheme.onSecondaryContainer,
                         )
                     }
                 }
                 if (appGroup.isRecentlyInstalled) {
                     LabelText(
                         label = stringResource(R.string.recently_installed),
-                        containerColor = MaterialTheme.colorScheme.surfaceBright,
+                        containerColor = MiuixTheme.colorScheme.surfaceContainerHighest,
+                        contentColor = MiuixTheme.colorScheme.onSurfaceContainerHighest,
                     )
                 }
             }
