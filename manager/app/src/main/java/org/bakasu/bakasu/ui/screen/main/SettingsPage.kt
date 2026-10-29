@@ -80,10 +80,9 @@ import org.bakasu.bakasu.ui.component.SwipeableSnackbarHost
 import org.bakasu.bakasu.ui.component.rememberConfirmDialog
 import org.bakasu.bakasu.ui.component.rememberLoadingDialog
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsChooseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsSwitchWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsChooseRow
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
+import org.bakasu.bakasu.ui.component.settings.SettingsSwitchRow
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.navigation.Route
 import org.bakasu.bakasu.ui.theme.CardConfig
@@ -188,10 +187,10 @@ fun SettingsPage(bottomPadding: Dp) {
                         content = {
                             item {
                                 // 配置文件模板入口
-                                SettingsJumpPageWidget(
+                                SettingsJumpRow(
                                     icon = Icons.TwoTone.Fence,
                                     title = stringResource(R.string.settings_profile_template),
-                                    description = stringResource(R.string.settings_profile_template_summary),
+                                    summary = stringResource(R.string.settings_profile_template_summary),
                                     onClick = {
                                         navigator.push(Route.AppProfileTemplate)
                                     },
@@ -204,10 +203,10 @@ fun SettingsPage(bottomPadding: Dp) {
                                     "managed" -> stringResource(id = R.string.feature_status_managed_summary)
                                     else -> stringResource(id = R.string.settings_sucompat_summary)
                                 }
-                                SettingsChooseWidget(
+                                SettingsChooseRow(
                                     icon = Icons.TwoTone.RemoveModerator,
                                     title = stringResource(id = R.string.settings_sucompat),
-                                    description = suSummary,
+                                    summary = suSummary,
                                     items = modeItems,
                                     enabled = uiState.suStatus == "supported",
                                     selectedIndex = uiState.suCompatMode,
@@ -227,10 +226,10 @@ fun SettingsPage(bottomPadding: Dp) {
                                     "managed" -> stringResource(id = R.string.feature_status_managed_summary)
                                     else -> stringResource(id = R.string.settings_kernel_umount_summary)
                                 }
-                                SettingsSwitchWidget(
+                                SettingsSwitchRow(
                                     icon = Icons.TwoTone.RemoveCircle,
                                     title = stringResource(id = R.string.settings_kernel_umount),
-                                    description = umountSummary,
+                                    summary = umountSummary,
                                     enabled = uiState.kernelUmountStatus == "supported",
                                     checked = uiState.isKernelUmountEnabled,
                                     onCheckedChange = { enabled ->
@@ -246,10 +245,10 @@ fun SettingsPage(bottomPadding: Dp) {
                             item(
                                 visible = homeState.systemStatus.isLateLoadMode,
                             ) {
-                                SettingsSwitchWidget(
+                                SettingsSwitchRow(
                                     icon = Icons.TwoTone.ElectricalServices,
                                     title = stringResource(id = R.string.settings_auto_jailbreak),
-                                    description = stringResource(id = R.string.settings_auto_jailbreak_summary),
+                                    summary = stringResource(id = R.string.settings_auto_jailbreak_summary),
                                     checked = uiState.autoJailbreakEnabled,
                                     onCheckedChange = { value ->
                                         settingsViewModel.dispatch(
@@ -270,10 +269,10 @@ fun SettingsPage(bottomPadding: Dp) {
                                     else -> stringResource(id = R.string.settings_adb_root_summary)
                                 }
 
-                                SettingsSwitchWidget(
+                                SettingsSwitchRow(
                                     icon = Icons.TwoTone.Adb,
                                     title = stringResource(id = R.string.settings_adb_root),
-                                    description = adbRootSummary,
+                                    summary = adbRootSummary,
                                     checked = uiState.isAdbRootEnabled,
                                     enabled = uiState.adbRootStatus == "supported",
                                     onCheckedChange = { enabled ->
@@ -287,10 +286,10 @@ fun SettingsPage(bottomPadding: Dp) {
                             }
 
                             item {
-                                SettingsSwitchWidget(
+                                SettingsSwitchRow(
                                     icon = Icons.TwoTone.RestartAlt,
                                     title = stringResource(id = R.string.settings_soft_reboot),
-                                    description = stringResource(id = R.string.settings_soft_reboot_summary),
+                                    summary = stringResource(id = R.string.settings_soft_reboot_summary),
                                     enabled = homeState.systemStatus.isFullFeatured &&
                                         !homeState.systemStatus.isLateLoadMode,
                                     checked = homeState.systemStatus.isLateLoadMode || uiState.useSoftReboot,
@@ -310,10 +309,10 @@ fun SettingsPage(bottomPadding: Dp) {
                                     "managed" -> stringResource(id = R.string.feature_status_managed_summary)
                                     else -> stringResource(id = R.string.settings_sulog_summary)
                                 }
-                                SettingsSwitchWidget(
+                                SettingsSwitchRow(
                                     icon = Icons.AutoMirrored.TwoTone.Article,
                                     title = stringResource(id = R.string.settings_sulog),
-                                    description = sulogSummary,
+                                    summary = sulogSummary,
                                     enabled = uiState.sulogStatus == "supported",
                                     checked = uiState.isSuLogEnabled,
                                     onCheckedChange = { enabled ->
@@ -328,10 +327,10 @@ fun SettingsPage(bottomPadding: Dp) {
                                     "managed" -> stringResource(id = R.string.feature_status_managed_summary)
                                     else -> stringResource(id = R.string.settings_selinux_hide_summary)
                                 }
-                                SettingsSwitchWidget(
+                                SettingsSwitchRow(
                                     icon = Icons.TwoTone.Policy,
                                     title = stringResource(id = R.string.settings_selinux_hide),
-                                    description = selinuxHideSummary,
+                                    summary = selinuxHideSummary,
                                     enabled = uiState.selinuxHideStatus == "supported",
                                     checked = uiState.isSelinuxHideEnabled,
                                     onCheckedChange = { checked ->
@@ -346,10 +345,10 @@ fun SettingsPage(bottomPadding: Dp) {
 
                             item {
                                 // 卸载模块开关
-                                SettingsSwitchWidget(
+                                SettingsSwitchRow(
                                     icon = Icons.TwoTone.FolderDelete,
                                     title = stringResource(id = R.string.settings_umount_modules_default),
-                                    description = stringResource(id = R.string.settings_umount_modules_default_summary),
+                                    summary = stringResource(id = R.string.settings_umount_modules_default_summary),
                                     checked = uiState.defaultUmountModules,
                                     onCheckedChange = { enabled ->
                                         settingsViewModel.dispatch(
@@ -373,10 +372,10 @@ fun SettingsPage(bottomPadding: Dp) {
                         expandableItem(
                             expanded = uiState.checkManagerUpdate,
                             topContent = {
-                                SettingsSwitchWidget(
+                                SettingsSwitchRow(
                                     icon = Icons.TwoTone.Update,
                                     title = stringResource(R.string.settings_check_manager_update),
-                                    description = stringResource(R.string.settings_check_manager_update_summary),
+                                    summary = stringResource(R.string.settings_check_manager_update_summary),
                                     checked = uiState.checkManagerUpdate,
                                     onCheckedChange = { enabled ->
                                         settingsViewModel.dispatch(
@@ -391,10 +390,10 @@ fun SettingsPage(bottomPadding: Dp) {
                             item(
                                 topPadding = 1.dp,
                             ) {
-                                SettingsSwitchWidget(
+                                SettingsSwitchRow(
                                     icon = Icons.TwoTone.Science,
                                     title = stringResource(R.string.settings_check_beta_update),
-                                    description = stringResource(R.string.settings_check_beta_update_summary),
+                                    summary = stringResource(R.string.settings_check_beta_update_summary),
                                     checked = uiState.checkBetaUpdate,
                                     onCheckedChange = { enabled ->
                                         settingsViewModel.dispatch(
@@ -408,10 +407,10 @@ fun SettingsPage(bottomPadding: Dp) {
                         }
 
                         item {
-                            SettingsSwitchWidget(
+                            SettingsSwitchRow(
                                 icon = Icons.TwoTone.Extension,
                                 title = stringResource(R.string.settings_check_module_update),
-                                description = stringResource(R.string.settings_check_module_update_summary),
+                                summary = stringResource(R.string.settings_check_module_update_summary),
                                 checked = uiState.checkModuleUpdate,
                                 onCheckedChange = { enabled ->
                                     settingsViewModel.dispatch(
@@ -425,10 +424,10 @@ fun SettingsPage(bottomPadding: Dp) {
 
                         item {
                             // 更多设置
-                            SettingsJumpPageWidget(
+                            SettingsJumpRow(
                                 icon = Icons.TwoTone.Settings,
                                 title = stringResource(R.string.theme_settings),
-                                description = stringResource(R.string.theme_settings),
+                                summary = stringResource(R.string.theme_settings),
                                 onClick = {
                                     navigator.push(Route.ThemeSettings)
                                 },
@@ -444,7 +443,7 @@ fun SettingsPage(bottomPadding: Dp) {
                     title = stringResource(R.string.tools),
                     content = {
                         item {
-                            SettingsBaseWidget(
+                            SettingsJumpRow(
                                 icon = Icons.TwoTone.BugReport,
                                 title = stringResource(R.string.send_log),
                                 onClick = {
@@ -455,10 +454,10 @@ fun SettingsPage(bottomPadding: Dp) {
 
                         if (homeState.systemStatus.isFullFeatured) {
                             item {
-                                SettingsJumpPageWidget(
+                                SettingsJumpRow(
                                     icon = Icons.TwoTone.Security,
                                     title = stringResource(R.string.dynamic_manager_title),
-                                    description = stringResource(R.string.dynamic_manager_settings_summary),
+                                    summary = stringResource(R.string.dynamic_manager_settings_summary),
                                     onClick = {
                                         navigator.push(Route.DynamicManager)
                                     },
@@ -466,10 +465,10 @@ fun SettingsPage(bottomPadding: Dp) {
                             }
 
                             item(visible = uiState.isKernelUmountEnabled) {
-                                SettingsJumpPageWidget(
+                                SettingsJumpRow(
                                     icon = Icons.TwoTone.FolderOff,
                                     title = stringResource(R.string.umount_path_manager),
-                                    description = stringResource(R.string.umount_path_manager_summary),
+                                    summary = stringResource(R.string.umount_path_manager_summary),
                                     onClick = {
                                         navigator.push(Route.UmountManager)
                                     },
@@ -491,7 +490,7 @@ fun SettingsPage(bottomPadding: Dp) {
                     title = stringResource(R.string.about),
                     content = {
                         item {
-                            SettingsJumpPageWidget(
+                            SettingsJumpRow(
                                 icon = Icons.TwoTone.Info,
                                 title = stringResource(R.string.about),
                                 onClick = {
@@ -633,7 +632,7 @@ fun UninstallItem(
         )
     }
 
-    SettingsChooseWidget(
+    SettingsChooseRow(
         icon = Icons.TwoTone.Delete,
         title = stringResource(id = R.string.settings_uninstall),
         items = options.map { stringResource(it.title) },

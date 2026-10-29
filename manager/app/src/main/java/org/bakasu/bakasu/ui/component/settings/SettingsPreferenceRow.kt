@@ -92,8 +92,8 @@ fun SettingsSwitchRow(
 
 /**
  * A settings row built on the miuix [ArrowPreference] that opens a choice dialog whose
- * options are miuix [RadioButtonPreference] rows (the HyperOS picker pattern). The current
- * value is mirrored into the row summary.
+ * options are miuix [RadioButtonPreference] rows (the HyperOS picker pattern). When no
+ * explicit [summary] is provided, the current value is mirrored into the row summary.
  *
  * @param icon The [ImageVector] to be displayed at the start of the row.
  * @param title The primary text displayed in the row.
@@ -101,6 +101,9 @@ fun SettingsSwitchRow(
  * @param selectedIndex The currently selected index into [items].
  * @param onSelectedIndexChange Callback to be invoked when the user confirms a new selection.
  * @param enabled Whether the row is enabled and interactive.
+ * @param summary Optional supporting text below the title; when set it replaces the
+ *   selected-value mirror (the selection is still visible inside the dialog).
+ * @param itemDescriptions Optional per-option supporting text shown inside the dialog.
  * @param modifier The modifier to be applied to the row container.
  */
 @Composable
@@ -112,6 +115,8 @@ fun SettingsChooseRow(
     onSelectedIndexChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    summary: String? = null,
+    itemDescriptions: List<String?> = emptyList(),
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var currentIndex by remember { mutableIntStateOf(selectedIndex) }
@@ -119,7 +124,7 @@ fun SettingsChooseRow(
     PreferenceRowContainer(modifier = modifier) {
         ArrowPreference(
             title = title,
-            summary = items.getOrNull(selectedIndex),
+            summary = summary ?: items.getOrNull(selectedIndex),
             enabled = enabled,
             onClick = if (enabled) {
                 {
@@ -137,6 +142,7 @@ fun SettingsChooseRow(
         MiuixChoiceDialog(
             title = title,
             items = items,
+            itemDescriptions = itemDescriptions,
             currentIndex = currentIndex,
             onCurrentIndexChange = { currentIndex = it },
             onDismiss = { showDialog = false },
@@ -277,6 +283,7 @@ private fun PreferenceRowIcon(icon: ImageVector) {
 private fun MiuixChoiceDialog(
     title: String,
     items: List<String>,
+    itemDescriptions: List<String?> = emptyList(),
     currentIndex: Int,
     onCurrentIndexChange: (Int) -> Unit,
     onDismiss: () -> Unit,
@@ -314,6 +321,7 @@ private fun MiuixChoiceDialog(
                             title = item,
                             selected = index == currentIndex,
                             onClick = { onCurrentIndexChange(index) },
+                            summary = itemDescriptions.getOrNull(index),
                         )
                     }
                 }
