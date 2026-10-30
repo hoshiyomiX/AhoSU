@@ -243,6 +243,9 @@
     <string name="theme_light">浅色</string>
     <string name="theme_dark">深色</string>
     <string name="choose_theme_color">选择主题色</string>
+    <string name="theme_accent_color">主题强调色</string>
+    <string name="theme_accent_color_default">默认</string>
+    <string name="theme_accent_color_reset">重置</string>
     <string name="horizon_kernel">刷写 AnyKernel3 压缩包</string>
     <string name="horizon_kernel_summary">刷入 Anykernel3 内核</string>
     <string name="both_kernel_and_module_files">输入的 zip 文件同时含有 AnyKernel3 压缩包和模块</string>

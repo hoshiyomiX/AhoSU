@@ -140,6 +140,9 @@
     <string name="theme_light">Terang</string>
     <string name="theme_dark">Hitam</string>
     <string name="choose_theme_color">Pilih warna tema</string>
+    <string name="theme_accent_color">Warna aksen</string>
+    <string name="theme_accent_color_default">Bawaan</string>
+    <string name="theme_accent_color_reset">Reset</string>
     <string name="horizon_kernel">Pilih Berkas</string>
     <string name="horizon_kernel_summary">Pilih berkas Anykernel3 untuk dipasang</string>
     <string name="root_required">Butuh izin root</string>

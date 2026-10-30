@@ -145,6 +145,9 @@
     <string name="theme_light">ライト</string>
     <string name="theme_dark">ダーク</string>
     <string name="choose_theme_color">テーマカラーを選択</string>
+    <string name="theme_accent_color">アクセントカラー</string>
+    <string name="theme_accent_color_default">デフォルト</string>
+    <string name="theme_accent_color_reset">リセット</string>
     <string name="horizon_kernel">AnyKernel3 をインストール</string>
     <string name="horizon_kernel_summary">AnyKernel3 カーネルファイルをフラッシュします</string>
     <string name="root_required">root 権限が必要です</string>

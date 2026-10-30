@@ -15,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -42,6 +43,7 @@ import androidx.compose.material.icons.twotone.FormatSize
 import androidx.compose.material.icons.twotone.Info
 import androidx.compose.material.icons.twotone.LightMode
 import androidx.compose.material.icons.twotone.Opacity
+import androidx.compose.material.icons.twotone.Palette
 import androidx.compose.material.icons.twotone.Pin
 import androidx.compose.material.icons.twotone.SwapHoriz
 import androidx.compose.material.icons.twotone.Swipe
@@ -63,6 +65,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
@@ -78,6 +81,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
+import org.bakasu.bakasu.data.theme.ThemeRepository
 import org.bakasu.bakasu.ui.component.ConfirmResult
 import org.bakasu.bakasu.ui.component.KeyPointSlider
 import org.bakasu.bakasu.ui.component.rememberConfirmDialog
@@ -115,9 +119,13 @@ import org.bakasu.bakasu.ui.viewmodel.dpiFriendlyNameRes
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.ColorPicker
+import top.yukonga.miuix.kmp.basic.ColorSpace
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
+import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @SuppressLint(
@@ -468,6 +476,11 @@ private fun AppearanceSettings(
                     viewModel.dispatch(SettingsUiAction.SetThemeMode(index))
                 },
             )
+        }
+
+        item {
+            // 主题强调色
+            AccentColorSetting(themeConfig = themeConfig)
         }
 
         item(
@@ -921,6 +934,85 @@ private fun DimSlider(
         keyPoints = listOf(0.25f, 0.5f, 0.75f),
         valueText = "${(state.backgroundDim * 100).roundToInt()}%",
     )
+}
+
+@Composable
+private fun AccentColorSetting(
+    themeConfig: ThemeConfig,
+) {
+    val themeRepository = koinInject<ThemeRepository>()
+    var showPicker by remember { mutableStateOf(false) }
+    var pendingAccent by remember { mutableStateOf<Color?>(null) }
+
+    SettingsJumpRow(
+        icon = Icons.TwoTone.Palette,
+        title = stringResource(R.string.theme_accent_color),
+        summary = themeConfig.customAccentColor
+            ?.let { accent -> "#%06X".format(accent.toArgb() and 0x00FFFFFF) }
+            ?: stringResource(R.string.theme_accent_color_default),
+        onClick = {
+            pendingAccent = themeConfig.customAccentColor
+            showPicker = true
+        },
+    )
+
+    if (showPicker) {
+        OverlayDialog(
+            show = true,
+            onDismissRequest = {
+                // Outside tap and Cancel revert the live preview to the accent
+                // the dialog opened with.
+                themeConfig.customAccentColor = pendingAccent
+                themeRepository.saveAccentColor(pendingAccent?.toArgb())
+                showPicker = false
+            },
+            title = stringResource(R.string.choose_theme_color),
+        ) {
+            ColorPicker(
+                color = themeConfig.customAccentColor ?: MiuixTheme.colorScheme.primary,
+                onColorChanged = { color ->
+                    // Live preview: feeds MiuixTheme and the bridged m3 primary
+                    // instantly. The accent is forced opaque - a translucent theme
+                    // accent would break Switch/Button contrast.
+                    themeConfig.customAccentColor = color.copy(alpha = 1f)
+                },
+                showPreview = true,
+                colorSpace = ColorSpace.OKHSV,
+            )
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                horizontalArrangement = Arrangement.End,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(
+                    text = stringResource(R.string.theme_accent_color_reset),
+                    onClick = {
+                        themeConfig.customAccentColor = null
+                        themeRepository.saveAccentColor(null)
+                        showPicker = false
+                    },
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                TextButton(
+                    text = stringResource(R.string.cancel),
+                    onClick = {
+                        themeConfig.customAccentColor = pendingAccent
+                        themeRepository.saveAccentColor(pendingAccent?.toArgb())
+                        showPicker = false
+                    },
+                )
+                TextButton(
+                    text = stringResource(id = android.R.string.ok),
+                    onClick = {
+                        themeRepository.saveAccentColor(themeConfig.customAccentColor?.toArgb())
+                        showPicker = false
+                    },
+                )
+            }
+        }
+    }
 }
 
 private fun Context.backgroundCropSize(): Pair<Int, Int> {

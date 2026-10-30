@@ -207,6 +207,9 @@
     <string name="theme_light">淺色</string>
     <string name="theme_dark">深色</string>
     <string name="choose_theme_color">選擇主題色</string>
+    <string name="theme_accent_color">主題強調色</string>
+    <string name="theme_accent_color_default">預設</string>
+    <string name="theme_accent_color_reset">重設</string>
     <string name="horizon_kernel">刷寫 AnyKernel3 壓縮包</string>
     <string name="horizon_kernel_summary">刷入 Anykernel3 核心</string>
     <string name="root_required">需要 root 權限</string>

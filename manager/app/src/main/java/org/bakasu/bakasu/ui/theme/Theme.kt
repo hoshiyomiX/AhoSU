@@ -128,6 +128,9 @@ class ThemeConfig {
     var forceDarkMode by mutableStateOf<Boolean?>(null)
     var useBuiltinMonoFont by mutableStateOf(false)
 
+    // User-picked accent color from the OKHSV color picker (null = miuix default)
+    var customAccentColor by mutableStateOf<Color?>(null)
+
     // 背景状态
     var isThemeChanging by mutableStateOf(false)
     var isHighContrastMode by mutableStateOf(false)
@@ -354,7 +357,12 @@ fun AhoSUTheme(
     // Miuix color core — pure light/dark. The Monet engine (materialkolor /
     // dynamic wallpaper seed) is pruned from the active path in miuix
     // migration increment #1 (see PR #7 roadmap).
-    val miuixColors = if (resolvedDarkTheme) miuixDarkColorScheme() else miuixLightColorScheme()
+    val baseMiuixColors = if (resolvedDarkTheme) miuixDarkColorScheme() else miuixLightColorScheme()
+
+    // A user-picked accent (ThemeSettings OKHSV color picker) overrides the
+    // primary-expressing fields; the bridged m3 scheme picks the accent up
+    // through Colors.primary automatically.
+    val miuixColors = withCustomAccent(baseMiuixColors, themeConfig.customAccentColor)
     val colorScheme = miuixMaterialColorScheme(resolvedDarkTheme, miuixColors)
 
     // 系统栏样式
@@ -512,6 +520,24 @@ private fun miuixMaterialColorScheme(darkTheme: Boolean, colors: Colors): ColorS
     )
 }
 
+/**
+ * Overlays the user-picked accent color on a miuix [Colors] palette. Only the
+ * primary-expressing fields are overridden — Switch, Button, Slider and the
+ * card/tertiary accents; neutrals, disabled and error colors keep the miuix
+ * defaults so contrast stays predictable for arbitrary picker colors. The m3
+ * bridge picks the accent up through [Colors.primary] automatically.
+ */
+private fun withCustomAccent(base: Colors, accent: Color?): Colors = if (accent == null) {
+    base
+} else {
+    base.copy(
+        primary = accent,
+        primaryVariant = accent,
+        primaryContainer = accent,
+        onTertiaryContainer = accent,
+    )
+}
+
 @Composable
 private fun ThemeInitializer(
     context: Context,
@@ -540,6 +566,7 @@ private fun ThemeInitializer(
         // mistaken for an unset value during process recreation.
         settings.preload()
         themeConfig.forceDarkMode = themeRepository.loadThemeMode()
+        themeConfig.customAccentColor = themeRepository.loadAccentColor()?.let { raw -> Color(raw) }
         themeConfig.isEnableBlur = settings.getBoolean("enable_blur", false)
         themeConfig.bottomBarStyle = BottomBarStyle.fromOrdinal(settings.getInt("bottom_bar_style", 1))
         backgroundManager.loadCustomBackground()

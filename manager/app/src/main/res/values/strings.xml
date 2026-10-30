@@ -250,6 +250,9 @@
     <string name="theme_light">Light</string>
     <string name="theme_dark">Dark</string>
     <string name="choose_theme_color">Choose a theme colour</string>
+    <string name="theme_accent_color">Accent colour</string>
+    <string name="theme_accent_color_default">Default</string>
+    <string name="theme_accent_color_reset">Reset</string>
     <string name="horizon_kernel">Install Anykernel3</string>
     <string name="horizon_kernel_summary">Flash AnyKernel3 kernel file</string>
     <string name="both_kernel_and_module_files">Input zips have both anykernel3 and modules</string>
