@@ -27,7 +27,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Sort
 import androidx.compose.material.icons.twotone.Add
-import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.Download
 import androidx.compose.material.icons.twotone.PlayArrow
 import androidx.compose.material.icons.twotone.Settings
@@ -117,17 +116,18 @@ import org.koin.core.parameter.parametersOf
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.HorizontalDivider as MiuixHorizontalDivider
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
-import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
+import top.yukonga.miuix.kmp.menu.OverlayIconDropdownMenu
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
-import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -154,7 +154,6 @@ fun ModuleRepoScreen(repositoryUrl: String? = null) {
     val moduleListState = key(uiState.repositoryUrl, uiState.sortStargazerCountFirst, uiState.search) {
         rememberLazyListState()
     }
-    var showSortDropdown by remember { mutableStateOf(false) }
     val pullRefreshState = rememberPullToRefreshState()
     val refreshModules = { viewModel.dispatch(ModuleRepoUiAction.Refresh) }
     val context = LocalContext.current
@@ -239,16 +238,25 @@ fun ModuleRepoScreen(repositoryUrl: String? = null) {
                         onSelect = viewModel::selectRepository,
                         onManage = { navigator.push(Route.AddRepository) },
                     )
-                    MiuixIconButton(onClick = { showSortDropdown = true }) {
+                    val starsFirstLabel = stringResource(R.string.module_sort_star_first)
+                    OverlayIconDropdownMenu(
+                        entry = DropdownEntry(
+                            items = listOf(
+                                DropdownItem(
+                                    text = starsFirstLabel,
+                                    selected = uiState.sortStargazerCountFirst,
+                                    onClick = {
+                                        viewModel.dispatch(
+                                            ModuleRepoUiAction.SetStarsFirst(!uiState.sortStargazerCountFirst),
+                                        )
+                                    },
+                                ),
+                            ),
+                        ),
+                    ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.TwoTone.Sort,
                             contentDescription = stringResource(R.string.repo_sort),
-                        )
-                        ModuleRepoSortDropdown(
-                            expanded = showSortDropdown,
-                            onDismissRequest = { showSortDropdown = false },
-                            viewModel = viewModel,
-                            uiState = uiState,
                         )
                     }
                 },
@@ -432,38 +440,6 @@ private fun ModuleRepositorySelector(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun ModuleRepoSortDropdown(
-    expanded: Boolean,
-    onDismissRequest: () -> Unit,
-    viewModel: ModuleRepoViewModel,
-    uiState: ModuleRepoUiState,
-) {
-    OverlayListPopup(
-        show = expanded,
-        onDismissRequest = onDismissRequest,
-    ) {
-        ListPopupColumn {
-            BasicComponent(
-                title = stringResource(R.string.module_sort_star_first),
-                endActions = {
-                    if (uiState.sortStargazerCountFirst) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Check,
-                            contentDescription = null,
-                            tint = MiuixTheme.colorScheme.primary,
-                        )
-                    }
-                },
-                onClick = {
-                    viewModel.dispatch(ModuleRepoUiAction.SetStarsFirst(!uiState.sortStargazerCountFirst))
-                    onDismissRequest()
-                },
-            )
         }
     }
 }

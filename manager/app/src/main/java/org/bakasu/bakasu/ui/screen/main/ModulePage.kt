@@ -42,7 +42,6 @@ import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Undo
 import androidx.compose.material.icons.automirrored.twotone.Wysiwyg
-import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.Cloud
 import androidx.compose.material.icons.twotone.Delete
@@ -146,13 +145,13 @@ import org.bakasu.bakasu.ui.viewmodel.ModuleViewModel
 import org.bakasu.bakasu.ui.webui.WebUIActivity
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
-import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 import top.yukonga.miuix.kmp.basic.SnackbarDuration
@@ -161,8 +160,8 @@ import top.yukonga.miuix.kmp.basic.SnackbarResult
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
+import top.yukonga.miuix.kmp.menu.OverlayIconDropdownMenu
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
-import top.yukonga.miuix.kmp.overlay.OverlayListPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 enum class ShortcutType {
@@ -192,7 +191,6 @@ fun ModulePage(bottomPadding: Dp) {
     val scope = rememberCoroutineScope()
     var lastClickTime by remember { mutableStateOf(0L) }
 
-    var showDropdown by remember { mutableStateOf(false) }
     val listState = rememberLazyListState()
 
     var showConfirmationDialog by remember { mutableStateOf(false) }
@@ -329,19 +327,36 @@ fun ModulePage(bottomPadding: Dp) {
                     viewModel.dispatch(ModuleUiAction.Search(query))
                 },
                 dropdownContent = {
-                    MiuixIconButton(
-                        onClick = { showDropdown = true },
+                    val sortActionFirstLabel = stringResource(R.string.module_sort_action_first)
+                    val sortEnabledFirstLabel = stringResource(R.string.module_sort_enabled_first)
+                    OverlayIconDropdownMenu(
+                        entry = DropdownEntry(
+                            items = listOf(
+                                DropdownItem(
+                                    text = sortActionFirstLabel,
+                                    selected = uiState.sortActionFirst,
+                                    onClick = {
+                                        viewModel.dispatch(
+                                            ModuleUiAction.Sort(uiState.sortEnabledFirst, !uiState.sortActionFirst),
+                                        )
+                                    },
+                                ),
+                                DropdownItem(
+                                    text = sortEnabledFirstLabel,
+                                    selected = uiState.sortEnabledFirst,
+                                    onClick = {
+                                        viewModel.dispatch(
+                                            ModuleUiAction.Sort(!uiState.sortEnabledFirst, uiState.sortActionFirst),
+                                        )
+                                    },
+                                ),
+                            ),
+                        ),
+                        collapseOnSelection = false,
                     ) {
                         Icon(
                             imageVector = Icons.TwoTone.MoreVert,
                             contentDescription = stringResource(id = R.string.settings),
-                        )
-
-                        ModuleDropdown(
-                            expanded = showDropdown,
-                            onDismissRequest = { showDropdown = false },
-                            viewModel = viewModel,
-                            uiState = uiState,
                         )
                     }
                 },
@@ -495,56 +510,6 @@ fun ModulePage(bottomPadding: Dp) {
                     topPadding = innerPadding.calculateTopPadding(),
                 )
             }
-        }
-    }
-}
-
-@Composable
-private fun ModuleDropdown(
-    expanded: Boolean,
-    onDismissRequest: () -> Unit,
-    viewModel: ModuleViewModel,
-    uiState: ModuleUiState,
-) {
-    OverlayListPopup(
-        show = expanded,
-        onDismissRequest = onDismissRequest,
-    ) {
-        ListPopupColumn {
-            BasicComponent(
-                title = stringResource(R.string.module_sort_action_first),
-                endActions = {
-                    if (uiState.sortActionFirst) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Check,
-                            contentDescription = null,
-                            tint = MiuixTheme.colorScheme.primary,
-                        )
-                    }
-                },
-                onClick = {
-                    viewModel.dispatch(
-                        ModuleUiAction.Sort(uiState.sortEnabledFirst, !uiState.sortActionFirst),
-                    )
-                },
-            )
-            BasicComponent(
-                title = stringResource(R.string.module_sort_enabled_first),
-                endActions = {
-                    if (uiState.sortEnabledFirst) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Check,
-                            contentDescription = null,
-                            tint = MiuixTheme.colorScheme.primary,
-                        )
-                    }
-                },
-                onClick = {
-                    viewModel.dispatch(
-                        ModuleUiAction.Sort(!uiState.sortEnabledFirst, uiState.sortActionFirst),
-                    )
-                },
-            )
         }
     }
 }
