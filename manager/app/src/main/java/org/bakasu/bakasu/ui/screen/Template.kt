@@ -4,7 +4,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -67,7 +67,7 @@ import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.model.ProfileTemplate
 import org.bakasu.bakasu.ui.component.NetworkRefreshContent
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.navigation.Navigator
@@ -286,51 +286,54 @@ fun AppProfileTemplateScreen() {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun TemplateItem(
     template: ProfileTemplate,
 ) {
     val navigator = LocalNavigator.current
-    SettingsJumpPageWidget(
+    SettingsJumpRow(
         title = template.name,
-        iconPlaceholder = false,
+        summary = "${template.id}${if (template.author.isEmpty()) "" else "@${template.author}"}",
         onClick = {
             navigator.navigateForResult(
                 Route.TemplateEditor(template.id, !template.local),
                 "template_edit",
             )
         },
-        description = "${template.id}${if (template.author.isEmpty()) "" else "@${template.author}"}",
-        descriptionStyle = MaterialTheme.typography.bodySmallEmphasized,
-        descriptionColumnContent = {
-            Text(template.description)
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(top = 5.dp),
+        bottomAction = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(5.dp),
             ) {
-                LabelText("UID: ${template.uid}")
-                LabelText(
-                    label = "GID: ${template.gid}",
-                    containerColor = MiuixTheme.colorScheme.secondaryContainer,
+                Text(
+                    text = template.description,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MiuixTheme.colorScheme.onSurfaceVariantSummary,
                 )
-                LabelText(
-                    label = template.context,
-                    containerColor = MiuixTheme.colorScheme.secondaryContainer,
-                )
-                if (template.local) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    LabelText("UID: ${template.uid}")
                     LabelText(
-                        label = stringResource(R.string.local),
+                        label = "GID: ${template.gid}",
                         containerColor = MiuixTheme.colorScheme.secondaryContainer,
                     )
-                } else {
                     LabelText(
-                        label = stringResource(R.string.remote),
+                        label = template.context,
                         containerColor = MiuixTheme.colorScheme.secondaryContainer,
                     )
+                    if (template.local) {
+                        LabelText(
+                            label = stringResource(R.string.local),
+                            containerColor = MiuixTheme.colorScheme.secondaryContainer,
+                        )
+                    } else {
+                        LabelText(
+                            label = stringResource(R.string.remote),
+                            containerColor = MiuixTheme.colorScheme.secondaryContainer,
+                        )
+                    }
                 }
             }
         },

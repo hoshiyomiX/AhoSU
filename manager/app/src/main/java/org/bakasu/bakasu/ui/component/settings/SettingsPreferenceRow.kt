@@ -109,6 +109,11 @@ fun SettingsSwitchRow(
  * @param summary Optional supporting text below the title; when set it replaces the
  *   selected-value mirror (the selection is still visible inside the dialog).
  * @param itemDescriptions Optional per-option supporting text shown inside the dialog.
+ * @param dialogEmptyContent Optional content rendered inside the dialog instead of the option
+ *   list — e.g. an offline retry placeholder when there is nothing to choose from. When set,
+ *   the confirm button is omitted.
+ * @param itemEndActions Optional per-option trailing slot rendered inside the dialog rows —
+ *   e.g. a per-entry "view" affordance next to the radio button.
  * @param modifier The modifier to be applied to the row container.
  */
 @Composable
@@ -122,6 +127,8 @@ fun SettingsChooseRow(
     enabled: Boolean = true,
     summary: String? = null,
     itemDescriptions: List<String?> = emptyList(),
+    dialogEmptyContent: (@Composable () -> Unit)? = null,
+    itemEndActions: (@Composable (Int) -> Unit)? = null,
 ) {
     var showDialog by remember { mutableStateOf(false) }
     var currentIndex by remember { mutableIntStateOf(selectedIndex) }
@@ -143,11 +150,13 @@ fun SettingsChooseRow(
         )
     }
 
-    if (showDialog && items.isNotEmpty()) {
+    if (showDialog && (items.isNotEmpty() || dialogEmptyContent != null)) {
         MiuixChoiceDialog(
             title = title,
             items = items,
             itemDescriptions = itemDescriptions,
+            emptyContent = dialogEmptyContent,
+            itemEndActions = itemEndActions,
             currentIndex = currentIndex,
             onCurrentIndexChange = { currentIndex = it },
             onDismiss = { showDialog = false },
@@ -168,6 +177,8 @@ fun SettingsChooseRow(
  * @param summary Optional supporting text displayed below the title.
  * @param enabled Whether the row is enabled and interactive.
  * @param onClick Callback to be invoked when the row is clicked.
+ * @param bottomAction Optional content rendered below the title and summary — e.g. a badge
+ *   row for list entries built on the jump row.
  * @param modifier The modifier to be applied to the row container.
  */
 @Composable
@@ -177,6 +188,7 @@ fun SettingsJumpRow(
     summary: String? = null,
     enabled: Boolean = true,
     onClick: () -> Unit,
+    bottomAction: (@Composable () -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     PreferenceRowContainer(modifier = modifier) {
@@ -186,6 +198,7 @@ fun SettingsJumpRow(
             enabled = enabled,
             onClick = if (enabled) onClick else null,
             startAction = icon?.let { vector -> { PreferenceRowIcon(vector) } },
+            bottomAction = bottomAction,
         )
     }
 }
@@ -567,13 +580,16 @@ private fun PreferenceRowIcon(icon: ImageVector) {
 /**
  * The HyperOS-style single-choice dialog: the app-standard miuix [OverlayDialog] shell with
  * the dialog title, a list of miuix [RadioButtonPreference] options, and cancel/confirm
- * [TextButton]s that stay visible below the scrolling option list.
+ * [TextButton]s that stay visible below the scrolling option list. When [emptyContent] is
+ * provided it replaces the option list and the confirm button is omitted.
  */
 @Composable
 private fun MiuixChoiceDialog(
     title: String,
     items: List<String>,
     itemDescriptions: List<String?> = emptyList(),
+    emptyContent: (@Composable () -> Unit)? = null,
+    itemEndActions: (@Composable (Int) -> Unit)? = null,
     currentIndex: Int,
     onCurrentIndexChange: (Int) -> Unit,
     onDismiss: () -> Unit,
@@ -584,18 +600,27 @@ private fun MiuixChoiceDialog(
         onDismissRequest = onDismiss,
         title = title,
     ) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(max = 400.dp),
-        ) {
-            itemsIndexed(items) { index, item ->
-                RadioButtonPreference(
-                    title = item,
-                    selected = index == currentIndex,
-                    onClick = { onCurrentIndexChange(index) },
-                    summary = itemDescriptions.getOrNull(index),
-                )
+        if (emptyContent != null) {
+            Box(
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                emptyContent()
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 400.dp),
+            ) {
+                itemsIndexed(items) { index, item ->
+                    RadioButtonPreference(
+                        title = item,
+                        selected = index == currentIndex,
+                        onClick = { onCurrentIndexChange(index) },
+                        summary = itemDescriptions.getOrNull(index),
+                        endActions = itemEndActions?.let { slot -> { slot(index) } },
+                    )
+                }
             }
         }
 
@@ -610,10 +635,12 @@ private fun MiuixChoiceDialog(
                 text = stringResource(id = R.string.cancel),
                 onClick = onDismiss,
             )
-            TextButton(
-                text = stringResource(id = R.string.ok),
-                onClick = onConfirm,
-            )
+            if (emptyContent == null) {
+                TextButton(
+                    text = stringResource(id = R.string.ok),
+                    onClick = onConfirm,
+                )
+            }
         }
     }
 }

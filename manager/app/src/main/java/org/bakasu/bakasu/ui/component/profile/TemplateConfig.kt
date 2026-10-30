@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Article
 import androidx.compose.material.icons.automirrored.twotone.ReadMore
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -26,17 +25,17 @@ import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.model.AppProfile
 import org.bakasu.bakasu.ui.component.NetworkRefreshContent
-import org.bakasu.bakasu.ui.component.settings.SettingsChooseWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsChooseRow
 import org.bakasu.bakasu.ui.util.ActivityResumeEffect
 import org.bakasu.bakasu.ui.viewmodel.TemplateUiAction
 import org.bakasu.bakasu.ui.viewmodel.TemplateViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
  * @author weishu
  * @date 2023/10/21.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TemplateConfig(
     profile: AppProfile,
@@ -58,12 +57,12 @@ fun TemplateConfig(
     val profileTemplateNames = listOf("None") + uiState.profileTemplateNames
     val currentIndex = profileTemplates.indexOf(template).let { if (it == -1) 0 else it }
 
-    SettingsChooseWidget(
+    SettingsChooseRow(
         icon = Icons.AutoMirrored.TwoTone.Article,
         title = stringResource(R.string.profile_template),
         items = profileTemplateNames,
         selectedIndex = currentIndex,
-        emptyDialogContent = if (profileTemplates.size == 1) {
+        dialogEmptyContent = if (profileTemplates.size == 1) {
             {
                 NetworkRefreshContent(
                     offline = uiState.isOffline,
@@ -80,43 +79,46 @@ fun TemplateConfig(
         } else {
             null
         },
-        afterContent = { index ->
-            if (index == 0) return@SettingsChooseWidget
-            Icon(
-                imageVector = Icons.AutoMirrored.TwoTone.ReadMore,
-                contentDescription = null,
-                modifier = Modifier
-                    .size(35.dp)
-                    .clip(CircleShape)
-                    .clickable {
-                        onViewTemplate(profileTemplates[index])
-                    }
-                    .padding(5.dp),
-            )
+        itemEndActions = { index ->
+            if (index != 0) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.TwoTone.ReadMore,
+                    contentDescription = null,
+                    tint = MiuixTheme.colorScheme.onBackground,
+                    modifier = Modifier
+                        .size(35.dp)
+                        .clip(CircleShape)
+                        .clickable {
+                            onViewTemplate(profileTemplates[index])
+                        }
+                        .padding(5.dp),
+                )
+            }
         },
-    ) { index ->
-        if (index == 0) {
-            template = ""
-            return@SettingsChooseWidget
-        }
+        onSelectedIndexChange = { index ->
+            if (index == 0) {
+                template = ""
+            } else {
+                template = profileTemplates[index]
 
-        template = profileTemplates[index]
-
-        val templateInfo = uiState.templateList.firstOrNull { it.id == template }
-            ?: return@SettingsChooseWidget
-
-        onProfileChange(
-            profile.copy(
-                rootTemplate = template,
-                rootUseDefault = false,
-                uid = templateInfo.uid,
-                gid = templateInfo.gid,
-                groups = templateInfo.groups,
-                capabilities = templateInfo.capabilities,
-                context = templateInfo.context,
-                rules = templateInfo.rules.joinToString("\n"),
-                namespace = templateInfo.namespace,
-            ),
-        )
-    }
+                uiState.templateList
+                    .firstOrNull { it.id == template }
+                    ?.let { templateInfo ->
+                        onProfileChange(
+                            profile.copy(
+                                rootTemplate = template,
+                                rootUseDefault = false,
+                                uid = templateInfo.uid,
+                                gid = templateInfo.gid,
+                                groups = templateInfo.groups,
+                                capabilities = templateInfo.capabilities,
+                                context = templateInfo.context,
+                                rules = templateInfo.rules.joinToString("\n"),
+                                namespace = templateInfo.namespace,
+                            ),
+                        )
+                    }
+            }
+        },
+    )
 }
