@@ -84,7 +84,8 @@ import org.bakasu.bakasu.ui.component.rememberRepositoryInstallDialog
 import org.bakasu.bakasu.ui.component.repositoryErrorText
 import org.bakasu.bakasu.ui.component.scriptLastRunText
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsInfoRow
+import org.bakasu.bakasu.ui.component.settings.SettingsValueRow
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.navigation.Navigator
@@ -293,7 +294,7 @@ fun InfoTab(
             lazySegmentColumn(listOf(module.moduleId), key = { _, id -> "script-history:$id" }) { _, id ->
                 val history = koinInject<GetLastScriptRunUseCase>()
                 val lastRun = remember(id, history) { history.observe(id) }.collectAsStateWithLifecycle(initialValue = null).value
-                SettingsBaseWidget(title = stringResource(R.string.module_repo_script_badge), description = scriptLastRunText(lastRun), iconPlaceholder = false)
+                SettingsInfoRow(title = stringResource(R.string.module_repo_script_badge), summary = scriptLastRunText(lastRun))
             }
             item(key = "script-history-spacing") { Spacer(Modifier.height(8.dp)) }
         }
@@ -331,28 +332,25 @@ private data class ModuleInfoRow(val title: Int, val description: String, val ur
 private fun ModuleInfoLink(title: String, description: String?, url: String?, allowHttp: Boolean = false) {
     val uriHandler = LocalUriHandler.current
     val link = url?.toHttpUrlOrNull()?.takeIf { (it.isHttps || allowHttp) && it.username.isEmpty() && it.password.isEmpty() }?.toString()
-    SettingsBaseWidget(
+    SettingsValueRow(
         title = title,
-        titleStyle = MaterialTheme.typography.bodyMedium,
-        description = description,
-        descriptionStyle = MaterialTheme.typography.bodyMedium,
-        descriptionColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        iconPlaceholder = false,
-    ) {
-        if (link != null) {
-            MiuixIconButton(
-                onClick = { uriHandler.openUri(link) },
-                minWidth = 52.dp,
-                minHeight = 32.dp,
-            ) {
-                Icon(
-                    Icons.TwoTone.Link,
-                    contentDescription = stringResource(R.string.repo_open_link, title),
-                    modifier = Modifier.size(20.dp),
-                )
+        summary = description,
+        endContent = {
+            if (link != null) {
+                MiuixIconButton(
+                    onClick = { uriHandler.openUri(link) },
+                    minWidth = 52.dp,
+                    minHeight = 32.dp,
+                ) {
+                    Icon(
+                        Icons.TwoTone.Link,
+                        contentDescription = stringResource(R.string.repo_open_link, title),
+                        modifier = Modifier.size(20.dp),
+                    )
+                }
             }
-        }
-    }
+        },
+    )
 }
 
 @Composable
@@ -425,11 +423,9 @@ private fun LazyListScope.releaseGroup(module: CatalogModule, release: ModuleRel
         if (release.descriptionHTML.isNotBlank() || release.changelogUrl.isNotBlank() || details?.notes != null || details?.notesFailed == true) {
             add(
                 "changelog" to {
-                    SettingsBaseWidget(
+                    SettingsValueRow(
                         title = null,
-                        iconPlaceholder = false,
-                        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-                        descriptionColumnContent = { ReleaseNotes(module, release, state, viewModel) },
+                        bottomContent = { ReleaseNotes(module, release, state, viewModel) },
                     )
                 },
             )
@@ -541,22 +537,19 @@ private fun ReleaseHeading(release: ModuleRelease, details: ModuleReleaseDetails
         release.tagName.takeIf { it.isNotBlank() && it != title },
         release.versionCode?.toString(),
     ).joinToString(" · ")
-    SettingsBaseWidget(
+    SettingsValueRow(
         title = title,
-        titleStyle = MaterialTheme.typography.bodyLarge,
-        description = metadata.takeIf(String::isNotBlank),
-        descriptionStyle = MaterialTheme.typography.bodyMedium,
-        descriptionColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        iconPlaceholder = false,
-    ) {
-        if (publishedAt.isNotBlank()) {
-            Text(
-                releaseDate(publishedAt, LocalConfiguration.current.locales[0]),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-    }
+        summary = metadata.takeIf(String::isNotBlank),
+        endContent = {
+            if (publishedAt.isNotBlank()) {
+                Text(
+                    releaseDate(publishedAt, LocalConfiguration.current.locales[0]),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        },
+    )
 }
 
 @Composable
@@ -581,15 +574,10 @@ private fun ReleaseAsset(module: CatalogModule, release: ModuleRelease, asset: M
             }
         }
     }
-    SettingsBaseWidget(
+    SettingsValueRow(
         title = asset.name,
-        titleStyle = MaterialTheme.typography.bodyLarge,
-        iconPlaceholder = false,
-        description = moduleAssetDetails(asset),
-        descriptionStyle = MaterialTheme.typography.bodyMedium,
-        descriptionColor = MaterialTheme.colorScheme.onSurfaceVariant,
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 10.dp),
-        descriptionColumnContent = {
+        summary = moduleAssetDetails(asset),
+        bottomContent = {
             asset.expected?.let { expected ->
                 val fullHash = stringResource(R.string.repo_sha256, expected.sha256)
                 Text(
@@ -607,38 +595,39 @@ private fun ReleaseAsset(module: CatalogModule, release: ModuleRelease, asset: M
                 }
             }
         },
-    ) {
-        MiuixIconButton(
-            onClick = onClick,
-            enabled = !downloading,
-            minWidth = 52.dp,
-            minHeight = 32.dp,
-            modifier = Modifier.semantics { contentDescription = downloadDescription },
-        ) {
-            if (downloading) {
-                CircularProgressIndicator(
-                    progress = progress / 100f,
-                    modifier = Modifier.size(20.dp),
-                    strokeWidth = 2.dp,
-                )
-            } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = if (module.isScript) Icons.TwoTone.PlayArrow else Icons.TwoTone.Download,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurface,
+        endContent = {
+            MiuixIconButton(
+                onClick = onClick,
+                enabled = !downloading,
+                minWidth = 52.dp,
+                minHeight = 32.dp,
+                modifier = Modifier.semantics { contentDescription = downloadDescription },
+            ) {
+                if (downloading) {
+                    CircularProgressIndicator(
+                        progress = progress / 100f,
                         modifier = Modifier.size(20.dp),
+                        strokeWidth = 2.dp,
                     )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        text = stringResource(if (module.isScript) R.string.script_run else R.string.repo_download),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
+                } else {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = if (module.isScript) Icons.TwoTone.PlayArrow else Icons.TwoTone.Download,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.size(20.dp),
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            text = stringResource(if (module.isScript) R.string.script_run else R.string.repo_download),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                    }
                 }
             }
-        }
-    }
+        },
+    )
 }
 
 internal fun releaseDate(value: String, locale: Locale): String = runCatching {

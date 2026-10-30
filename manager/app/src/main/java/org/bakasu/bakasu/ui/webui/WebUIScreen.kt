@@ -45,7 +45,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import org.bakasu.bakasu.R
-import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldRow
 
 @Composable
 fun WebUIScreen(webUIState: WebUIState) {
@@ -234,12 +234,10 @@ private fun HandleWebUIEvent(webUIState: WebUIState) {
                             modifier = Modifier.clip(RoundedCornerShape(16.dp)),
                             color = MaterialTheme.colorScheme.surfaceBright,
                         ) {
-                            SettingsTextFieldWidget(
-                                state = state,
+                            SettingsTextFieldRow(
                                 title = event.message,
+                                state = state,
                                 lineLimits = TextFieldLineLimits.SingleLine,
-                                useLabelAsPlaceholder = true,
-                                renderBackgroundBlur = false,
                             )
                         }
                     },

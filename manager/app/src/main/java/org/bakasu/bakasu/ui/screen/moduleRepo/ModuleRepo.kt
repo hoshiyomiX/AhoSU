@@ -95,8 +95,7 @@ import org.bakasu.bakasu.ui.component.rememberRepositoryInstallDialog
 import org.bakasu.bakasu.ui.component.rememberSearchAppBarScrollBehavior
 import org.bakasu.bakasu.ui.component.repositoryErrorText
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.navigation.Navigator
@@ -129,6 +128,7 @@ import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
+import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
@@ -407,33 +407,23 @@ private fun ModuleRepositorySelector(
                     lazySegmentColumn(items = sources, key = { _, source -> source.url }) { _, source ->
                         val selected = source.url == selectedRepository
                         val countDescription = source.moduleCount?.let { pluralStringResource(R.plurals.repo_module_count, it, it) }
-                        SettingsBaseWidget(
-                            modifier = Modifier.semantics {
-                                role = Role.RadioButton
-                                this.selected = selected
-                            },
+                        RadioButtonPreference(
                             title = source.displayName,
-                            description = countDescription ?: source.shortUrl(),
+                            summary = countDescription ?: source.shortUrl(),
                             selected = selected,
-                            iconPlaceholder = false,
-                            isOnBackground = false,
                             onClick = {
                                 onSelect(source.url)
                                 showSheet = false
-                            },
-                            trailingContent = {
-                                if (selected) Icon(Icons.TwoTone.Check, contentDescription = null)
                             },
                         )
                     }
                 }
                 SegmentedColumn(modifier = Modifier.padding(bottom = 16.dp)) {
                     item {
-                        SettingsJumpPageWidget(
+                        SettingsJumpRow(
                             icon = Icons.TwoTone.Add,
                             title = stringResource(R.string.repo_add_repository),
-                            description = stringResource(R.string.repo_manage),
-                            renderBackgroundBlur = false,
+                            summary = stringResource(R.string.repo_manage),
                             onClick = {
                                 showSheet = false
                                 onManage()

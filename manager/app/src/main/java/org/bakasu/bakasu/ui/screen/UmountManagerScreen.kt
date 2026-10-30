@@ -60,7 +60,7 @@ import org.bakasu.bakasu.ui.component.SwipeableSnackbarHost
 import org.bakasu.bakasu.ui.component.WarningCard
 import org.bakasu.bakasu.ui.component.rememberConfirmDialog
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsValueRow
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.theme.CardConfig
@@ -223,10 +223,10 @@ fun UmountManagerScreen() {
                         uiState.umountPaths,
                         key = { _, it -> it.path },
                     ) { _, entry ->
-                        SettingsBaseWidget(
+                        SettingsValueRow(
                             icon = Icons.TwoTone.Folder,
                             title = entry.path,
-                            descriptionColumnContent = {
+                            bottomContent = {
                                 Row(
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -248,18 +248,18 @@ fun UmountManagerScreen() {
                                     )
                                 }
                             },
-                        ) {
-                            val confirmDeleteSummary = stringResource(
-                                R.string.confirm_delete_umount_path,
-                                entry.path,
-                            )
-                            IconButton(
-                                onClick = {
-                                    scope.launch {
-                                        val confirmResult = confirmDialog.awaitConfirm(
-                                            title = confirmDelete,
-                                            content = confirmDeleteSummary,
-                                        )
+                            endContent = {
+                                val confirmDeleteSummary = stringResource(
+                                    R.string.confirm_delete_umount_path,
+                                    entry.path,
+                                )
+                                IconButton(
+                                    onClick = {
+                                        scope.launch {
+                                            val confirmResult = confirmDialog.awaitConfirm(
+                                                title = confirmDelete,
+                                                content = confirmDeleteSummary,
+                                            )
                                         if (confirmResult != ConfirmResult.Confirmed) {
                                             return@launch
                                         }
@@ -273,7 +273,8 @@ fun UmountManagerScreen() {
                                     tint = MaterialTheme.colorScheme.error,
                                 )
                             }
-                        }
+                            },
+                        )
                     }
                 }
             }

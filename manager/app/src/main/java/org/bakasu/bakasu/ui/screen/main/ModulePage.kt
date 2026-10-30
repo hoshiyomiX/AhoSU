@@ -121,9 +121,9 @@ import org.bakasu.bakasu.ui.component.rememberConfirmDialog
 import org.bakasu.bakasu.ui.component.rememberLoadingDialog
 import org.bakasu.bakasu.ui.component.rememberSearchAppBarScrollBehavior
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
+import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldRow
+import org.bakasu.bakasu.ui.component.settings.SettingsValueRow
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.navigation.Route
 import org.bakasu.bakasu.ui.screen.LabelText
@@ -1040,50 +1040,39 @@ private fun ModuleList(
             SegmentedColumn {
                 if (shortcutIconUri == defaultShortcutIconUri) {
                     item {
-                        SettingsBaseWidget(
-                            iconPlaceholder = false,
-                            isOnBackground = false,
+                        SettingsJumpRow(
                             title = stringResource(id = R.string.module_shortcut_icon_pick),
                             onClick = {
                                 pickShortcutIconLauncher.launch("image/*")
                             },
-                        ) {
-                            Icon(
-                                imageVector = Icons.TwoTone.ChevronRight,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(24.dp),
-                            )
-                        }
+                        )
                     }
                 } else {
                     item {
-                        SettingsBaseWidget(
-                            iconPlaceholder = false,
-                            isOnBackground = false,
+                        SettingsValueRow(
                             title = stringResource(id = R.string.restore),
                             onClick = {
                                 shortcutIconUri = defaultShortcutIconUri
                             },
-                        ) {
-                            Icon(
-                                imageVector = Icons.AutoMirrored.TwoTone.Undo,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(24.dp),
-                            )
-                        }
+                            endContent = {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.TwoTone.Undo,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            },
+                        )
                     }
                 }
 
                 item {
                     val shouldNotEmpty =
                         stringResource(R.string.module_shortcut_should_not_empty)
-                    SettingsTextFieldWidget(
-                        state = textFieldState,
+                    SettingsTextFieldRow(
                         title = stringResource(id = R.string.module_shortcut_name_label),
+                        state = textFieldState,
                         error = error,
-                        renderBackgroundBlur = false,
                     )
 
                     LaunchedEffect(textFieldState.text) {
@@ -1097,9 +1086,7 @@ private fun ModuleList(
 
                 if (hasExistingShortcut) {
                     item {
-                        SettingsJumpPageWidget(
-                            iconPlaceholder = false,
-                            renderBackgroundBlur = false,
+                        SettingsJumpRow(
                             title = stringResource(id = R.string.module_shortcut_delete),
                             onClick = {
                                 val moduleId = shortcutModuleId
@@ -1117,15 +1104,13 @@ private fun ModuleList(
                     val settings = koinInject<SettingsPlatformRepository>()
                     val moduleShortcutSchemeCopied = stringResource(R.string.module_shortcut_scheme_copied)
 
-                    SettingsJumpPageWidget(
-                        iconPlaceholder = false,
-                        renderBackgroundBlur = false,
+                    SettingsJumpRow(
                         title = stringResource(R.string.module_shortcut_copy_scheme),
                         onClick = {
                             val currentModuleId = shortcutModuleId
                             val type = selectedShortcutType
                             if (currentModuleId.isNullOrBlank() || type == null) {
-                                return@SettingsJumpPageWidget
+                                return@SettingsJumpRow
                             }
                             val url = shortcut.buildShortcutUri(currentModuleId, type, settings.intentToken).toString()
                             val clipboard = context.getSystemService(CLIPBOARD_SERVICE) as ClipboardManager

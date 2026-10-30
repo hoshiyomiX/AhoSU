@@ -67,8 +67,8 @@ import org.bakasu.bakasu.ui.component.rememberCustomDialog
 import org.bakasu.bakasu.ui.component.repositoryErrorText
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SettingsDropdownWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsDropdownRow
+import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldRow
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.theme.CardConfig
 import org.bakasu.bakasu.ui.theme.ThemeConfig
@@ -133,24 +133,22 @@ fun AddRepositoryScreen() {
                         contentPadding = PaddingValues(0.dp),
                     ) {
                         item {
-                            SettingsDropdownWidget(
+                            SettingsDropdownRow(
                                 title = stringResource(R.string.repo_api_type),
-                                description = apiTypeLabels[apiTypes.indexOf(state.apiType)],
-                                iconPlaceholder = false,
+                                summary = apiTypeLabels[apiTypes.indexOf(state.apiType)],
+                                showValue = false,
                                 enabled = !state.busy,
-                                renderBackgroundBlur = false,
-                                choice = apiTypes.indexOf(state.apiType),
-                                data = apiTypeLabels,
-                                onChoiceChange = { viewModel.setApiType(apiTypes[it]) },
+                                items = apiTypeLabels,
+                                selectedIndex = apiTypes.indexOf(state.apiType),
+                                onSelectedIndexChange = { viewModel.setApiType(apiTypes[it]) },
                             )
                         }
                         item {
-                            SettingsTextFieldWidget(
-                                state = urlField,
+                            SettingsTextFieldRow(
                                 title = stringResource(R.string.repo_server_url),
+                                state = urlField,
                                 error = state.error?.let { repositoryErrorText(it) }.orEmpty(),
                                 enabled = !state.busy,
-                                renderBackgroundBlur = false,
                                 lineLimits = TextFieldLineLimits.SingleLine,
                                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Uri, imeAction = ImeAction.Done),
                                 onKeyboardAction = {

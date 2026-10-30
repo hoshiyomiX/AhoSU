@@ -47,7 +47,7 @@ import org.bakasu.bakasu.R
 import org.bakasu.bakasu.ui.component.WarningCard
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.navigation.Navigator
 import org.bakasu.bakasu.ui.navigation.Route
@@ -155,26 +155,26 @@ fun AboutScreen() {
                     title = stringResource(R.string.about),
                 ) {
                     item {
-                        SettingsJumpPageWidget(
+                        SettingsJumpRow(
                             icon = Icons.TwoTone.Code,
                             title = stringResource(R.string.get_source_code),
-                            description = stringResource(R.string.get_source_code_detail),
+                            summary = stringResource(R.string.get_source_code_detail),
                             onClick = { uriHandler.openUri("https://github.com/hoshiyomiX/AhoSU") },
                         )
                     }
                     item {
-                        SettingsJumpPageWidget(
+                        SettingsJumpRow(
                             icon = Icons.TwoTone.Group,
                             title = stringResource(R.string.join_telegram_group),
-                            description = stringResource(R.string.join_telegram_group_detail),
+                            summary = stringResource(R.string.join_telegram_group_detail),
                             onClick = { uriHandler.openUri("https://t.me/BakaSU") },
                         )
                     }
                     item {
-                        SettingsJumpPageWidget(
+                        SettingsJumpRow(
                             icon = Icons.TwoTone.Copyright,
                             title = stringResource(R.string.open_source_license),
-                            description = stringResource(R.string.open_source_license_settings_description),
+                            summary = stringResource(R.string.open_source_license_settings_description),
                             onClick = {
                                 navigator.push(Route.OpenSourceLicense)
                             },

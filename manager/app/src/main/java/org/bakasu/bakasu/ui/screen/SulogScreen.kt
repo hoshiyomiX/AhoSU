@@ -73,7 +73,7 @@ import org.bakasu.bakasu.domain.model.toSulogDisplayName
 import org.bakasu.bakasu.ui.component.SearchAppBar
 import org.bakasu.bakasu.ui.component.WarningCard
 import org.bakasu.bakasu.ui.component.rememberSearchAppBarScrollBehavior
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsValueRow
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.theme.blurSource
@@ -597,11 +597,10 @@ private fun LazyListScope.sulogEntriesSection(
                 entries,
                 key = { index, entry -> "$index-${entry.key}" },
             ) { index, entry ->
-                SettingsBaseWidget(
+                SettingsValueRow(
                     onClick = { onEntryClick(entry) },
                     title = sulogEntryTitle(entry),
-                    iconPlaceholder = false,
-                    descriptionColumnContent = {
+                    bottomContent = {
                         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                             sulogEntryDescription(entry)?.let {
                                 Text(
@@ -636,9 +635,10 @@ private fun LazyListScope.sulogEntriesSection(
                             }
                         }
                     },
-                ) {
-                    sulogEntryStatus(entry)?.let { Text(it) }
-                }
+                    endContent = {
+                        sulogEntryStatus(entry)?.let { status -> Text(status) }
+                    },
+                )
             }
         }
     }

@@ -42,7 +42,7 @@ import kotlinx.coroutines.withContext
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.ui.component.WarningCard
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsValueRow
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.screen.LabelText
@@ -125,11 +125,10 @@ fun OpenSourceLicenseScreen() {
             contentPadding = paddingValues,
         ) {
             lazySegmentColumn(libraries.libraries) { _, lib ->
-                SettingsBaseWidget(
-                    iconPlaceholder = false,
+                SettingsValueRow(
                     title = lib.name,
-                    description = lib.author,
-                    descriptionColumnContent = {
+                    summary = lib.author,
+                    bottomContent = {
                         Row {
                             lib.licenses.forEach {
                                 LabelText(it.name)
@@ -139,11 +138,12 @@ fun OpenSourceLicenseScreen() {
                     onClick = {
                         selectedLibrary = lib
                     },
-                ) {
-                    lib.artifactVersion?.let {
-                        Text(it)
-                    }
-                }
+                    endContent = {
+                        lib.artifactVersion?.let {
+                            Text(it)
+                        }
+                    },
+                )
             }
         }
         OverlayDialog(

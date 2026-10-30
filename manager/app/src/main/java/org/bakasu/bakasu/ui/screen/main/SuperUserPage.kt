@@ -62,7 +62,7 @@ import org.bakasu.bakasu.ui.component.SwipeableSnackbarHost
 import org.bakasu.bakasu.ui.component.WarningCard
 import org.bakasu.bakasu.ui.component.rememberConfirmDialog
 import org.bakasu.bakasu.ui.component.rememberSearchAppBarScrollBehavior
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsValueRow
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.navigation.Route
@@ -487,17 +487,17 @@ private fun AppGroupItem(
     onClick: () -> Unit,
 ) {
     val mainApp = appGroup.mainApp
-    SettingsBaseWidget(
+    SettingsValueRow(
         onClick = {
             onClick()
         },
         title = mainApp.label,
-        description = if (appGroup.apps.size > 1) {
+        summary = if (appGroup.apps.size > 1) {
             stringResource(R.string.group_contains_apps, appGroup.apps.size)
         } else {
             mainApp.displayIdentifier
         },
-        descriptionColumnContent = {
+        bottomContent = {
             Spacer(modifier = Modifier.height(5.dp))
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -562,13 +562,13 @@ private fun AppGroupItem(
                     .size(48.dp),
             )
         },
-        iconPlaceholder = false,
-    ) {
-        Icon(
-            imageVector = Icons.TwoTone.ChevronRight,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(24.dp),
-        )
-    }
+        endContent = {
+            Icon(
+                imageVector = Icons.TwoTone.ChevronRight,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.size(24.dp),
+            )
+        },
+    )
 }
