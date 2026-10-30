@@ -34,7 +34,7 @@ class ThemeRepository(
     }
 
     fun loadAccentColor(): Int? {
-        val raw = settings.getString("accent_color", "default")
+        val raw = settings.getString("accent_color", "default") ?: return null
         if (raw.length != 8) return null
         return raw.toLongOrNull(16)?.takeIf { it in 1..0xFFFFFFFFL }?.toInt()
     }
