@@ -19,17 +19,12 @@ import androidx.compose.material.icons.twotone.FilterList
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SelectableDropdownMenuItem
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -49,9 +44,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.nestedScroll
-import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -88,10 +81,14 @@ import org.bakasu.bakasu.ui.viewmodel.SulogViewModel
 import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.BreadcrumbBar
 import top.yukonga.miuix.kmp.basic.BreadcrumbItem
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.VerticalScrollBar
 import top.yukonga.miuix.kmp.basic.rememberScrollBarAdapter
 import top.yukonga.miuix.kmp.interfaces.ExperimentalScrollBarApi
+import top.yukonga.miuix.kmp.menu.OverlayIconDropdownMenu
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class, ExperimentalMaterial3Api::class)
@@ -152,10 +149,8 @@ private fun SulogScreenContent(
     val listState = rememberLazyListState()
     val searchListState = rememberLazyListState()
     val scope = rememberCoroutineScope()
-    val haptic = LocalHapticFeedback.current
     val fileSelector = buildSulogFileSelector(state.files, state.selectedFilePath)
     var selectedEntry by remember { mutableStateOf<SulogEntry?>(null) }
-    var showFilterMenu by remember { mutableStateOf(false) }
     var localSearchText by remember { mutableStateOf(state.searchText) }
 
     LaunchedEffect(state.searchText) {
@@ -180,44 +175,28 @@ private fun SulogScreenContent(
                 },
                 onBackClick = actions.onBack,
                 dropdownContent = {
-                    IconButton(onClick = actions.onCleanFile) {
+                    MiuixIconButton(onClick = actions.onCleanFile) {
                         Icon(
                             imageVector = Icons.TwoTone.DeleteSweep,
                             contentDescription = stringResource(R.string.sulog_clean_title),
                         )
                     }
-                    IconButton(onClick = { showFilterMenu = true }) {
+                    OverlayIconDropdownMenu(
+                        entry = DropdownEntry(
+                            items = SulogEventFilter.entries.map { filter ->
+                                DropdownItem(
+                                    text = sulogFilterLabel(filter),
+                                    selected = filter in state.selectedFilters,
+                                    onClick = { actions.onToggleFilter(filter) },
+                                )
+                            },
+                        ),
+                        collapseOnSelection = false,
+                    ) {
                         Icon(
                             imageVector = Icons.TwoTone.FilterList,
                             contentDescription = stringResource(R.string.sulog_filter_title),
                         )
-
-                        DropdownMenuPopup(
-                            expanded = showFilterMenu,
-                            onDismissRequest = { showFilterMenu = false },
-                        ) {
-                            DropdownMenuGroup(
-                                shapes = MenuDefaults.groupShapes(),
-                            ) {
-                                Spacer(modifier = Modifier.height(2.dp))
-
-                                SulogEventFilter.entries.forEachIndexed { index, filter ->
-                                    SelectableDropdownMenuItem(
-                                        selected = filter in state.selectedFilters,
-                                        onClick = {
-                                            haptic.performHapticFeedback(HapticFeedbackType.VirtualKey)
-                                            actions.onToggleFilter(filter)
-                                        },
-                                        text = { Text(sulogFilterLabel(filter)) },
-                                        shapes = MenuDefaults.itemShape(
-                                            index = index,
-                                            count = SulogEventFilter.entries.size,
-                                        ),
-                                    )
-                                    Spacer(modifier = Modifier.height(2.dp))
-                                }
-                            }
-                        }
                     }
                 },
                 scrollBehavior = scrollBehavior,

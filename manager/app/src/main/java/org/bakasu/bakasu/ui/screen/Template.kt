@@ -22,17 +22,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.ImportExport
 import androidx.compose.material.icons.twotone.Sync
-import androidx.compose.material3.DropdownMenuGroup
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.DropdownMenuPopup
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.MenuDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -83,8 +78,12 @@ import org.bakasu.bakasu.ui.viewmodel.TemplateUiEvent
 import org.bakasu.bakasu.ui.viewmodel.TemplateViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.Surface as MiuixSurface
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
+import top.yukonga.miuix.kmp.menu.OverlayIconDropdownMenu
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
@@ -386,50 +385,27 @@ private fun TopBar(
             )
         },
         actions = {
-            IconButton(onClick = onSync) {
+            MiuixIconButton(onClick = onSync) {
                 Icon(
                     Icons.TwoTone.Sync,
                     contentDescription = stringResource(id = R.string.app_profile_template_sync),
                 )
             }
 
-            var showDropdown by remember { mutableStateOf(false) }
-            IconButton(onClick = {
-                showDropdown = true
-            }) {
+            val importLabel = stringResource(id = R.string.app_profile_import_from_clipboard)
+            val exportLabel = stringResource(id = R.string.app_profile_export_to_clipboard)
+            OverlayIconDropdownMenu(
+                entry = DropdownEntry(
+                    items = listOf(
+                        DropdownItem(text = importLabel, onClick = onImport),
+                        DropdownItem(text = exportLabel, onClick = onExport),
+                    ),
+                ),
+            ) {
                 Icon(
                     imageVector = Icons.TwoTone.ImportExport,
                     contentDescription = stringResource(id = R.string.app_profile_import_export),
                 )
-
-                DropdownMenuPopup(expanded = showDropdown, onDismissRequest = {
-                    showDropdown = false
-                }) {
-                    DropdownMenuGroup(
-                        shapes = MenuDefaults.groupShapes(),
-                    ) {
-                        DropdownMenuItem(
-                            shape = MenuDefaults.itemShape(0, 2).shape,
-                            text = {
-                                Text(stringResource(id = R.string.app_profile_import_from_clipboard))
-                            },
-                            onClick = {
-                                onImport()
-                                showDropdown = false
-                            },
-                        )
-                        DropdownMenuItem(
-                            shape = MenuDefaults.itemShape(1, 2).shape,
-                            text = {
-                                Text(stringResource(id = R.string.app_profile_export_to_clipboard))
-                            },
-                            onClick = {
-                                onExport()
-                                showDropdown = false
-                            },
-                        )
-                    }
-                }
             }
         },
         windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
