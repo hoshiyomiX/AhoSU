@@ -307,7 +307,7 @@ fun SettingsSliderRow(
 @Composable
 fun SettingsValueRow(
     icon: ImageVector? = null,
-    title: String,
+    title: String? = null,
     summary: String? = null,
     enabled: Boolean = true,
     isError: Boolean = false,

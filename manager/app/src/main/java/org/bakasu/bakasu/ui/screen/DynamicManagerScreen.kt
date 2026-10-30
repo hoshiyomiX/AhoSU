@@ -58,8 +58,10 @@ import org.bakasu.bakasu.ui.component.rememberConfirmDialog
 import org.bakasu.bakasu.ui.component.rememberCustomDialog
 import org.bakasu.bakasu.ui.component.rememberSearchAppBarScrollBehavior
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsInfoRow
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
+import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldRow
+import org.bakasu.bakasu.ui.component.settings.SettingsValueRow
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.theme.blurSource
@@ -297,38 +299,36 @@ private fun DynamicManagerStatusSection(
         title = stringResource(R.string.dynamic_manager_title),
     ) {
         item {
-            SettingsBaseWidget(
+            SettingsInfoRow(
                 icon = Icons.TwoTone.Security,
                 title = stringResource(R.string.dynamic_manager_current_status),
-                description = currentStatus,
-                onClick = {},
+                summary = currentStatus,
             )
         }
 
         item(visible = config?.isValid == true) {
-            SettingsBaseWidget(
+            SettingsInfoRow(
                 icon = Icons.TwoTone.Security,
                 title = stringResource(R.string.signature_hash),
-                description = config?.hash.orEmpty(),
-                onClick = {},
+                summary = config?.hash.orEmpty(),
             )
         }
 
         item {
-            SettingsBaseWidget(
+            SettingsJumpRow(
                 icon = Icons.TwoTone.Edit,
                 title = stringResource(R.string.dynamic_manager_manual_config),
-                description = stringResource(R.string.dynamic_manager_manual_config_summary),
+                summary = stringResource(R.string.dynamic_manager_manual_config_summary),
                 enabled = enabled,
                 onClick = { onManualConfig() },
             )
         }
 
         item {
-            SettingsBaseWidget(
+            SettingsJumpRow(
                 icon = Icons.TwoTone.Delete,
                 title = stringResource(R.string.dynamic_manager_clear_config),
-                description = stringResource(R.string.dynamic_manager_clear_config_summary),
+                summary = stringResource(R.string.dynamic_manager_clear_config_summary),
                 enabled = enabled,
                 onClick = { onClearConfig() },
             )
@@ -341,13 +341,13 @@ private fun DynamicManagerAppItem(
     app: DynamicManagerAppItem,
     onClick: () -> Unit,
 ) {
-    SettingsBaseWidget(
+    SettingsValueRow(
         enabled = app.isChangeable,
         onClick = {
             onClick()
         },
         title = app.label,
-        description = if (!app.isChangeable) {
+        summary = if (!app.isChangeable) {
             stringResource(
                 R.string.dynamic_manager_fixed_manager_summary,
                 app.packageName,
@@ -371,14 +371,14 @@ private fun DynamicManagerAppItem(
                     .size(48.dp),
             )
         },
-        iconPlaceholder = false,
-    ) {
-        Checkbox(
-            checked = app.isSelected || !app.isChangeable,
-            enabled = app.isChangeable,
-            onCheckedChange = null,
-        )
-    }
+        endContent = {
+            Checkbox(
+                checked = app.isSelected || !app.isChangeable,
+                enabled = app.isChangeable,
+                onCheckedChange = null,
+            )
+        },
+    )
 }
 
 @Composable
@@ -418,22 +418,20 @@ private fun DynamicManagerManualDialog(
         text = {
             SegmentedColumn {
                 item {
-                    SettingsTextFieldWidget(
+                    SettingsTextFieldRow(
                         modifier = Modifier.fillMaxWidth(),
-                        renderBackgroundBlur = false,
-                        state = sizeState,
                         title = stringResource(R.string.signature_size),
+                        state = sizeState,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
                         lineLimits = TextFieldLineLimits.SingleLine,
                     )
                 }
 
                 item {
-                    SettingsTextFieldWidget(
+                    SettingsTextFieldRow(
                         modifier = Modifier.fillMaxWidth(),
-                        renderBackgroundBlur = false,
-                        state = hashState,
                         title = stringResource(R.string.signature_hash),
+                        state = hashState,
                         error = if (hash.isNotEmpty() && !hashValid) {
                             stringResource(R.string.hash_must_be_64_chars)
                         } else {

@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
@@ -28,15 +29,12 @@ import androidx.compose.material.icons.twotone.FileOpen
 import androidx.compose.material.icons.twotone.FileUpload
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material3.Button
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
@@ -74,9 +72,9 @@ import org.bakasu.bakasu.ui.component.rememberConfirmDialog
 import org.bakasu.bakasu.ui.component.rememberCustomDialog
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
 import org.bakasu.bakasu.ui.component.settings.SettingsChooseDialog
-import org.bakasu.bakasu.ui.component.settings.SettingsChooseWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsChooseRow
+import org.bakasu.bakasu.ui.component.settings.SettingsValueRow
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.navigation.Route
 import org.bakasu.bakasu.ui.rememberMaterial3BlurBackdrop
@@ -89,6 +87,10 @@ import org.bakasu.bakasu.ui.viewmodel.InstallUiEvent
 import org.bakasu.bakasu.ui.viewmodel.InstallViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.preference.CheckboxPreference
+import top.yukonga.miuix.kmp.preference.RadioButtonPreference
+import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -420,17 +422,11 @@ private fun LKMInstallPage(
                 lkmMethods.forEach { method ->
                     val selected = method.javaClass == lkmInstallMethod?.javaClass
                     item(key = method.javaClass) {
-                        SettingsBaseWidget(
+                        RadioButtonPreference(
                             title = stringResource(id = method.label),
-                            description = method.summary,
+                            summary = method.summary,
                             selected = selected,
                             onClick = { onMethodClick(method) },
-                            leadingContent = {
-                                RadioButton(
-                                    selected = selected,
-                                    onClick = null,
-                                )
-                            },
                         )
                     }
                 }
@@ -442,16 +438,17 @@ private fun LKMInstallPage(
                 expandableItem(
                     expanded = advancedOptionsShown,
                     topContent = {
-                        SettingsBaseWidget(
+                        SettingsValueRow(
                             icon = Icons.TwoTone.Settings,
                             title = stringResource(R.string.advanced_options),
                             onClick = {
                                 advancedOptionsShown = !advancedOptionsShown
                             },
-                            trailingContent = {
-                                Icon(
+                            endContent = {
+                                MiuixIcon(
                                     imageVector = Icons.TwoTone.ExpandMore,
                                     contentDescription = null,
+                                    tint = MiuixTheme.colorScheme.onBackground,
                                     modifier = Modifier.graphicsLayer {
                                         rotationZ = advRotation
                                     },
@@ -461,7 +458,7 @@ private fun LKMInstallPage(
                     },
                     bottomContent = {
                         item(visible = canSelectPartition && displayPartitions.isNotEmpty()) {
-                            SettingsChooseWidget(
+                            SettingsChooseRow(
                                 icon = Icons.TwoTone.AutoFixHigh,
                                 items = displayPartitions,
                                 selectedIndex = partitionSelectionIndex,
@@ -476,11 +473,10 @@ private fun LKMInstallPage(
                         item {
                             val hasLkmUri = lkmSelection is LkmSelection.LkmUri
 
-                            SettingsBaseWidget(
+                            SettingsValueRow(
                                 icon = Icons.TwoTone.FileOpen,
                                 title = stringResource(id = R.string.install_upload_lkm_file),
-                                description = stringResource(id = R.string.install_upload_lkm_file_summary),
-                                selected = hasLkmUri,
+                                summary = stringResource(id = R.string.install_upload_lkm_file_summary),
                                 onClick = {
                                     if (hasLkmUri) {
                                         lkmSelection = LkmSelection.KmiNone
@@ -493,7 +489,7 @@ private fun LKMInstallPage(
                                         )
                                     }
                                 },
-                                descriptionColumnContent = if (hasLkmUri) {
+                                bottomContent = if (hasLkmUri) {
                                     {
                                         Text(
                                             text = lkmFileName ?: "",
@@ -507,50 +503,29 @@ private fun LKMInstallPage(
                         }
 
                         item {
-                            SettingsBaseWidget(
-                                iconPlaceholder = false,
-                                selected = allowShell,
+                            CheckboxPreference(
                                 title = stringResource(id = R.string.allow_shell),
-                                description = stringResource(id = R.string.allow_shell_summary),
-                                onClick = { allowShell = !allowShell },
-                                leadingContent = {
-                                    Checkbox(
-                                        checked = allowShell,
-                                        onCheckedChange = null,
-                                    )
-                                },
+                                summary = stringResource(id = R.string.allow_shell_summary),
+                                checked = allowShell,
+                                onCheckedChange = { allowShell = it },
                             )
                         }
 
                         item {
-                            SettingsBaseWidget(
-                                iconPlaceholder = false,
-                                selected = enableAdb,
+                            CheckboxPreference(
                                 title = stringResource(id = R.string.enable_adb),
-                                description = stringResource(id = R.string.enable_adb_summary),
-                                onClick = { enableAdb = !enableAdb },
-                                leadingContent = {
-                                    Checkbox(
-                                        checked = enableAdb,
-                                        onCheckedChange = null,
-                                    )
-                                },
+                                summary = stringResource(id = R.string.enable_adb_summary),
+                                checked = enableAdb,
+                                onCheckedChange = { enableAdb = it },
                             )
                         }
 
                         item(visible = lkmInstallMethod is InstallMethod.SelectFile) {
-                            SettingsBaseWidget(
-                                iconPlaceholder = false,
-                                selected = forceBackup,
+                            CheckboxPreference(
                                 title = stringResource(id = R.string.install_force_backup),
-                                description = stringResource(id = R.string.install_force_backup_summary),
-                                onClick = { forceBackup = !forceBackup },
-                                leadingContent = {
-                                    Checkbox(
-                                        checked = forceBackup,
-                                        onCheckedChange = null,
-                                    )
-                                },
+                                summary = stringResource(id = R.string.install_force_backup_summary),
+                                checked = forceBackup,
+                                onCheckedChange = { forceBackup = it },
                             )
                         }
                     },
@@ -678,10 +653,17 @@ private fun Anykernel3InstallPage(
             item {
                 SegmentedColumn {
                     item {
-                        SettingsBaseWidget(
+                        RadioButtonPreference(
                             title = stringResource(R.string.GKI_install_methods),
-                            description = stringResource(R.string.ak3_select_zip),
-                            icon = Icons.TwoTone.FileUpload,
+                            summary = stringResource(R.string.ak3_select_zip),
+                            startAction = {
+                                MiuixIcon(
+                                    imageVector = Icons.TwoTone.FileUpload,
+                                    contentDescription = null,
+                                    tint = MiuixTheme.colorScheme.onBackground,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            },
                             selected = horizonSelected,
                             onClick = {
                                 selectImageLauncher.launch(
@@ -704,16 +686,17 @@ private fun Anykernel3InstallPage(
                     expandableItem(
                         expanded = advancedOptionsShown,
                         topContent = {
-                            SettingsBaseWidget(
+                            SettingsValueRow(
                                 icon = Icons.TwoTone.Settings,
                                 title = stringResource(R.string.advanced_options),
                                 onClick = {
                                     advancedOptionsShown = !advancedOptionsShown
                                 },
-                                trailingContent = {
-                                    Icon(
+                                endContent = {
+                                    MiuixIcon(
                                         imageVector = Icons.TwoTone.ExpandMore,
                                         contentDescription = null,
+                                        tint = MiuixTheme.colorScheme.onBackground,
                                         modifier = Modifier.graphicsLayer {
                                             rotationZ = ak3AdvRotation
                                         },
@@ -723,18 +706,11 @@ private fun Anykernel3InstallPage(
                         },
                         bottomContent = {
                             item {
-                                SettingsBaseWidget(
-                                    iconPlaceholder = false,
-                                    selected = skipKsud,
+                                CheckboxPreference(
                                     title = stringResource(id = R.string.skip_ksud),
-                                    description = stringResource(id = R.string.skip_ksud_summary),
-                                    onClick = { skipKsud = !skipKsud },
-                                    leadingContent = {
-                                        Checkbox(
-                                            checked = skipKsud,
-                                            onCheckedChange = null,
-                                        )
-                                    },
+                                    summary = stringResource(id = R.string.skip_ksud_summary),
+                                    checked = skipKsud,
+                                    onCheckedChange = { skipKsud = it },
                                 )
                             }
                         },

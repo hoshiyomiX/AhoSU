@@ -32,7 +32,6 @@ import androidx.compose.material.icons.twotone.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
@@ -80,10 +79,11 @@ import org.bakasu.bakasu.ui.component.rememberConfirmDialog
 import org.bakasu.bakasu.ui.component.scriptLastRunText
 import org.bakasu.bakasu.ui.component.settings.AppBackButton
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsDropdownWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsSwitchWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsDropdownRow
+import org.bakasu.bakasu.ui.component.settings.SettingsInfoRow
+import org.bakasu.bakasu.ui.component.settings.SettingsSwitchRow
+import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldRow
+import org.bakasu.bakasu.ui.component.settings.SettingsValueRow
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.navigation.Route
@@ -258,22 +258,19 @@ fun ScriptRunScreen(route: Route.ScriptRun) {
                 }
                 if (prepared != null) {
                     lazySegmentColumn(items = listOf(prepared.manifest)) { _, manifest ->
-                        SettingsBaseWidget(
+                        SettingsInfoRow(
                             title = manifest.name,
-                            description = listOfNotNull(
+                            summary = listOfNotNull(
                                 listOfNotNull(manifest.version.takeIf { it.isNotBlank() }, manifest.versionCode?.let { "($it)" }).joinToString(" ").takeIf { it.isNotBlank() },
                                 manifest.author.takeIf { it.isNotBlank() }?.let { "${stringResource(R.string.module_author)}: $it" },
                                 manifest.description.takeIf { it.isNotBlank() },
                             ).joinToString("\n"),
-                            iconPlaceholder = false,
                         )
                     }
                     lazySegmentColumn(items = listOf(state.lastRun)) { _, last ->
-                        SettingsBaseWidget(
+                        SettingsInfoRow(
                             title = stringResource(R.string.script_notice),
-                            titleStyle = MaterialTheme.typography.bodyMedium,
-                            description = scriptLastRunText(last),
-                            iconPlaceholder = false,
+                            summary = scriptLastRunText(last),
                         )
                     }
                     lazySegmentColumn(items = prepared.params.params, title = paramsTitle, key = { _, param -> param.key }) { _, param ->
@@ -301,15 +298,15 @@ fun ScriptRunScreen(route: Route.ScriptRun) {
 private fun ScriptParamField(param: ScriptParam, state: ScriptRunUiState, onValue: (String, String) -> Unit) {
     val value = state.values[param.key] ?: param.defaultValue
     when (param) {
-        is ScriptParam.Bool -> SettingsSwitchWidget(title = param.label, description = param.description, iconPlaceholder = false, checked = value == "true", onCheckedChange = { onValue(param.key, it.toString()) })
+        is ScriptParam.Bool -> SettingsSwitchRow(title = param.label, summary = param.description, checked = value == "true", onCheckedChange = { onValue(param.key, it.toString()) })
 
-        is ScriptParam.Choice -> SettingsDropdownWidget(
+        is ScriptParam.Choice -> SettingsDropdownRow(
             title = param.label,
-            description = listOfNotNull(param.description, param.options.firstOrNull { it.value == value }?.let { it.label ?: it.value }).joinToString("\n"),
-            iconPlaceholder = false,
-            choice = param.options.indexOfFirst { it.value == value }.coerceAtLeast(0),
-            data = param.options.map { it.label ?: it.value },
-            onChoiceChange = { onValue(param.key, param.options[it].value) },
+            summary = listOfNotNull(param.description, param.options.firstOrNull { it.value == value }?.let { it.label ?: it.value }).joinToString("\n"),
+            showValue = false,
+            items = param.options.map { it.label ?: it.value },
+            selectedIndex = param.options.indexOfFirst { it.value == value }.coerceAtLeast(0),
+            onSelectedIndexChange = { onValue(param.key, param.options[it].value) },
         )
 
         is ScriptParam.Text, is ScriptParam.Integer -> when {
@@ -323,17 +320,17 @@ private fun ScriptParamField(param: ScriptParam, state: ScriptRunUiState, onValu
 
             param is ScriptParam.Integer && param.min != null && param.max != null -> {
                 // min == max: a single allowed value, nothing to pick.
-                SettingsBaseWidget(
+                SettingsValueRow(
                     title = param.label,
-                    description = param.description,
-                    iconPlaceholder = false,
-                ) {
-                    MiuixText(
-                        text = param.min.toString(),
-                        style = MiuixTheme.textStyles.footnote2,
-                        color = MiuixTheme.colorScheme.primary,
-                    )
-                }
+                    summary = param.description,
+                    endContent = {
+                        MiuixText(
+                            text = param.min.toString(),
+                            style = MiuixTheme.textStyles.footnote2,
+                            color = MiuixTheme.colorScheme.primary,
+                        )
+                    },
+                )
             }
 
             else -> {
@@ -341,9 +338,9 @@ private fun ScriptParamField(param: ScriptParam, state: ScriptRunUiState, onValu
                 LaunchedEffect(field, param.key) { snapshotFlow { field.text.toString() }.collect { onValue(param.key, it) } }
                 val error = state.errors[param.key]?.let { paramErrorText(param, it) }
                 Column {
-                    SettingsTextFieldWidget(
-                        state = field,
+                    SettingsTextFieldRow(
                         title = param.label,
+                        state = field,
                         error = error.orEmpty(),
                         lineLimits = TextFieldLineLimits.SingleLine,
                         keyboardOptions = if (param is ScriptParam.Integer) KeyboardOptions(keyboardType = if ((param.min ?: Int.MIN_VALUE) < 0) KeyboardType.Ascii else KeyboardType.Number) else KeyboardOptions.Default,
@@ -372,11 +369,10 @@ private fun ScriptIntegerSliderParam(
     val max = param.max ?: Int.MAX_VALUE
     val current = (ScriptParam.Integer.parseInteger(value) ?: param.default).coerceIn(min, max)
     val hintColor = MaterialTheme.colorScheme.onSurfaceVariant
-    SettingsBaseWidget(
+    SettingsValueRow(
         title = param.label,
-        description = param.description,
-        iconPlaceholder = false,
-        descriptionColumnContent = {
+        summary = param.description,
+        bottomContent = {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -396,13 +392,14 @@ private fun ScriptIntegerSliderParam(
                 MiuixText(text = max.toString(), style = MiuixTheme.textStyles.footnote2, color = hintColor)
             }
         },
-    ) {
-        MiuixText(
-            text = current.toString(),
-            style = MiuixTheme.textStyles.footnote2,
-            color = MiuixTheme.colorScheme.primary,
-        )
-    }
+        endContent = {
+            MiuixText(
+                text = current.toString(),
+                style = MiuixTheme.textStyles.footnote2,
+                color = MiuixTheme.colorScheme.primary,
+            )
+        },
+    )
 }
 
 /**
@@ -419,18 +416,18 @@ private fun ScriptIntegerPickerParam(
     val min = param.min ?: Int.MIN_VALUE
     val max = param.max ?: Int.MAX_VALUE
     val current = (ScriptParam.Integer.parseInteger(value) ?: param.default).coerceIn(min, max)
-    SettingsBaseWidget(
+    SettingsValueRow(
         title = param.label,
-        description = param.description,
-        iconPlaceholder = false,
+        summary = param.description,
         onClick = { showPicker = true },
-    ) {
-        MiuixText(
-            text = current.toString(),
-            style = MiuixTheme.textStyles.footnote2,
-            color = MiuixTheme.colorScheme.primary,
-        )
-    }
+        endContent = {
+            MiuixText(
+                text = current.toString(),
+                style = MiuixTheme.textStyles.footnote2,
+                color = MiuixTheme.colorScheme.primary,
+            )
+        },
+    )
     if (showPicker) {
         ScriptIntegerPickerDialog(
             title = param.label,
@@ -500,21 +497,24 @@ private fun ScriptSource(prepared: PreparedScript) {
         expandableItem(
             expanded = expanded,
             topContent = {
-                SettingsBaseWidget(
+                SettingsValueRow(
                     title = stringResource(R.string.script_source),
-                    description = if (prepared.actionSourceTruncated) stringResource(R.string.script_source_truncated) else null,
-                    iconPlaceholder = false,
+                    summary = if (prepared.actionSourceTruncated) stringResource(R.string.script_source_truncated) else null,
                     onClick = { expanded = !expanded },
-                ) {
-                    Icon(if (expanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore, contentDescription = stringResource(if (expanded) R.string.script_collapse_source else R.string.script_expand_source))
-                }
+                    endContent = {
+                        MiuixIcon(
+                            imageVector = if (expanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
+                            contentDescription = stringResource(if (expanded) R.string.script_collapse_source else R.string.script_expand_source),
+                            tint = MiuixTheme.colorScheme.onBackground,
+                        )
+                    },
+                )
             },
         ) {
             item {
-                SettingsBaseWidget(
+                SettingsValueRow(
                     title = null,
-                    iconPlaceholder = false,
-                    descriptionColumnContent = {
+                    bottomContent = {
                         if (highlighted == null) {
                             if (expanded) LoadingIndicator()
                         } else {
