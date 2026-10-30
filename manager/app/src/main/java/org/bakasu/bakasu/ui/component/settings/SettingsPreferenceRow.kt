@@ -16,6 +16,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.input.InputTransformation
 import androidx.compose.foundation.text.input.KeyboardActionHandler
+import androidx.compose.foundation.text.input.TextFieldLineLimits
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -441,6 +442,7 @@ fun SettingsMultiChooseRow(
  * @param inputTransformation Optional [InputTransformation] applied to the input.
  * @param keyboardOptions The soft-keyboard options for the input.
  * @param onKeyboardAction Optional handler for IME actions.
+ * @param lineLimits The line limits applied to the input (single- or multi-line).
  * @param leadingIcon Optional composable rendered inside the field on the leading side.
  * @param trailingIcon Optional composable rendered inside the field on the trailing side.
  */
@@ -455,6 +457,7 @@ fun SettingsTextFieldRow(
     inputTransformation: InputTransformation? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
     onKeyboardAction: KeyboardActionHandler? = null,
+    lineLimits: TextFieldLineLimits = TextFieldLineLimits.Default,
     leadingIcon: (@Composable () -> Unit)? = null,
     trailingIcon: (@Composable () -> Unit)? = null,
 ) {
@@ -472,6 +475,7 @@ fun SettingsTextFieldRow(
                 inputTransformation = inputTransformation,
                 keyboardOptions = keyboardOptions,
                 onKeyboardAction = onKeyboardAction,
+                lineLimits = lineLimits,
                 leadingIcon = leadingIcon,
                 trailingIcon = trailingIcon,
             )

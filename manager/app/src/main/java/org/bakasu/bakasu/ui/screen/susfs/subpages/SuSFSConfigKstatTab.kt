@@ -23,14 +23,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.model.SusKstatItem
 import org.bakasu.bakasu.domain.model.SusKstatStatically
 import org.bakasu.bakasu.domain.model.SusKstatType
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
 import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
-import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldRow
 import org.bakasu.bakasu.ui.screen.susfs.RegisterSuSFSRefresh
 import org.bakasu.bakasu.ui.screen.susfs.SuSFSRefreshRegistrar
 import org.bakasu.bakasu.ui.screen.susfs.component.EntryDetailDialog
@@ -46,6 +46,7 @@ import org.bakasu.bakasu.ui.viewmodel.SusKstatOperation
 import org.bakasu.bakasu.ui.viewmodel.awaitSuSFSBoolean
 import org.bakasu.bakasu.ui.viewmodel.awaitSuSFSConfig
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.SmallTitle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -246,27 +247,24 @@ fun SusKstatTab(
         },
         formContent = {
             item(key = "susfs_kstat_path") {
-                SettingsTextFieldWidget(
-                    state = manualPath,
+                SettingsTextFieldRow(
                     title = pathLabel,
-                    useLabelAsPlaceholder = true,
+                    state = manualPath,
                     enabled = !isLoading,
                     lineLimits = if (selectedSubtype == subtypeStatically) {
                         TextFieldLineLimits.MultiLine(minHeightInLines = 4, maxHeightInLines = 8)
                     } else {
                         TextFieldLineLimits.SingleLine
                     },
-                    renderBackgroundBlur = false,
                 )
             }
             item(
                 key = "susfs_kstat_static_fields",
                 visible = selectedSubtype == subtypeStatically,
             ) {
-                SettingsBaseWidget(
-                    iconPlaceholder = false,
-                    title = staticallyFieldsLabel,
-                    isOnBackground = false,
+                SmallTitle(
+                    text = staticallyFieldsLabel,
+                    insideMargin = PaddingValues(start = 16.dp, top = 8.dp, bottom = 8.dp),
                 )
             }
             listOf(
@@ -284,13 +282,11 @@ fun SusKstatTab(
                 "blksize" to statBlksize,
             ).forEachIndexed { index, (label, state) ->
                 item(key = "susfs_kstat_static_$index") {
-                    SettingsTextFieldWidget(
-                        state = state,
+                    SettingsTextFieldRow(
                         title = label,
-                        useLabelAsPlaceholder = true,
+                        state = state,
                         enabled = !isLoading,
                         lineLimits = TextFieldLineLimits.SingleLine,
-                        renderBackgroundBlur = false,
                     )
                 }
             }

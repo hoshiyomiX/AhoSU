@@ -30,8 +30,8 @@ import kotlinx.coroutines.withContext
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumnScope
-import org.bakasu.bakasu.ui.component.settings.SettingsDropdownWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsDropdownRow
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
 import org.bakasu.bakasu.ui.util.LocalSnackbarHost
 import org.bakasu.bakasu.ui.util.showReplacingSnackbar
 import top.yukonga.miuix.kmp.basic.Button
@@ -188,25 +188,23 @@ fun ManualAddDialog(
                 SegmentedColumn(contentPadding = PaddingValues(0.dp)) {
                     if (subtypes.size > 1) {
                         item {
-                            SettingsDropdownWidget(
+                            SettingsDropdownRow(
                                 title = stringResource(R.string.susfs_entry_select_subtype),
-                                description = selectedSubtype,
-                                iconPlaceholder = false,
-                                choice = subtypes.indexOf(selectedSubtype).coerceAtLeast(0),
-                                data = subtypes,
-                                renderBackgroundBlur = false,
-                                onChoiceChange = { index -> onSubtypeChange(subtypes[index]) },
+                                summary = selectedSubtype,
+                                showValue = false,
+                                items = subtypes,
+                                selectedIndex = subtypes.indexOf(selectedSubtype).coerceAtLeast(0),
+                                onSelectedIndexChange = { index -> onSubtypeChange(subtypes[index]) },
                             )
                         }
                     }
                     formContent()
                     if (showImportFromFile) {
                         item {
-                            SettingsJumpPageWidget(
+                            SettingsJumpRow(
                                 icon = Icons.Default.UploadFile,
                                 title = importFromFileLabel,
-                                description = stringResource(R.string.susfs_entry_import_hint),
-                                renderBackgroundBlur = false,
+                                summary = stringResource(R.string.susfs_entry_import_hint),
                                 onClick = { pickFileLauncher.launch(arrayOf("*/*")) },
                             )
                         }

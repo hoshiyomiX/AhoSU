@@ -26,7 +26,7 @@ import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
-import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldRow
 import org.bakasu.bakasu.ui.screen.susfs.RegisterSuSFSRefresh
 import org.bakasu.bakasu.ui.screen.susfs.SuSFSRefreshRegistrar
 import org.bakasu.bakasu.ui.screen.susfs.component.EntryDetailDialog
@@ -176,16 +176,14 @@ fun SusMapTab(
         },
         formContent = {
             item {
-                SettingsTextFieldWidget(
-                    state = manualPath,
+                SettingsTextFieldRow(
                     title = pathLabel,
-                    useLabelAsPlaceholder = true,
+                    state = manualPath,
                     enabled = !isLoading,
                     lineLimits = TextFieldLineLimits.MultiLine(
                         minHeightInLines = 4,
                         maxHeightInLines = 8,
                     ),
-                    renderBackgroundBlur = false,
                 )
             }
         },

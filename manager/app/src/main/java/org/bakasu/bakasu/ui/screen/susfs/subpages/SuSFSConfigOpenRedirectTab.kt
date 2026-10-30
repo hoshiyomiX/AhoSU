@@ -26,9 +26,9 @@ import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.model.OpenRedirectItem
 import org.bakasu.bakasu.domain.model.UidScheme
-import org.bakasu.bakasu.ui.component.settings.SettingsDropdownWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsDropdownRow
 import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
-import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldRow
 import org.bakasu.bakasu.ui.screen.susfs.RegisterSuSFSRefresh
 import org.bakasu.bakasu.ui.screen.susfs.SuSFSRefreshRegistrar
 import org.bakasu.bakasu.ui.screen.susfs.component.EntryDetailDialog
@@ -173,35 +173,30 @@ fun OpenRedirectTab(
         },
         formContent = {
             item {
-                SettingsTextFieldWidget(
-                    state = manualTarget,
+                SettingsTextFieldRow(
                     title = targetPathLabel,
-                    useLabelAsPlaceholder = true,
+                    state = manualTarget,
                     enabled = !isLoading,
                     lineLimits = TextFieldLineLimits.SingleLine,
-                    renderBackgroundBlur = false,
                 )
             }
             item {
-                SettingsTextFieldWidget(
-                    state = manualRedirected,
+                SettingsTextFieldRow(
                     title = redirectedPathLabel,
-                    useLabelAsPlaceholder = true,
+                    state = manualRedirected,
                     enabled = !isLoading,
                     lineLimits = TextFieldLineLimits.SingleLine,
-                    renderBackgroundBlur = false,
                 )
             }
             item {
-                SettingsDropdownWidget(
+                SettingsDropdownRow(
                     title = uidSchemeLabel,
-                    description = selectedUidLabel,
-                    iconPlaceholder = false,
-                    choice = uidSchemeOptions.indexOfFirst { it.first == manualUidScheme }
+                    summary = selectedUidLabel,
+                    showValue = false,
+                    items = uidSchemeOptions.map { it.second },
+                    selectedIndex = uidSchemeOptions.indexOfFirst { it.first == manualUidScheme }
                         .coerceAtLeast(0),
-                    data = uidSchemeOptions.map { it.second },
-                    renderBackgroundBlur = false,
-                    onChoiceChange = { index -> manualUidScheme = uidSchemeOptions[index].first },
+                    onSelectedIndexChange = { index -> manualUidScheme = uidSchemeOptions[index].first },
                 )
             }
         },

@@ -49,7 +49,7 @@ import org.bakasu.bakasu.domain.model.SuSFSSlotInfo
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
 import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
 import org.bakasu.bakasu.ui.component.settings.SettingsSwitchRow
-import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldRow
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.screen.susfs.RegisterSuSFSRefresh
 import org.bakasu.bakasu.ui.screen.susfs.SuSFSRefreshRegistrar
@@ -386,21 +386,17 @@ fun StandardFeaturesTab(
                         UnameDialogTab.Manual -> {
                             SegmentedColumn(contentPadding = PaddingValues(top = 8.dp)) {
                                 item {
-                                    SettingsTextFieldWidget(
-                                        state = unameReleaseInput,
+                                    SettingsTextFieldRow(
                                         title = stringResource(R.string.susfs_standard_uname_release),
-                                        useLabelAsPlaceholder = true,
+                                        state = unameReleaseInput,
                                         lineLimits = TextFieldLineLimits.SingleLine,
-                                        renderBackgroundBlur = false,
                                     )
                                 }
                                 item {
-                                    SettingsTextFieldWidget(
-                                        state = unameVersionInput,
+                                    SettingsTextFieldRow(
                                         title = stringResource(R.string.susfs_standard_uname_version),
-                                        useLabelAsPlaceholder = true,
+                                        state = unameVersionInput,
                                         lineLimits = TextFieldLineLimits.SingleLine,
-                                        renderBackgroundBlur = false,
                                     )
                                 }
                             }
@@ -499,12 +495,10 @@ fun StandardFeaturesTab(
             Column(modifier = Modifier.fillMaxWidth()) {
                 SegmentedColumn(contentPadding = PaddingValues(0.dp)) {
                     item {
-                        SettingsTextFieldWidget(
-                            state = cmdlineInput,
+                        SettingsTextFieldRow(
                             title = stringResource(R.string.susfs_standard_cmdline_path),
-                            useLabelAsPlaceholder = true,
+                            state = cmdlineInput,
                             lineLimits = TextFieldLineLimits.SingleLine,
-                            renderBackgroundBlur = false,
                         )
                     }
                 }
