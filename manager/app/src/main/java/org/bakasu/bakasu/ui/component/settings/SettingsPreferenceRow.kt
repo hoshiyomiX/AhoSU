@@ -191,6 +191,43 @@ fun SettingsJumpRow(
 }
 
 /**
+ * A non-interactive settings row built on the miuix [BasicComponent]: an icon, a title and an
+ * optional summary for read-only status values, rendered inside the segmented glass card.
+ *
+ * @param icon The [ImageVector] to be displayed at the start of the row.
+ * @param title The primary text displayed in the row.
+ * @param summary Optional supporting text displayed below the title.
+ * @param enabled Whether the row content is shown in its enabled state.
+ * @param isError If true, renders the summary with the miuix error color.
+ * @param modifier The modifier to be applied to the row container.
+ */
+@Composable
+fun SettingsInfoRow(
+    icon: ImageVector? = null,
+    title: String,
+    summary: String? = null,
+    enabled: Boolean = true,
+    isError: Boolean = false,
+    modifier: Modifier = Modifier,
+) {
+    PreferenceRowContainer(modifier = modifier) {
+        BasicComponent(
+            title = title,
+            summary = summary,
+            summaryColor = BasicComponentDefaults.summaryColor(
+                color = if (isError) {
+                    MiuixTheme.colorScheme.error
+                } else {
+                    MiuixTheme.colorScheme.onSurfaceVariantSummary
+                },
+            ),
+            enabled = enabled,
+            startAction = icon?.let { vector -> { PreferenceRowIcon(vector) } },
+        )
+    }
+}
+
+/**
  * A settings row built on the miuix [SliderPreference]: title (and optional icon) on top,
  * the slider in the row's bottom area, and the current value shown on the end side — the
  * native HyperOS "row slider" pattern, replacing the hand-rolled trailing-value layouts.

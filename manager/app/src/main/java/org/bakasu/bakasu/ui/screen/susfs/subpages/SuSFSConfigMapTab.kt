@@ -25,7 +25,7 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
 import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
 import org.bakasu.bakasu.ui.screen.susfs.RegisterSuSFSRefresh
 import org.bakasu.bakasu.ui.screen.susfs.SuSFSRefreshRegistrar
@@ -115,8 +115,7 @@ fun SusMapTab(
             entryKey = { it },
             onAddEntry = { showManualAdd = true },
         ) { path ->
-            SettingsJumpPageWidget(
-                iconPlaceholder = false,
+            SettingsJumpRow(
                 title = path,
                 onClick = { detailItem = path },
             )

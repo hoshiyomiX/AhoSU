@@ -29,7 +29,7 @@ import org.bakasu.bakasu.domain.model.SusKstatItem
 import org.bakasu.bakasu.domain.model.SusKstatStatically
 import org.bakasu.bakasu.domain.model.SusKstatType
 import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
 import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
 import org.bakasu.bakasu.ui.screen.susfs.RegisterSuSFSRefresh
 import org.bakasu.bakasu.ui.screen.susfs.SuSFSRefreshRegistrar
@@ -161,10 +161,9 @@ fun SusKstatTab(
             entryKey = { it.path },
             onAddEntry = { showManualAdd = true },
         ) { item ->
-            SettingsJumpPageWidget(
-                iconPlaceholder = false,
+            SettingsJumpRow(
                 title = item.path,
-                description = stringResource(item.spoof_type.resId),
+                summary = stringResource(item.spoof_type.resId),
                 onClick = { detailItem = item },
             )
         }

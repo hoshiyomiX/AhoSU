@@ -47,9 +47,8 @@ import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.model.SuSFSSlotInfo
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsSwitchWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
+import org.bakasu.bakasu.ui.component.settings.SettingsSwitchRow
 import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.screen.susfs.RegisterSuSFSRefresh
@@ -63,10 +62,10 @@ import org.bakasu.bakasu.ui.viewmodel.awaitSuSFSSlotInfo
 import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
-import top.yukonga.miuix.kmp.basic.RadioButton
 import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
+import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 private enum class UnameDialogTab {
@@ -269,40 +268,40 @@ fun StandardFeaturesTab(
                 item {
                     SegmentedColumn {
                         item {
-                            SettingsSwitchWidget(
+                            SettingsSwitchRow(
                                 icon = Icons.TwoTone.BugReport,
                                 title = stringResource(R.string.susfs_standard_logging),
-                                description = stringResource(R.string.susfs_standard_logging_desc),
+                                summary = stringResource(R.string.susfs_standard_logging_desc),
                                 checked = loggingEnabled,
                                 onCheckedChange = handleLoggingChange,
                             )
                         }
 
                         item {
-                            SettingsSwitchWidget(
+                            SettingsSwitchRow(
                                 icon = Icons.TwoTone.Security,
                                 title = stringResource(R.string.susfs_standard_avc_log_spoofing),
-                                description = stringResource(R.string.susfs_standard_avc_log_spoofing_desc),
+                                summary = stringResource(R.string.susfs_standard_avc_log_spoofing_desc),
                                 checked = avcLogSpoofingEnabled,
                                 onCheckedChange = handleAvcLogSpoofingChange,
                             )
                         }
 
                         item {
-                            SettingsSwitchWidget(
+                            SettingsSwitchRow(
                                 icon = Icons.TwoTone.VisibilityOff,
                                 title = stringResource(R.string.susfs_standard_hide_sus_mnts),
-                                description = stringResource(R.string.susfs_standard_hide_sus_mnts_desc),
+                                summary = stringResource(R.string.susfs_standard_hide_sus_mnts_desc),
                                 checked = hideSusMntsEnabled,
                                 onCheckedChange = handleHideSusMntsChange,
                             )
                         }
 
                         item {
-                            SettingsJumpPageWidget(
+                            SettingsJumpRow(
                                 icon = Icons.TwoTone.Computer,
                                 title = stringResource(R.string.susfs_standard_uname),
-                                description = stringResource(
+                                summary = stringResource(
                                     R.string.susfs_standard_current_value,
                                     "$unameRelease / $unameVersion",
                                 ),
@@ -320,10 +319,10 @@ fun StandardFeaturesTab(
                         }
 
                         item {
-                            SettingsJumpPageWidget(
+                            SettingsJumpRow(
                                 icon = Icons.TwoTone.Code,
                                 title = stringResource(R.string.susfs_standard_cmdline_or_bootconfig),
-                                description = stringResource(
+                                summary = stringResource(
                                     R.string.susfs_standard_current_value,
                                     cmdlineOrBootconfig.ifBlank { stringResource(R.string.susfs_standard_not_set) },
                                 ),
@@ -463,23 +462,11 @@ fun StandardFeaturesTab(
                                                 "$index:${slot.slotName}"
                                             },
                                         ) { _, slot ->
-                                            val selected =
-                                                selectedSlotName == slot.slotName
-                                            SettingsBaseWidget(
-                                                iconPlaceholder = false,
+                                            RadioButtonPreference(
                                                 title = slot.slotName,
-                                                description = "${slot.uname}\n${slot.buildTime}",
-                                                selected = selected,
-                                                isOnBackground = false,
-                                                onClick = {
-                                                    selectedSlotName = slot.slotName
-                                                },
-                                                leadingContent = {
-                                                    RadioButton(
-                                                        selected = selected,
-                                                        onClick = null,
-                                                    )
-                                                },
+                                                summary = "${slot.uname}\n${slot.buildTime}",
+                                                selected = selectedSlotName == slot.slotName,
+                                                onClick = { selectedSlotName = slot.slotName },
                                             )
                                         }
                                     }

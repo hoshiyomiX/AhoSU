@@ -27,7 +27,7 @@ import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.model.OpenRedirectItem
 import org.bakasu.bakasu.domain.model.UidScheme
 import org.bakasu.bakasu.ui.component.settings.SettingsDropdownWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
 import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
 import org.bakasu.bakasu.ui.screen.susfs.RegisterSuSFSRefresh
 import org.bakasu.bakasu.ui.screen.susfs.SuSFSRefreshRegistrar
@@ -128,10 +128,9 @@ fun OpenRedirectTab(
             entryKey = { "${it.target_path}|${it.redirected_path}|${it.uid_scheme.value}" },
             onAddEntry = { showManualAdd = true },
         ) { item ->
-            SettingsJumpPageWidget(
-                iconPlaceholder = false,
+            SettingsJumpRow(
                 title = item.target_path,
-                description = stringResource(
+                summary = stringResource(
                     R.string.susfs_redirect_entry_description,
                     item.redirected_path,
                     item.uid_scheme.localizedLabel(),

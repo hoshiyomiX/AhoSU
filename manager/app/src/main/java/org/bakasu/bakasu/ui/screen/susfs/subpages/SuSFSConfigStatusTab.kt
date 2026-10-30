@@ -43,9 +43,9 @@ import org.bakasu.bakasu.domain.usecase.RebootUseCase
 import org.bakasu.bakasu.ui.component.WarningCard
 import org.bakasu.bakasu.ui.component.rememberConfirmDialog
 import org.bakasu.bakasu.ui.component.settings.SegmentedColumn
-import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
-import org.bakasu.bakasu.ui.component.settings.SettingsSwitchWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsInfoRow
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
+import org.bakasu.bakasu.ui.component.settings.SettingsSwitchRow
 import org.bakasu.bakasu.ui.screen.susfs.RegisterSuSFSRefresh
 import org.bakasu.bakasu.ui.screen.susfs.SuSFSRefreshRegistrar
 import org.bakasu.bakasu.ui.util.LocalSnackbarHost
@@ -128,38 +128,38 @@ fun StatusTab(
         item {
             SegmentedColumn {
                 item {
-                    SettingsSwitchWidget(
+                    SettingsSwitchRow(
                         icon = Icons.TwoTone.Save,
                         title = stringResource(R.string.susfs_enable_config),
-                        description = stringResource(R.string.susfs_enable_config_summary),
+                        summary = stringResource(R.string.susfs_enable_config_summary),
                         checked = configEnabled,
                         enabled = configEnabledLoaded,
                         onCheckedChange = onConfigEnabledChange,
                     )
                 }
                 item {
-                    SettingsBaseWidget(
+                    SettingsInfoRow(
                         icon = Icons.TwoTone.Info,
                         title = stringResource(R.string.susfs_status_version),
-                        description = statusInfo.version.ifBlank {
+                        summary = statusInfo.version.ifBlank {
                             stringResource(R.string.susfs_status_no_data)
                         },
                     )
                 }
                 item {
-                    SettingsBaseWidget(
+                    SettingsInfoRow(
                         icon = Icons.TwoTone.Settings,
                         title = stringResource(R.string.susfs_status_variant),
-                        description = statusInfo.variant.ifBlank {
+                        summary = statusInfo.variant.ifBlank {
                             stringResource(R.string.susfs_status_no_data)
                         },
                     )
                 }
                 item {
-                    SettingsBaseWidget(
+                    SettingsInfoRow(
                         icon = Icons.TwoTone.TaskAlt,
                         title = stringResource(R.string.susfs_status_enabled_features),
-                        description = statusInfo.enabledFeatures.ifBlank {
+                        summary = statusInfo.enabledFeatures.ifBlank {
                             stringResource(R.string.susfs_status_no_data)
                         },
                     )
@@ -229,20 +229,20 @@ fun BackupRestoreSection(
 
     SegmentedColumn {
         item {
-            SettingsJumpPageWidget(
+            SettingsJumpRow(
                 icon = Icons.TwoTone.Save,
                 title = exportTitle,
-                description = exportDesc,
+                summary = exportDesc,
                 onClick = {
                     exportLauncher.launch("susfs_backup.json")
                 },
             )
         }
         item {
-            SettingsJumpPageWidget(
+            SettingsJumpRow(
                 icon = Icons.TwoTone.Restore,
                 title = importTitle,
-                description = importDesc,
+                summary = importDesc,
                 onClick = {
                     importLauncher.launch(arrayOf("application/json"))
                 },
@@ -317,10 +317,10 @@ private fun RestoreDefaultRow(
 ) {
     val configHelper = koinViewModel<SuSFSViewModel>()
     val scope = rememberCoroutineScope()
-    SettingsJumpPageWidget(
+    SettingsJumpRow(
         icon = Icons.TwoTone.RestartAlt,
         title = title,
-        description = description,
+        summary = description,
         onClick = {
             scope.launch {
                 val ok = awaitSuSFSBoolean(configHelper) { reply ->

@@ -24,7 +24,7 @@ import androidx.compose.ui.res.stringResource
 import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.model.SusPathItem
-import org.bakasu.bakasu.ui.component.settings.SettingsJumpPageWidget
+import org.bakasu.bakasu.ui.component.settings.SettingsJumpRow
 import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldWidget
 import org.bakasu.bakasu.ui.screen.susfs.RegisterSuSFSRefresh
 import org.bakasu.bakasu.ui.screen.susfs.SuSFSRefreshRegistrar
@@ -111,10 +111,9 @@ fun SusPathTab(
             entryKey = { it.path },
             onAddEntry = { showManualAdd = true },
         ) { item ->
-            SettingsJumpPageWidget(
-                iconPlaceholder = false,
+            SettingsJumpRow(
                 title = item.path,
-                description = if (item.is_loop) isLoopLabel else null,
+                summary = if (item.is_loop) isLoopLabel else null,
                 onClick = { detailItem = item },
             )
         }
