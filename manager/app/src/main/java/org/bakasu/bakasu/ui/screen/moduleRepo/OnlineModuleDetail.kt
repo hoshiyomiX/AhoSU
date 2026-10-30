@@ -110,9 +110,9 @@ import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.TextButton
-import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
@@ -144,7 +144,7 @@ fun OnlineModuleDetailScreen(
         MiuixScaffold(
             modifier = Modifier.nestedScroll(scroll.nestedScrollConnection),
             topBar = {
-                MiuixTopAppBar(
+                SmallTopAppBar(
                     modifier = Modifier.blurEffect(),
                     title = stringResource(R.string.module_repo),
                     color = barColor,
@@ -203,7 +203,7 @@ private fun OnlineModuleDetailContent(module: CatalogModule, viewModel: ModuleDe
     MiuixScaffold(
         modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            MiuixTopAppBar(
+            SmallTopAppBar(
                 modifier = Modifier.blurEffect(),
                 title = module.moduleName,
                 color = barColor,
