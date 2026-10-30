@@ -260,19 +260,19 @@ fun UmountManagerScreen() {
                                                 title = confirmDelete,
                                                 content = confirmDeleteSummary,
                                             )
-                                        if (confirmResult != ConfirmResult.Confirmed) {
-                                            return@launch
+                                            if (confirmResult != ConfirmResult.Confirmed) {
+                                                return@launch
+                                            }
+                                            viewModel.dispatch(UmountManagerUiAction.Remove(entry))
                                         }
-                                        viewModel.dispatch(UmountManagerUiAction.Remove(entry))
-                                    }
-                                },
-                            ) {
-                                Icon(
-                                    imageVector = Icons.TwoTone.Delete,
-                                    contentDescription = null,
-                                    tint = MaterialTheme.colorScheme.error,
-                                )
-                            }
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.TwoTone.Delete,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                    )
+                                }
                             },
                         )
                     }
