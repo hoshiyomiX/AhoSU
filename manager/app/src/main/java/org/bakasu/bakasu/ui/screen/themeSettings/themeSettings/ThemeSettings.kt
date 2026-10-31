@@ -82,6 +82,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.data.theme.ThemeRepository
+import org.bakasu.bakasu.domain.usecase.IsSystemLanguageSettingsUseCase
+import org.bakasu.bakasu.domain.usecase.LaunchSystemLanguageSettingsUseCase
 import org.bakasu.bakasu.ui.component.ConfirmResult
 import org.bakasu.bakasu.ui.component.KeyPointSlider
 import org.bakasu.bakasu.ui.component.rememberConfirmDialog
@@ -95,7 +97,6 @@ import org.bakasu.bakasu.ui.component.settings.SettingsSliderRow
 import org.bakasu.bakasu.ui.component.settings.SettingsSwitchRow
 import org.bakasu.bakasu.ui.component.settings.SettingsValueRow
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
-import org.bakasu.bakasu.ui.screen.themeSettings.component.LanguageSelectionDialog
 import org.bakasu.bakasu.ui.screen.themeSettings.crop.BackgroundCropActivity
 import org.bakasu.bakasu.ui.theme.BackgroundManager
 import org.bakasu.bakasu.ui.theme.BottomBarStyle
@@ -798,6 +799,9 @@ private fun DpiSliderControls(
 
 @Composable
 private fun LanguageSetting(state: SettingsUiState, viewModel: SettingsViewModel) {
+    val isSystemLanguageSettings = koinInject<IsSystemLanguageSettingsUseCase>()
+    val launchSystemLanguageSettings = koinInject<LaunchSystemLanguageSettingsUseCase>()
+    val context = LocalContext.current
     val language = stringResource(id = R.string.settings_language)
     val languageSystemDefault = stringResource(R.string.language_system_default)
 
@@ -811,32 +815,103 @@ private fun LanguageSetting(state: SettingsUiState, viewModel: SettingsViewModel
         }
     }
 
-    SettingsJumpRow(
+    // Android 13+ delegates the choice to the system per-app language picker,
+    // so the row jumps straight there instead of flashing an empty dialog.
+    if (isSystemLanguageSettings()) {
+        SettingsJumpRow(
+            icon = Icons.TwoTone.Translate,
+            title = language,
+            summary = currentLanguageDisplay,
+            onClick = { launchSystemLanguageSettings(context) },
+        )
+        return
+    }
+
+    val systemLanguage = stringResource(R.string.settings_language)
+
+    // Locale tags paired with their self-named display strings, with the
+    // system default leading the list.
+    val options = remember {
+        val locales = mutableListOf<java.util.Locale>()
+        locales.add(java.util.Locale.ROOT)
+
+        val resourceDirs = listOf(
+            "ar", "bg", "de", "fa", "fr", "hu", "in", "it",
+            "ja", "ko", "pl", "pt-rBR", "ru", "th", "tr",
+            "uk", "vi", "zh-rCN", "zh-rTW",
+        )
+
+        resourceDirs.forEach { dir ->
+            try {
+                val locale = when {
+                    dir.contains("-r") -> {
+                        val parts = dir.split("-r")
+                        java.util.Locale.Builder()
+                            .setLanguage(parts[0])
+                            .setRegion(parts[1])
+                            .build()
+                    }
+
+                    else -> java.util.Locale.Builder()
+                        .setLanguage(dir)
+                        .build()
+                }
+
+                val config = android.content.res.Configuration()
+                config.setLocale(locale)
+                val localizedContext = context.createConfigurationContext(config)
+                val testString = localizedContext.getString(R.string.settings_language)
+
+                if (testString != systemLanguage || locale.language == "en") {
+                    locales.add(locale)
+                }
+            } catch (_: Exception) {
+            }
+        }
+
+        val sortedLocales = locales.drop(1).sortedBy { it.getDisplayName(it) }
+        mutableListOf<java.util.Locale>().apply {
+            add(locales.first())
+            addAll(sortedLocales)
+        }.map { locale ->
+            val tag = if (locale == java.util.Locale.ROOT) {
+                "system"
+            } else if (locale.country.isEmpty()) {
+                locale.language
+            } else {
+                "${locale.language}_${locale.country}"
+            }
+
+            val displayName = if (locale == java.util.Locale.ROOT) {
+                languageSystemDefault
+            } else {
+                locale.getDisplayName(locale)
+            }
+
+            tag to displayName
+        }
+    }
+
+    val currentLocaleTag = state.currentAppLocale?.let { locale ->
+        if (locale.country.isEmpty()) locale.language else "${locale.language}_${locale.country}"
+    } ?: "system"
+    val selectedIndex = options.indexOfFirst { (tag, _) -> tag == currentLocaleTag }
+        .coerceAtLeast(0)
+
+    SettingsChooseRow(
         icon = Icons.TwoTone.Translate,
         title = language,
         summary = currentLanguageDisplay,
-        onClick = {
-            viewModel.dispatch(SettingsUiAction.SetLanguageDialogVisible(true))
+        items = options.map { (_, displayName) -> displayName },
+        selectedIndex = selectedIndex,
+        onSelectedIndexChange = { index ->
+            val localeTag = options[index].first
+            // Update local state immediately
+            viewModel.dispatch(SettingsUiAction.SetLanguage(localeTag))
+            // Apply locale change immediately for Android < 13
+            viewModel.dispatch(SettingsUiAction.RestartActivity)
         },
     )
-
-    // Language Selection Dialog
-    if (state.showLanguageDialog) {
-        LanguageSelectionDialog(
-            currentLocale = state.currentAppLocale?.let { locale ->
-                if (locale.country.isEmpty()) locale.language else "${locale.language}_${locale.country}"
-            } ?: "system",
-            onLanguageSelected = { localeTag ->
-                // Update local state immediately
-                viewModel.dispatch(SettingsUiAction.SetLanguage(localeTag))
-                // Apply locale change immediately for Android < 13
-                viewModel.dispatch(SettingsUiAction.RestartActivity)
-            },
-            onDismiss = {
-                viewModel.dispatch(SettingsUiAction.SetLanguageDialogVisible(false))
-            },
-        )
-    }
 }
 
 @Composable

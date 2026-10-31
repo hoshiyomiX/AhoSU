@@ -66,7 +66,6 @@ data class SettingsUiState(
         PredictiveBackExitDirection.FOLLOW_GESTURE,
     val themeMode: Int = 0,
     val themeOptions: List<Int> = emptyList(),
-    val showLanguageDialog: Boolean = false,
     val currentAppLocale: Locale? = null,
     val useAltIcon: Boolean = false,
     val cardAlpha: Float = 1f,
@@ -113,7 +112,6 @@ sealed interface SettingsUiAction {
         val direction: PredictiveBackExitDirection,
     ) : SettingsUiAction
 
-    data class SetLanguageDialogVisible(val visible: Boolean) : SettingsUiAction
     data class SetLanguage(val localeTag: String) : SettingsUiAction
     data object RestartActivity : SettingsUiAction
     data object ApplyDpi : SettingsUiAction
@@ -212,7 +210,6 @@ class SettingsViewModel(
         updatePlatformAsync(PlatformSetting.PredictiveBackExitDirection(direction.value))
     }
 
-    fun setLanguageDialogVisible(visible: Boolean) = mutableState.update { it.copy(showLanguageDialog = visible) }
     fun handleLanguageChange(localeTag: String) {
         updatePlatformAsync(PlatformSetting.Locale(localeTag))
     }
@@ -403,8 +400,6 @@ class SettingsViewModel(
 
             is SettingsUiAction.SetPredictiveBackExitDirection ->
                 setPredictiveBackExitDirection(action.direction)
-
-            is SettingsUiAction.SetLanguageDialogVisible -> setLanguageDialogVisible(action.visible)
 
             is SettingsUiAction.SetLanguage -> handleLanguageChange(action.localeTag)
 
