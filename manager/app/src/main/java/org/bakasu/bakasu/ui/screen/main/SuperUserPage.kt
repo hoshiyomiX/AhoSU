@@ -79,25 +79,18 @@ import org.bakasu.bakasu.ui.viewmodel.SuperUserUiEvent
 import org.bakasu.bakasu.ui.viewmodel.SuperUserUiState
 import org.bakasu.bakasu.ui.viewmodel.SuperUserViewModel
 import org.koin.compose.viewmodel.koinViewModel
-import top.yukonga.miuix.kmp.basic.BasicComponent
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.DropdownDefaults
+import top.yukonga.miuix.kmp.basic.DropdownEntry
+import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
-import top.yukonga.miuix.kmp.basic.ListPopupColumn
 import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 import top.yukonga.miuix.kmp.basic.SnackbarDuration
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
-import top.yukonga.miuix.kmp.overlay.OverlayListPopup
+import top.yukonga.miuix.kmp.popup.OverlayDropdownPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
-
-private data class SuperUserMenuItem(
-    val checked: Boolean = false,
-    val titleRes: Int,
-    val onClick: () -> Unit,
-    val closeOnClick: Boolean = true,
-)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -191,25 +184,18 @@ fun SuperUserPage(bottomPadding: Dp) {
                 searchText = uiState.search,
                 onSearchTextChange = { viewModel.dispatch(SuperUserUiAction.Search(it)) },
                 dropdownContent = {
-                    MiuixIconButton(onClick = { showDropdown = true }) {
-                        Icon(
-                            imageVector = Icons.TwoTone.MoreVert,
-                            contentDescription = stringResource(id = R.string.settings),
-                        )
-
-                        SuperUserDropdown(
-                            expanded = showDropdown,
-                            onDismissRequest = { showDropdown = false },
-                            viewModel = viewModel,
-                            uiState = uiState,
-                            onBackupAllowlist = {
-                                backupLauncher.launch(createAllowlistBackupFileName())
-                            },
-                            onRestoreAllowlist = {
-                                restoreLauncher.launch(arrayOf("application/octet-stream"))
-                            },
-                        )
-                    }
+                    SuperUserDropdown(
+                        expanded = showDropdown,
+                        onExpandedChange = { showDropdown = it },
+                        viewModel = viewModel,
+                        uiState = uiState,
+                        onBackupAllowlist = {
+                            backupLauncher.launch(createAllowlistBackupFileName())
+                        },
+                        onRestoreAllowlist = {
+                            restoreLauncher.launch(arrayOf("application/octet-stream"))
+                        },
+                    )
                 },
                 navigationContent = {
                     MiuixIconButton(onClick = {
@@ -391,92 +377,107 @@ private fun SuperUserContent(
 @Composable
 private fun SuperUserDropdown(
     expanded: Boolean,
-    onDismissRequest: () -> Unit,
+    onExpandedChange: (Boolean) -> Unit,
     viewModel: SuperUserViewModel,
     uiState: SuperUserUiState,
     onBackupAllowlist: () -> Unit,
     onRestoreAllowlist: () -> Unit,
 ) {
-    val menuItems = remember(
-        uiState.showSystemApps,
+    // Strings are hoisted out of the remember block: stringResource is a
+    // composable call and may not run inside the calculation lambda.
+    val sortLabels = SortType.entries.associateWith { sortType ->
+        stringResource(sortType.displayNameRes)
+    }
+    val reverseOrderLabel = stringResource(R.string.reverse_order)
+    val showSystemAppsLabel = stringResource(R.string.show_system_apps)
+    val backupLabel = stringResource(R.string.backup_allowlist)
+    val restoreLabel = stringResource(R.string.restore_allowlist)
+
+    // The app-standard menu family: the popup hangs on the Box that wraps the
+    // icon button (same anchoring as OverlayIconDropdownMenu internals), the
+    // rows render through the battle-tested DropdownImpl and groups are
+    // separated by the built-in entry divider. Selection rows keep the menu
+    // open (collapseOnSelection = false); the backup/restore actions close it
+    // manually before launching the document pickers.
+    val entries = remember(
+        sortLabels,
+        uiState.currentSortType,
         uiState.reverseOrder,
-        onBackupAllowlist,
-        onRestoreAllowlist,
+        uiState.showSystemApps,
+        reverseOrderLabel,
+        showSystemAppsLabel,
+        backupLabel,
+        restoreLabel,
     ) {
         listOf(
-            SuperUserMenuItem(
-                checked = uiState.reverseOrder,
-                titleRes = R.string.reverse_order,
-                closeOnClick = false,
-                onClick = {
-                    viewModel.dispatch(SuperUserUiAction.SetReverseOrder(!uiState.reverseOrder))
+            DropdownEntry(
+                items = SortType.entries.map { sortType ->
+                    DropdownItem(
+                        text = sortLabels.getValue(sortType),
+                        selected = uiState.currentSortType == sortType,
+                        onClick = {
+                            viewModel.dispatch(SuperUserUiAction.SetSort(sortType))
+                        },
+                    )
                 },
             ),
-            SuperUserMenuItem(
-                checked = uiState.showSystemApps,
-                titleRes = R.string.show_system_apps,
-                closeOnClick = false,
-                onClick = {
-                    viewModel.dispatch(SuperUserUiAction.SetShowSystemApps(!uiState.showSystemApps))
-                },
-            ),
-            SuperUserMenuItem(
-                titleRes = R.string.backup_allowlist,
-                onClick = onBackupAllowlist,
-            ),
-            SuperUserMenuItem(
-                titleRes = R.string.restore_allowlist,
-                onClick = onRestoreAllowlist,
+            DropdownEntry(
+                items = listOf(
+                    DropdownItem(
+                        text = reverseOrderLabel,
+                        selected = uiState.reverseOrder,
+                        onClick = {
+                            viewModel.dispatch(
+                                SuperUserUiAction.SetReverseOrder(!uiState.reverseOrder),
+                            )
+                        },
+                    ),
+                    DropdownItem(
+                        text = showSystemAppsLabel,
+                        selected = uiState.showSystemApps,
+                        onClick = {
+                            viewModel.dispatch(
+                                SuperUserUiAction.SetShowSystemApps(!uiState.showSystemApps),
+                            )
+                        },
+                    ),
+                    DropdownItem(
+                        text = backupLabel,
+                        onClick = {
+                            onExpandedChange(false)
+                            onBackupAllowlist()
+                        },
+                    ),
+                    DropdownItem(
+                        text = restoreLabel,
+                        onClick = {
+                            onExpandedChange(false)
+                            onRestoreAllowlist()
+                        },
+                    ),
+                ),
             ),
         )
     }
 
-    OverlayListPopup(
-        show = expanded,
-        onDismissRequest = onDismissRequest,
-    ) {
-        ListPopupColumn {
-            SortType.entries.forEach { sortType ->
-                BasicComponent(
-                    title = stringResource(sortType.displayNameRes),
-                    endActions = {
-                        if (uiState.currentSortType == sortType) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Check,
-                                contentDescription = null,
-                                tint = MiuixTheme.colorScheme.primary,
-                            )
-                        }
-                    },
-                    onClick = {
-                        viewModel.dispatch(SuperUserUiAction.SetSort(sortType))
-                    },
-                )
-            }
-
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp),
+    Box {
+        MiuixIconButton(onClick = { onExpandedChange(true) }) {
+            Icon(
+                imageVector = Icons.TwoTone.MoreVert,
+                contentDescription = stringResource(id = R.string.settings),
             )
-
-            menuItems.forEach { menuItem ->
-                BasicComponent(
-                    title = stringResource(menuItem.titleRes),
-                    endActions = {
-                        if (menuItem.checked) {
-                            Icon(
-                                imageVector = Icons.TwoTone.Check,
-                                contentDescription = null,
-                                tint = MiuixTheme.colorScheme.primary,
-                            )
-                        }
-                    },
-                    onClick = {
-                        if (menuItem.closeOnClick) onDismissRequest()
-                        menuItem.onClick()
-                    },
-                )
-            }
         }
+
+        OverlayDropdownPopup(
+            entries = entries,
+            show = expanded,
+            onDismiss = { onExpandedChange(false) },
+            onDismissFinished = {},
+            maxHeight = null,
+            dropdownColors = DropdownDefaults.dropdownColors(),
+            renderInRootScaffold = true,
+            collapseOnSelection = false,
+        )
     }
 }
 
