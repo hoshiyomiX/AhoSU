@@ -299,7 +299,11 @@ fun NavContainer(
             settings.predictiveBackAnimation == PredictiveBackAnimation.AOSP ||
                 settings.predictiveBackAnimation == PredictiveBackAnimation.Scale ||
                 settings.predictiveBackAnimation == PredictiveBackAnimation.KernelSUClassic
-        val backdropColor = MaterialTheme.colorScheme.surfaceContainer
+        // Nav transition backdrop: miuix `surface`, the same canvas the entries
+        // paint at rest, so the area revealed around a scaled-down page during
+        // predictive back reads as the page background extending outward instead
+        // of flashing the card container tone (light: #F7F7F7, dark: black).
+        val backdropColor = MaterialTheme.colorScheme.surface
         val effects = remember(navCornerRadius, roundAllCorners, backdropColor) {
             NavDisplayEffects(
                 enableCornerClip = true,
