@@ -4,8 +4,6 @@ import android.os.Environment
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -18,14 +16,8 @@ import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
@@ -54,6 +46,11 @@ import org.bakasu.bakasu.ui.util.showReplacingSnackbar
 import org.bakasu.bakasu.ui.viewmodel.FlashState
 import org.bakasu.bakasu.ui.viewmodel.FlashingStatus
 import org.koin.compose.koinInject
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
+import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,15 +66,10 @@ fun FlashOutputScreen(
     val savedTemplate = stringResource(R.string.log_saved)
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(
-        rememberTopAppBarState(
-            initialHeightOffset = -154f,
-            initialHeightOffsetLimit = -154f, // from debugger
-        ),
-    )
+    val scrollBehavior = MiuixScrollBehavior()
     val canGoBack = state.status != FlashingStatus.FLASHING
 
-    Scaffold(
+    MiuixScaffold(
         topBar = {
             FlashOutputTopBar(state.status, { if (canGoBack) onBack() }, {
                 scope.launch {
@@ -98,7 +90,6 @@ fun FlashOutputScreen(
         snackbarHost = { SwipeableSnackbarHost(hostState = snackbarHost) },
         contentWindowInsets = adaptiveScaffoldWindowInsets(),
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
     ) { padding ->
         KeyEventBlocker { it.key == Key.VolumeDown || it.key == Key.VolumeUp }
         Column(
@@ -124,9 +115,8 @@ fun FlashOutputScreen(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun FlashOutputTopBar(status: FlashingStatus, onBack: () -> Unit, onSave: () -> Unit, scrollBehavior: TopAppBarScrollBehavior) {
+private fun FlashOutputTopBar(status: FlashingStatus, onBack: () -> Unit, onSave: () -> Unit, scrollBehavior: ScrollBehavior?) {
     val themeConfig: ThemeConfig = koinInject()
     val cardConfig: CardConfig = koinInject()
     val containerColor = if (themeConfig.isEnableBlur) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
@@ -135,18 +125,13 @@ private fun FlashOutputTopBar(status: FlashingStatus, onBack: () -> Unit, onSave
         FlashingStatus.SUCCESS -> MaterialTheme.colorScheme.tertiary
         FlashingStatus.FAILED -> MaterialTheme.colorScheme.error
     }
-    LargeFlexibleTopAppBar(
+    SmallTopAppBar(
         modifier = Modifier.blurEffect(),
-        title = {
-            Text(
-                stringResource(status.resId),
-                color = color,
-            )
-        },
+        title = stringResource(status.resId),
+        titleColor = color,
         navigationIcon = { AppBackButton(onClick = onBack) },
-        actions = { IconButton(onClick = onSave) { Icon(Icons.TwoTone.Save, stringResource(R.string.save_log)) } },
-        colors = TopAppBarDefaults.topAppBarColors(containerColor = containerColor, scrolledContainerColor = containerColor),
-        windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
+        actions = { MiuixIconButton(onClick = onSave) { Icon(Icons.TwoTone.Save, stringResource(R.string.save_log)) } },
+        color = containerColor,
         scrollBehavior = scrollBehavior,
     )
 }

@@ -8,8 +8,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
@@ -32,13 +30,10 @@ import androidx.compose.material.icons.twotone.PlayArrow
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -105,8 +100,11 @@ import org.koin.core.parameter.parametersOf
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.FloatingToolbar
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.NumberPicker
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 import top.yukonga.miuix.kmp.basic.Slider
+import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.basic.TextButton as MiuixTextButton
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -167,19 +165,15 @@ fun ScriptRunScreen(route: Route.ScriptRun) {
     val theme = koinInject<ThemeConfig>()
     val cards = koinInject<CardConfig>()
     val layoutDirection = LocalLayoutDirection.current
-    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
-    Scaffold(
+    val scrollBehavior = MiuixScrollBehavior()
+    MiuixScaffold(
         topBar = {
-            LargeFlexibleTopAppBar(
+            SmallTopAppBar(
                 modifier = Modifier.blurEffect(),
-                title = { Text(stringResource(R.string.script_run_title)) },
+                title = stringResource(R.string.script_run_title),
                 navigationIcon = { AppBackButton(onClick = { navigator.pop() }) },
-                windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
                 scrollBehavior = scrollBehavior,
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = if (theme.isEnableBlur) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer.copy(cards.cardAlpha),
-                    scrolledContainerColor = if (theme.isEnableBlur) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer.copy(cards.cardAlpha),
-                ),
+                color = if (theme.isEnableBlur) Color.Transparent else MaterialTheme.colorScheme.surfaceContainer.copy(cards.cardAlpha),
             )
         },
         bottomBar = {

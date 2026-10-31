@@ -15,8 +15,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -26,7 +24,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Error
 import androidx.compose.material.icons.twotone.Info
-import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -34,16 +31,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FilledTonalButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -81,12 +73,10 @@ import org.bakasu.bakasu.domain.usecase.IsLateLoadModeUseCase
 import org.bakasu.bakasu.domain.usecase.IsModuleUriAccessibleUseCase
 import org.bakasu.bakasu.ui.component.FlashOutputScreen
 import org.bakasu.bakasu.ui.component.rememberCustomDialog
-import org.bakasu.bakasu.ui.component.settings.AppBackButton
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
 import org.bakasu.bakasu.ui.navigation.Route
 import org.bakasu.bakasu.ui.theme.CardConfig
 import org.bakasu.bakasu.ui.theme.ThemeConfig
-import org.bakasu.bakasu.ui.theme.blurEffect
 import org.bakasu.bakasu.ui.theme.renderBackgroundBlur
 import org.bakasu.bakasu.ui.util.LocalSnackbarHost
 import org.bakasu.bakasu.ui.viewmodel.FlashState
@@ -142,8 +132,6 @@ fun FlashScreen(flashIt: FlashIt) {
     val snackBarHost = LocalSnackbarHost.current
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
     val viewModel: ModuleViewModel = koinViewModel()
     val flashViewModel: FlashViewModel = koinViewModel()
     val moduleUiState by viewModel.state.collectAsStateWithLifecycle()
@@ -192,10 +180,6 @@ fun FlashScreen(flashIt: FlashIt) {
 
     // 当前模块安装状态
     val currentStatus = flashUiState.moduleInstallStatus
-
-    LaunchedEffect(Unit) {
-        scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffsetLimit
-    }
 
     // 重置状态
     LaunchedEffect(flashIt) {
@@ -625,74 +609,6 @@ fun ModuleInstallProgressBar(
             }
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
-@Composable
-private fun TopBar(
-    status: FlashingStatus,
-    moduleStatus: ModuleInstallStatus = ModuleInstallStatus(),
-    onBack: () -> Unit,
-    onSave: () -> Unit = {},
-    scrollBehavior: TopAppBarScrollBehavior,
-) {
-    val themeConfig: ThemeConfig = koinInject()
-    val cardConfig: CardConfig = koinInject()
-    val statusColor = when (status) {
-        FlashingStatus.FLASHING -> MaterialTheme.colorScheme.primary
-        FlashingStatus.SUCCESS -> MaterialTheme.colorScheme.tertiary
-        FlashingStatus.FAILED -> MaterialTheme.colorScheme.error
-    }
-
-    LargeFlexibleTopAppBar(
-        modifier = Modifier.blurEffect(),
-        title = {
-            Text(
-                text = stringResource(status.resId),
-                color = statusColor,
-            )
-        },
-        subtitle = {
-            if (moduleStatus.failedModules.isNotEmpty()) {
-                Text(
-                    text = stringResource(
-                        R.string.module_failed_count,
-                        moduleStatus.failedModules.size,
-                    ),
-                    color = MaterialTheme.colorScheme.error,
-                )
-            }
-        },
-        navigationIcon = {
-            AppBackButton(
-                onClick = onBack,
-            )
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor =
-                if (themeConfig.isEnableBlur) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                },
-            scrolledContainerColor =
-                if (themeConfig.isEnableBlur) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                },
-        ),
-        actions = {
-            IconButton(onClick = onSave) {
-                Icon(
-                    imageVector = Icons.TwoTone.Save,
-                    contentDescription = stringResource(id = R.string.save_log),
-                )
-            }
-        },
-        windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
-        scrollBehavior = scrollBehavior,
-    )
 }
 
 suspend fun getModuleNameFromUri(
