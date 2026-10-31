@@ -22,7 +22,6 @@ import androidx.compose.material.icons.twotone.AccountCircle
 import androidx.compose.material.icons.twotone.Android
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.Security
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
@@ -82,6 +81,9 @@ import org.bakasu.bakasu.ui.viewmodel.AppProfileViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.parameter.parametersOf
+import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
@@ -315,22 +317,23 @@ private fun AppProfileInner(
                             mutableStateOf(initialMode)
                         }
 
-                        Surface(
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                                 .padding(top = 8.dp)
                                 .clip(RoundedCornerShape(16.dp))
                                 .renderBackgroundBlur(MaterialTheme.colorScheme.surfaceBright),
-                            shape = RoundedCornerShape(16.dp),
-                            color = if (themeConfig.isEnableBlurExp) {
-                                Color.Transparent
-                            } else {
-                                MaterialTheme.colorScheme.surfaceBright.copy(
-                                    alpha = cardConfig.cardAlpha,
-                                )
-                            },
-                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            colors = CardDefaults.defaultColors(
+                                color = if (themeConfig.isEnableBlurExp) {
+                                    Color.Transparent
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceBright.copy(
+                                        alpha = cardConfig.cardAlpha,
+                                    )
+                                },
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                         ) {
                             ProfileBox(mode, true) {
                                 // template mode shouldn't change profile here!
@@ -395,22 +398,23 @@ private fun AppProfileInner(
                     } else {
                         val mode = if (profile.nonRootUseDefault) Mode.Default else Mode.Custom
 
-                        Surface(
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .padding(horizontal = 16.dp)
                                 .padding(top = 8.dp)
                                 .clip(RoundedCornerShape(16.dp))
                                 .renderBackgroundBlur(MaterialTheme.colorScheme.surfaceBright),
-                            shape = RoundedCornerShape(16.dp),
-                            color = if (themeConfig.isEnableBlurExp) {
-                                Color.Transparent
-                            } else {
-                                MaterialTheme.colorScheme.surfaceBright.copy(
-                                    alpha = cardConfig.cardAlpha,
-                                )
-                            },
-                            contentColor = MaterialTheme.colorScheme.onSurface,
+                            colors = CardDefaults.defaultColors(
+                                color = if (themeConfig.isEnableBlurExp) {
+                                    Color.Transparent
+                                } else {
+                                    MaterialTheme.colorScheme.surfaceBright.copy(
+                                        alpha = cardConfig.cardAlpha,
+                                    )
+                                },
+                                contentColor = MaterialTheme.colorScheme.onSurface,
+                            ),
                         ) {
                             ProfileBox(mode, false) {
                                 onProfileChange(profile.copy(nonRootUseDefault = (it == Mode.Default)))
@@ -422,16 +426,17 @@ private fun AppProfileInner(
                             enter = fadeIn() + expandVertically(),
                             exit = fadeOut() + shrinkVertically(),
                         ) {
-                            Surface(
+                            Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .padding(horizontal = 16.dp)
                                     .padding(top = 8.dp),
-                                shape = RoundedCornerShape(16.dp),
-                                color = MaterialTheme.colorScheme.surfaceBright.copy(
-                                    alpha = cardConfig.cardAlpha,
+                                colors = CardDefaults.defaultColors(
+                                    color = MaterialTheme.colorScheme.surfaceBright.copy(
+                                        alpha = cardConfig.cardAlpha,
+                                    ),
+                                    contentColor = MaterialTheme.colorScheme.onSurface,
                                 ),
-                                contentColor = MaterialTheme.colorScheme.onSurface,
                             ) {
                                 AppProfileConfig(
                                     enabled = mode == Mode.Custom,
@@ -544,7 +549,7 @@ private fun AppProfilePreview() {
                 apps = listOf(InstalledApp("preview", "Preview", 0)),
             ),
             appIcon = {
-                Icon(
+                MiuixIcon(
                     imageVector = Icons.TwoTone.Android,
                     contentDescription = null,
                 )
