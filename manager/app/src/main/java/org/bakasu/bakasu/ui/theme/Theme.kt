@@ -632,8 +632,12 @@ private fun BackgroundLayer(
                     renderState.blurImageBitmap = null
                 }
             }
+            // Default app background: miuix `surface`, one step away from the
+            // `surfaceContainer` the cards use, so home cards no longer melt
+            // into the background when no custom background is set
+            // (light: #F7F7F7 behind white cards, dark: black behind #242424).
             .background(
-                MaterialTheme.colorScheme.surfaceContainer,
+                MaterialTheme.colorScheme.surface,
             ),
     )
 
@@ -784,7 +788,7 @@ private fun Modifier.renderBackgroundFallback(
         mutableStateOf<LayoutCoordinates?>(null)
     }
 
-    val backgroundColor = MaterialTheme.colorScheme.surfaceContainer
+    val backgroundColor = MaterialTheme.colorScheme.surface
     val dimColor = backgroundColor.copy(alpha = themeConfig.backgroundDim)
     val backgroundBitmap = renderState.imageBitmap
     val backgroundAnchor = LocalBackgroundBlurAnchor.current
