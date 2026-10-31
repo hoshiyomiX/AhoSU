@@ -422,7 +422,9 @@ fun FloatingBottomBar(
                 LocalFloatingBottomBarTabScale provides {
                     lerp(1f, 1.2f, dampedDragAnimation.pressProgress)
                 },
-                LocalContentColor provides accentColor,
+                // Neutral ink (onSurface) — the same tint the home top bar
+                // action icons use, so bottom bar icons match the header.
+                LocalContentColor provides tabContentColor,
             ) {
                 Row(
                     Modifier
