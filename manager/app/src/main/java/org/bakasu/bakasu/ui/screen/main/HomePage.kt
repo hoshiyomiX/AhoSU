@@ -26,7 +26,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -69,7 +68,6 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -118,7 +116,6 @@ import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
-import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
@@ -531,8 +528,7 @@ private fun TopBar(
  *
  * Redesigned as a 3:4 portrait tile - the manager APK icon occupies the
  * right side, the verdict headline with its status glyph and the mode badges
- * stack on the left, and a kernel/SELinux fact sheet closes the card at the
- * bottom. Pressing the card gets the HyperOS-style sink feedback.
+ * stack on the left. Pressing the card gets the HyperOS-style sink feedback.
  */
 @Composable
 private fun StatusCard(
@@ -567,13 +563,6 @@ private fun StatusCard(
                 badges = {
                     HeroModeBadges(systemStatus)
                 },
-                infoRows = listOfNotNull(
-                    stringResource(R.string.home_kernel) to systemInfo.kernelRelease,
-                    systemStatus.ksuFullVersion?.let {
-                        stringResource(R.string.home_kernel_version) to it
-                    },
-                    stringResource(R.string.home_selinux_status) to systemInfo.selinuxStatus,
-                ),
             )
         }
 
@@ -585,10 +574,6 @@ private fun StatusCard(
                 color = MiuixTheme.colorScheme.errorContainer,
                 contentColor = MiuixTheme.colorScheme.onErrorContainer,
                 onClick = onClick,
-                infoRows = listOf(
-                    stringResource(R.string.home_kernel) to systemInfo.kernelRelease,
-                    stringResource(R.string.home_selinux_status) to systemInfo.selinuxStatus,
-                ),
                 bottomAction = if (systemStatus.isSELinuxPermissive) {
                     {
                         Button(
@@ -655,8 +640,8 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
 
 /**
  * The 4:3 landscape status tile: a headline block on the left with the APK
- * icon on the right, and the fact sheet pinned to the bottom by a flexible
- * spacer.
+ * icon on the right, with an optional action pinned to the bottom by a
+ * flexible spacer.
  */
 @Composable
 private fun StatusHeroCard(
@@ -667,7 +652,6 @@ private fun StatusHeroCard(
     contentColor: Color = MiuixTheme.colorScheme.onSurfaceContainer,
     onClick: (() -> Unit)? = null,
     badges: (@Composable () -> Unit)? = null,
-    infoRows: List<Pair<String, String>> = emptyList(),
     bottomAction: (@Composable () -> Unit)? = null,
 ) {
     val cardConfig: CardConfig = koinInject()
@@ -677,8 +661,6 @@ private fun StatusHeroCard(
     )
     val appName = stringResource(R.string.app_name)
     val summaryColor = contentColor.copy(alpha = 0.75f)
-    val infoLabelColor = contentColor.copy(alpha = 0.60f)
-    val dividerColor = contentColor.copy(alpha = 0.15f)
 
     Card(
         modifier = Modifier
@@ -743,47 +725,9 @@ private fun StatusHeroCard(
             )
         }
 
-        if (infoRows.isNotEmpty() || bottomAction != null) {
+        bottomAction?.let {
             Spacer(modifier = Modifier.weight(1f))
-
-            if (infoRows.isNotEmpty()) {
-                HorizontalDivider(
-                    thickness = Dp.Hairline,
-                    color = dividerColor,
-                )
-                Spacer(modifier = Modifier.height(12.dp))
-                infoRows.forEach { (label, value) ->
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 3.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        MiuixText(
-                            text = label,
-                            style = MiuixTheme.textStyles.footnote1,
-                            color = infoLabelColor,
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        MiuixText(
-                            text = value,
-                            style = MiuixTheme.textStyles.footnote1,
-                            color = contentColor,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.End,
-                            modifier = Modifier.weight(1f),
-                        )
-                    }
-                }
-            }
-
-            bottomAction?.let {
-                if (infoRows.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(16.dp))
-                }
-                it()
-            }
+            it()
         }
     }
 }
