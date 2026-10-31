@@ -554,19 +554,6 @@ private fun AppearanceSettings(
             )
         }
 
-        item(visible = themeConfig.isEnableBlur, topPadding = 1.dp) {
-            SettingsSwitchRow(
-                icon = Icons.TwoTone.Draw,
-                title = stringResource(id = R.string.settings_exp_draw_background_to_blur),
-                summary = stringResource(id = R.string.settings_exp_draw_background_to_blur_description),
-                isError = true,
-                checked = themeConfig.isEnableBlurExp,
-                onCheckedChange = { isChecked ->
-                    backgroundManager.saveEnableBlurExp(isChecked)
-                },
-            )
-        }
-
         item(
             visible = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S,
             topPadding = 1.dp,
@@ -599,6 +586,19 @@ private fun AppearanceSettings(
                 )
             },
         )
+
+        item(visible = themeConfig.isEnableBlur, topPadding = 1.dp) {
+            SettingsSwitchRow(
+                icon = Icons.TwoTone.Draw,
+                title = stringResource(id = R.string.settings_exp_draw_background_to_blur),
+                summary = stringResource(id = R.string.settings_exp_draw_background_to_blur_description),
+                isError = true,
+                checked = themeConfig.isEnableBlurExp,
+                onCheckedChange = { isChecked ->
+                    backgroundManager.saveEnableBlurExp(isChecked)
+                },
+            )
+        }
     }
 }
 
