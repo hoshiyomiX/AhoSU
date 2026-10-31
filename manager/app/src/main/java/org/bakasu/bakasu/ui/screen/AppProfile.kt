@@ -87,7 +87,7 @@ import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
-import top.yukonga.miuix.kmp.basic.TabRow
+import top.yukonga.miuix.kmp.basic.TabRowWithContour
 import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -524,7 +524,10 @@ private fun ProfileBox(
             transparentContainer = true,
         )
 
-        TabRow(
+        // Inside the profile card the mode tabs follow the library's own
+        // embedded pattern: a contour tab row whose sunken track reads as an
+        // intentional segmented well on the card surface.
+        TabRowWithContour(
             tabs = entries.map { it.second },
             selectedTabIndex = entries.indexOfFirst { it.first == mode }.coerceAtLeast(0),
             onTabSelected = { index -> onModeChange(entries[index].first) },
