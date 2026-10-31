@@ -48,7 +48,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
-import top.yukonga.miuix.kmp.basic.TabRowWithContour
+import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
 
@@ -230,7 +230,7 @@ fun SuSFSConfigScreen() {
                         },
                 )
 
-                TabRowWithContour(
+                TabRow(
                     tabs = visibleSubpages.map { it.value.title },
                     selectedTabIndex = selectedTabIndex,
                     onTabSelected = { index ->

@@ -31,8 +31,6 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.PrimaryTabRow
-import androidx.compose.material3.Tab
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -83,6 +81,7 @@ import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
+import top.yukonga.miuix.kmp.basic.TabRow
 import top.yukonga.miuix.kmp.preference.CheckboxPreference
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
 import top.yukonga.miuix.kmp.theme.MiuixTheme
@@ -766,24 +765,16 @@ private fun TopBar(
             scrollBehavior = scrollBehavior,
         )
 
-        PrimaryTabRow(
+        val tabs = listOf(
+            stringResource(R.string.Lkm_install_methods),
+            stringResource(R.string.GKI_install_methods),
+        )
+        TabRow(
+            tabs = tabs,
             selectedTabIndex = selectedTab.coerceAtMost(1),
-            containerColor = Color.Transparent,
+            onTabSelected = onTabSelected,
             modifier = Modifier.fillMaxWidth(),
-        ) {
-            Tab(
-                selected = selectedTab == 0,
-                onClick = { onTabSelected(0) },
-                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                text = { Text(stringResource(R.string.Lkm_install_methods)) },
-            )
-            Tab(
-                selected = selectedTab == 1,
-                onClick = { onTabSelected(1) },
-                unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                text = { Text(stringResource(R.string.GKI_install_methods)) },
-            )
-        }
+        )
     }
 }
 
