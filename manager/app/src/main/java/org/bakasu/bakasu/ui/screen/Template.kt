@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -26,17 +25,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.contentColorFor
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
@@ -81,6 +74,10 @@ import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
+import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 import top.yukonga.miuix.kmp.basic.Surface as MiuixSurface
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
 import top.yukonga.miuix.kmp.menu.OverlayIconDropdownMenu
@@ -99,8 +96,7 @@ fun AppProfileTemplateScreen() {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val scope = rememberCoroutineScope()
     var isUserRefreshing by remember { mutableStateOf(false) }
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = MiuixScrollBehavior()
     val navigator = LocalNavigator.current
     val context = LocalContext.current
     val clipboardManager = context.getSystemService<ClipboardManager>()
@@ -157,7 +153,7 @@ fun AppProfileTemplateScreen() {
         viewModel.dispatch(TemplateUiAction.Refresh())
     }
 
-    Scaffold(
+    MiuixScaffold(
         topBar = {
             TopBar(
                 onBack = dropUnlessResumed { navigator.pop() },
@@ -202,7 +198,6 @@ fun AppProfileTemplateScreen() {
             )
         },
         containerColor = Color.Transparent,
-        contentColor = MaterialTheme.colorScheme.onSurface,
         contentWindowInsets = adaptiveScaffoldWindowInsets(),
     ) { innerPadding ->
         if (uiState.templateList.isEmpty()) {
@@ -349,36 +344,24 @@ private fun TemplateItemPreview() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TopBar(
     onBack: () -> Unit,
     onSync: () -> Unit = {},
     onImport: () -> Unit = {},
     onExport: () -> Unit = {},
-    scrollBehavior: TopAppBarScrollBehavior,
+    scrollBehavior: ScrollBehavior?,
 ) {
     val themeConfig: ThemeConfig = koinInject()
     val cardConfig: CardConfig = koinInject()
-    LargeFlexibleTopAppBar(
+    SmallTopAppBar(
         modifier = Modifier.blurEffect(),
-        title = {
-            Text(stringResource(R.string.settings_profile_template))
+        title = stringResource(R.string.settings_profile_template),
+        color = if (themeConfig.isEnableBlur) {
+            Color.Transparent
+        } else {
+            MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
         },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor =
-                if (themeConfig.isEnableBlur) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                },
-            scrolledContainerColor =
-                if (themeConfig.isEnableBlur) {
-                    Color.Transparent
-                } else {
-                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                },
-        ),
         navigationIcon = {
             AppBackButton(
                 onClick = onBack,
@@ -408,7 +391,6 @@ private fun TopBar(
                 )
             }
         },
-        windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
         scrollBehavior = scrollBehavior,
     )
 }

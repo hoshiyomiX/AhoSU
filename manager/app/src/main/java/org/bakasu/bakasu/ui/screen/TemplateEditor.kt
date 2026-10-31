@@ -3,8 +3,6 @@ package org.bakasu.bakasu.ui.screen
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
@@ -17,13 +15,6 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LargeFlexibleTopAppBar
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.TopAppBarScrollBehavior
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -65,6 +56,11 @@ import org.bakasu.bakasu.ui.viewmodel.TemplateEditorUiEvent
 import org.bakasu.bakasu.ui.viewmodel.TemplateEditorViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
+import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
+import top.yukonga.miuix.kmp.basic.ScrollBehavior
+import top.yukonga.miuix.kmp.basic.SmallTopAppBar
 
 /**
  * @author weishu
@@ -87,12 +83,8 @@ fun TemplateEditorScreen(
     val context = LocalContext.current
     val saveTemplateFailed = stringResource(id = R.string.app_profile_template_save_failed)
 
-    val scrollBehavior =
-        TopAppBarDefaults.exitUntilCollapsedScrollBehavior(rememberTopAppBarState())
+    val scrollBehavior = MiuixScrollBehavior()
 
-    LaunchedEffect(Unit) {
-        scrollBehavior.state.heightOffset = scrollBehavior.state.heightOffsetLimit
-    }
     LaunchedEffect(viewModel) {
         viewModel.events.collectLatest { event ->
             when (event) {
@@ -109,7 +101,7 @@ fun TemplateEditorScreen(
         }
     }
 
-    Scaffold(
+    MiuixScaffold(
         topBar = {
             val author =
                 if (template.author.isNotEmpty()) "@${template.author}" else ""
@@ -286,7 +278,6 @@ fun toAppProfile(templateInfo: ProfileTemplate): AppProfile {
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 private fun TopBar(
     title: String,
@@ -295,24 +286,13 @@ private fun TopBar(
     onBack: () -> Unit,
     onDelete: () -> Unit = {},
     onSave: () -> Unit = {},
-    scrollBehavior: TopAppBarScrollBehavior,
+    scrollBehavior: ScrollBehavior?,
 ) {
-    LargeFlexibleTopAppBar(
+    SmallTopAppBar(
         modifier = Modifier.blurEffect(),
-        title = {
-            Text(
-                text = title,
-            )
-        },
-        subtitle = if (summary.isNotEmpty()) {
-            {
-                Text(
-                    text = summary,
-                )
-            }
-        } else {
-            null
-        },
+        title = title,
+        subtitle = summary,
+        color = Color.Transparent,
         navigationIcon = {
             AppBackButton(
                 onClick = onBack,
@@ -320,26 +300,21 @@ private fun TopBar(
         },
         actions = {
             if (readOnly) {
-                return@LargeFlexibleTopAppBar
+                return@SmallTopAppBar
             }
-            IconButton(onClick = onDelete) {
+            MiuixIconButton(onClick = onDelete) {
                 Icon(
                     Icons.TwoTone.DeleteForever,
                     contentDescription = stringResource(id = R.string.app_profile_template_delete),
                 )
             }
-            IconButton(onClick = onSave) {
+            MiuixIconButton(onClick = onSave) {
                 Icon(
                     imageVector = Icons.TwoTone.Save,
                     contentDescription = stringResource(id = R.string.app_profile_template_save),
                 )
             }
         },
-        colors = TopAppBarDefaults.topAppBarColors().copy(
-            containerColor = Color.Transparent,
-            scrolledContainerColor = Color.Transparent,
-        ),
-        windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
         scrollBehavior = scrollBehavior,
     )
 }
