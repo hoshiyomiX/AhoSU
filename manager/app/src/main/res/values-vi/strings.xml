@@ -325,7 +325,7 @@
     <string name="settings_mode_disable_always">Luôn tắt</string>
     <string name="settings_sulog">Nhật ký SU</string>
     <string name="settings_sulog_summary">Ghi lại các sự kiện liên quan đến root vào các tệp sulog của KernelSU.</string>
-    <string name="theme_settings">Cài đặt chủ đề</string>
+    <string name="theme_settings">Tùy chỉnh UI</string>
     <string name="background_crop_apply">Áp dụng</string>
     <string name="background_crop_reset">Khôi phục</string>
     <string name="background_crop_loading">Đang tải hình ảnh</string>

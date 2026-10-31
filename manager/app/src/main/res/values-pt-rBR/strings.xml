@@ -223,7 +223,7 @@
     <string name="settings_sulog_summary">Registre eventos relacionados ao root em arquivos sulog do KernelSU</string>
     <string name="feature_status_managed_summary">Essa funcionalidade é gerenciada por um módulo</string>
     <string name="settings_mode_default">Padrão</string>
-    <string name="theme_settings">Configurações do tema</string>
+    <string name="theme_settings">Personalizador de UI</string>
     <string name="settings_custom_monospace_font">Use a fonte monoespaçada integrada</string>
     <string name="settings_custom_monospace_font_summary">Use a fonte JetBrains Mono integrada para exibir os registros e evitar problemas com fontes monoespaçadas do sistema</string>
     <string name="simple_mode">Modo de simplicidade</string>

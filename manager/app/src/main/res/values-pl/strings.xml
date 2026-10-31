@@ -218,7 +218,7 @@
     <string name="settings_sulog_summary">Zapisuj wydarzenia związane z rootem do plików SU Log.</string>
     <string name="feature_status_managed_summary">Ta funkcja jest zarządzana przez moduł</string>
     <string name="settings_mode_default">Domyślny</string>
-    <string name="theme_settings">Ustawienia motywu</string>
+    <string name="theme_settings">Personalizacja UI</string>
     <string name="simple_mode">Tryb uproszczony</string>
     <string name="simple_mode_summary">Ukrywa niepotrzebne karty</string>
     <string name="settings_exp_draw_background_to_blur">Użyj niestandardowego tła do rozmycia</string>

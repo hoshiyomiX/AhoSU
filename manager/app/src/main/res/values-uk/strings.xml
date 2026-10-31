@@ -219,7 +219,7 @@
     <string name="settings_sulog_summary">Записувати події, пов\'язані з root, у файли журналу KernelSU sulog.</string>
     <string name="feature_status_managed_summary">Ця функція керується модулем</string>
     <string name="settings_mode_default">За замовчуванням</string>
-    <string name="theme_settings">Налаштування теми</string>
+    <string name="theme_settings">Кастомізація UI</string>
     <string name="simple_mode">Спрощений режим</string>
     <string name="simple_mode_summary">Приховує непотрібні картки при ввімкненні</string>
     <string name="theme_mode">Тема</string>

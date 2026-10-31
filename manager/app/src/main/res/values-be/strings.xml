@@ -232,7 +232,7 @@
     <string name="settings_sulog_summary">Запісваць падзеі, звязаныя з root-доступам, у файлы sulog KernelSU.</string>
     <string name="feature_status_managed_summary">Гэтая функцыя кіруецца модулем</string>
     <string name="settings_mode_default">Па змаўчанні</string>
-    <string name="theme_settings">Налады тэмы</string>
+    <string name="theme_settings">Кастамізацыя UI</string>
     <string name="settings_custom_monospace_font">Выкарыстоўваць убудаваны монашырынны шрыфт</string>
     <string name="settings_custom_monospace_font_summary">Выкарыстоўвайце ўбудаваны шрыфт JetBrains Mono для адлюстравання журналаў, каб пазбегнуць праблем з монашырынёй сістэмы</string>
     <string name="simple_mode">Рэжым прастаты</string>

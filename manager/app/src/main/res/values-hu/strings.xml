@@ -197,7 +197,7 @@
     <string name="settings_sulog_summary">Minden root-tal kapcsolatos esemény naplózása a KernelSU SU Log (napló) fájlokba</string>
     <string name="feature_status_managed_summary">Ezt a funkciót jelenleg egy modul irányítja</string>
     <string name="settings_mode_default">Alapértelmezett</string>
-    <string name="theme_settings">Téma beállítások</string>
+    <string name="theme_settings">UI-testreszabás</string>
     <string name="simple_mode">Egyszerű mód</string>
     <string name="simple_mode_summary">Elrejti a nem szükséges mezőket</string>
     <string name="theme_mode">Téma</string>

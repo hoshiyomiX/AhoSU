@@ -231,7 +231,7 @@
     <string name="settings_sulog_summary">Registra eventi correlati al root nei file sulog di KernelSU.</string>
     <string name="feature_status_managed_summary">Questa funzionalità è gestita da un modulo</string>
     <string name="settings_mode_default">Predefinito</string>
-    <string name="theme_settings">Impostazioni del tema</string>
+    <string name="theme_settings">Personalizzatore UI</string>
     <string name="settings_custom_monospace_font">Usa il font a spaziatura fissa integrato</string>
     <string name="settings_custom_monospace_font_summary">Usa il font JetBrains Mono integrato per mostrare i log per evitare problemi di sistema sulla spaziatura fissa</string>
     <string name="simple_mode">Modalità semplice</string>

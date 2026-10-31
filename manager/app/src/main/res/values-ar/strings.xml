@@ -269,7 +269,7 @@
     <string name="settings_sulog">سجل الروت</string>
     <string name="feature_status_managed_summary">هذه الخاصية مدارة من قبل إضافة</string>
     <string name="settings_mode_default">إعتيادي</string>
-    <string name="theme_settings">إعدادات الثيم</string>
+    <string name="theme_settings">مخصص الواجهة</string>
     <string name="predictive_back_animation_none">لا شيء</string>
     <string name="predictive_back_animation_scale">حجّم</string>
     <string name="predictive_back_exit_direction_always_right">دائما لليمين</string>

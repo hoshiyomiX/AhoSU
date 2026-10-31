@@ -377,7 +377,7 @@
     <string name="background_crop_rotation_angle">Döndür</string>
     <string name="settings_exp_draw_background_to_blur_description">Deneysel özelliktir, riski kendiniz alarak devam edin</string>
     <string name="settings_custom_enable_high_contrast">Yüksek Kontrast Modu</string>
-    <string name="theme_settings">Tema ayarları</string>
+    <string name="theme_settings">UI Özelleştirici</string>
     <string name="predictive_back_settings">Öngörülebilir Geri Hareketi</string>
     <string name="predictive_back_animation">Öngörülebilir Geri Hareketi Animasyonu</string>
     <string name="predictive_back_exit_direction">Çıkış Yönü</string>

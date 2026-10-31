@@ -410,7 +410,7 @@
     <string name="background_crop_reset">Сброс</string>
     <string name="background_crop_loading">Загрузка изображения</string>
     <string name="background_crop_rotation_angle">Вращение</string>
-    <string name="theme_settings">Настройки темы</string>
+    <string name="theme_settings">Кастомизация UI</string>
     <string name="predictive_back_animation_aosp">AOSP</string>
     <string name="readme">Прочти меня</string>
     <string name="susfs_tab_status">Статус</string>

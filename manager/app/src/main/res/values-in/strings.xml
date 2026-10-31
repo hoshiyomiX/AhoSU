@@ -325,7 +325,7 @@
     <string name="settings_sulog">Log SU</string>
     <string name="settings_sulog_summary">Catat peristiwa terkait root ke dalam file sulog KernelSU.</string>
     <string name="feature_status_managed_summary">Fitur ini dikelola oleh modul</string>
-    <string name="theme_settings">Pengaturan tema</string>
+    <string name="theme_settings">Kustomisasi UI</string>
     <string name="predictive_back_animation_none">Tidak ada</string>
     <string name="predictive_back_animation_aosp">AOSP</string>
     <string name="predictive_back_animation_scale">Skala</string>

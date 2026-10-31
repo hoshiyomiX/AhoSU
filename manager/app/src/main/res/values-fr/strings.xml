@@ -279,7 +279,7 @@
     <string name="settings_sulog_summary">Enregistre les événements liés au root dans les fichiers journaux de KernelSU</string>
     <string name="feature_status_managed_summary">Cette fonctionnalité est gérée par un module</string>
     <string name="settings_mode_default">Par défaut</string>
-    <string name="theme_settings">Paramètres du thème d\'affichage</string>
+    <string name="theme_settings">Personnalisateur d\'interface</string>
     <string name="settings_custom_monospace_font">Police non proportionnelle intégrée</string>
     <string name="settings_custom_monospace_font_summary">Utilise la police JetBrains Mono non proportionnelle intégrée pour l\'affichage des journaux afin d\'éviter des problèmes d\'espacement des caractères à l\'affichage</string>
     <string name="horizon_kernel">Installer un noyau AnyKernel3</string>

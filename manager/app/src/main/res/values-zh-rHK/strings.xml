@@ -397,7 +397,7 @@
     <string name="settings_exp_draw_background_to_blur_description">實驗性功能，使用風險自負</string>
     <string name="settings_custom_enable_high_contrast">高對比模式</string>
     <string name="settings_custom_enable_high_contrast_summary">喺文字周圍渲染陰影</string>
-    <string name="theme_settings">主題設定</string>
+    <string name="theme_settings">UI 自訂</string>
     <string name="predictive_back_settings">預測返回</string>
     <string name="predictive_back_animation">預測返回動畫</string>
     <string name="predictive_back_exit_direction">退出方向</string>
