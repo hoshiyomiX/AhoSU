@@ -62,7 +62,7 @@ import org.bakasu.bakasu.ui.viewmodel.awaitSuSFSSlotInfo
 import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
-import top.yukonga.miuix.kmp.basic.TabRow
+import top.yukonga.miuix.kmp.basic.TabRowWithContour
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 import top.yukonga.miuix.kmp.preference.RadioButtonPreference
@@ -356,7 +356,10 @@ fun StandardFeaturesTab(
             title = stringResource(R.string.susfs_standard_uname),
         ) {
             Column(modifier = Modifier.fillMaxWidth()) {
-                TabRow(
+                // Dialog surface is a container color, so the tabs take the
+                // contour variant: its sunken track reads as a segmented well
+                // instead of a loose band inside the dialog.
+                TabRowWithContour(
                     tabs = listOf(
                         stringResource(R.string.susfs_standard_uname_tab_manual),
                         stringResource(R.string.susfs_standard_uname_tab_slot_info),

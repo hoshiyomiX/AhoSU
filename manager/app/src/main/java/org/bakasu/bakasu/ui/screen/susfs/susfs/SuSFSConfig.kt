@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import org.bakasu.bakasu.R
@@ -239,6 +240,11 @@ fun SuSFSConfigScreen() {
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    // Wide segments keep the longer titles ("Open Redirect")
+                    // on one line; the row scrolls and centers the selection
+                    // the way HyperOS tab strips do.
+                    minWidth = 120.dp,
+                    maxWidth = 140.dp,
                 )
 
                 BackHandler(
