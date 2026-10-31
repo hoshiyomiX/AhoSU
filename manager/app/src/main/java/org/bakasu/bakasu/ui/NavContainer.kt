@@ -646,7 +646,11 @@ private fun ManagerNavEntry(
                 }
             }
             .then(
-                if (backgroundRenderState.imagePainter == null) Modifier.background(MaterialTheme.colorScheme.surfaceContainer) else Modifier,
+                // Secondary screens share the home canvas: miuix `surface`,
+                // one step away from the `surfaceContainer` the cards use, so
+                // cards stand apart and tab rows blend with the page instead
+                // of painting a foreign band (light: #F7F7F7, dark: black).
+                if (backgroundRenderState.imagePainter == null) Modifier.background(MaterialTheme.colorScheme.surface) else Modifier,
             ),
     ) {
         val isPortrait = maxWidth < maxHeight || (maxHeight / maxWidth > 1.4f)
