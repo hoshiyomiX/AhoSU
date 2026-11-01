@@ -389,6 +389,74 @@ jobs:
           name: ${{ steps.determine.outputs.title }}-${{ matrix.build_type }}
           path: dist/*.apk
 
+  upload-prerelease:
+    name: Upload builds as pre-release
+    needs: [repack-manager]
+    if: github.event_name != 'pull_request' && github.event_name != 'workflow_call' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Download Manager release build
+        uses: actions/download-artifact@v8
+        with:
+          name: Manager-release
+          path: dist/manager-release
+
+      - name: Download Manager debug build
+        uses: actions/download-artifact@v8
+        with:
+          name: Manager-debug
+          path: dist/manager-debug
+
+      - name: Publish rolling nightly pre-release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -eu
+          shopt -s nullglob
+          TAG="nightly"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          VERSION_CODE=$((30700 + $(git rev-list --count HEAD)))
+          VERSION_NAME=$(git describe --tags --always)
+
+          mkdir -p release
+          find dist/manager-release -type f -name '*.apk' -exec cp {} release/ \;
+          find dist/manager-debug -type f -name '*.apk' -exec cp {} release/ \;
+          (
+            cd release
+            for apk in *.apk; do
+              case "$apk" in
+                *debug*) mv "$apk" "AhoSU-manager-v${VERSION_CODE}-${SHORT_SHA}-debug.apk" ;;
+                *) mv "$apk" "AhoSU-manager-v${VERSION_CODE}-${SHORT_SHA}-release.apk" ;;
+              esac
+            done
+          )
+          APKS=(release/*.apk)
+          if [ ${#APKS[@]} -eq 0 ]; then
+            echo "::error::No APK assets found for the pre-release"
+            exit 1
+          fi
+
+          # Rolling channel: remove the previous nightly release and its tag
+          # so the tag always points at the newest main build.
+          OLD_RELEASE_ID=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id' 2>/dev/null || true)
+          if [ -n "$OLD_RELEASE_ID" ]; then
+            gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/${OLD_RELEASE_ID}"
+          fi
+          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" 2>/dev/null || true
+
+          gh release create "$TAG" "${APKS[@]}" \
+            --target "$GITHUB_SHA" \
+            --prerelease \
+            --title "Manager Nightly v${VERSION_CODE} (${SHORT_SHA})" \
+            --notes "Automated build of main @ ${GITHUB_SHA} (versionCode ${VERSION_CODE}, ${VERSION_NAME}). Uploaded as a pre-release."
+
   telegram-bot-api:
     name: Telegram Bot API
     if: github.event_name != 'pull_request' && github.event_name != 'workflow_call'
