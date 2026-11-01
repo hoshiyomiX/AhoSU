@@ -77,6 +77,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
@@ -532,9 +533,10 @@ private fun TopBar(
 /**
  * The home status hero card: working / not-installed / unsupported verdicts.
  *
- * Redesigned as a 3:4 portrait tile - the manager APK icon occupies the
- * right side, the verdict headline with its status glyph and the mode badges
- * stack on the left. Pressing the card gets the HyperOS-style sink feedback.
+ * Redesigned as a landscape status tile - the APK icon (or the banana
+ * artwork that replaces it) anchors the top-right, the verdict headline
+ * with its status glyph fills the top-left, and the mode badges pin to the
+ * bottom of the card. Pressing the card gets the HyperOS-style sink feedback.
  */
 @Composable
 private fun StatusCard(
@@ -564,11 +566,15 @@ private fun StatusCard(
                     systemInfo.superuserCount,
                     systemInfo.moduleCount,
                 ),
-                // The working state shows the uploaded banana-girl artwork as
-                // its icon; safe mode keeps the TaskAlt vector instead.
+                // The working title carries the 🍌 emoji from the string resource,
+                // so the vector icon slot stays empty; safe mode keeps TaskAlt.
                 statusIcon = if (systemStatus.isSafeMode) Icons.TwoTone.TaskAlt else null,
-                statusIconPainter = if (systemStatus.isSafeMode) null else painterResource(R.drawable.hero_card_icon),
                 backgroundPainter = painterResource(R.drawable.hero_card_bg),
+                // The uploaded banana-girl artwork takes over the APK icon slot
+                // on the right, running 40% larger than the 96 dp baseline.
+                endIconPainter = painterResource(R.drawable.hero_card_icon),
+                endIconSize = 96.dp * 1.4f,
+                emphasizedTitle = !systemStatus.isSafeMode,
                 onClick = onClick,
                 badges = {
                     HeroModeBadges(systemStatus)
@@ -649,9 +655,11 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
 }
 
 /**
- * The 4:3 landscape status tile: a headline block on the left with the APK
- * icon on the right, with an optional action pinned to the bottom by a
- * flexible spacer.
+ * The 4:3 landscape status tile: the verdict headline (with an optional
+ * status glyph) fills the top-left, the APK icon - or the banana artwork
+ * that replaces it - anchors the top-right, and every label below the
+ * headline is pinned to the bottom of the card by a flexible spacer that
+ * auto-adjusts to the leftover room.
  */
 private const val HERO_BACKGROUND_SCRIM_ALPHA = 0.55f
 
@@ -660,8 +668,10 @@ private fun StatusHeroCard(
     title: String,
     summary: String,
     statusIcon: ImageVector? = null,
-    statusIconPainter: Painter? = null,
     backgroundPainter: Painter? = null,
+    endIconPainter: Painter? = null,
+    endIconSize: Dp = 96.dp,
+    emphasizedTitle: Boolean = false,
     color: Color = MiuixTheme.colorScheme.surfaceContainer,
     contentColor: Color = MiuixTheme.colorScheme.onSurfaceContainer,
     onClick: (() -> Unit)? = null,
@@ -675,6 +685,12 @@ private fun StatusHeroCard(
     )
     val appName = stringResource(R.string.app_name)
     val summaryColor = contentColor.copy(alpha = 0.75f)
+    val headlineStyle = if (emphasizedTitle) {
+        // title3 runs 20 sp; the banana headline is 25% larger.
+        MiuixTheme.textStyles.title3.copy(fontSize = 25.sp)
+    } else {
+        MiuixTheme.textStyles.title3
+    }
 
     Card(
         modifier = Modifier
@@ -730,67 +746,56 @@ private fun StatusHeroCard(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Column(
+                    Row(
                         modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            if (statusIconPainter != null) {
-                                // The uploaded artwork takes over the icon
-                                // slot; vector icons stay for other states.
-                                Image(
-                                    painter = statusIconPainter,
-                                    contentDescription = null,
-                                    contentScale = ContentScale.Crop,
-                                    modifier = Modifier
-                                        .size(48.dp)
-                                        .clip(RoundedCornerShape(12.dp)),
-                                )
-                            } else {
-                                statusIcon?.let { icon ->
-                                    MiuixIcon(
-                                        imageVector = icon,
-                                        contentDescription = null,
-                                        tint = contentColor,
-                                        modifier = Modifier.size(24.dp),
-                                    )
-                                }
-                            }
-                            MiuixText(
-                                text = title,
-                                style = MiuixTheme.textStyles.title3,
-                                color = contentColor,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis,
+                        statusIcon?.let { icon ->
+                            MiuixIcon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                tint = contentColor,
+                                modifier = Modifier.size(24.dp),
                             )
                         }
-                        Spacer(modifier = Modifier.height(6.dp))
                         MiuixText(
-                            text = summary,
-                            style = MiuixTheme.textStyles.footnote1,
-                            color = summaryColor,
-                            maxLines = 2,
+                            text = title,
+                            style = headlineStyle,
+                            color = contentColor,
+                            maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        badges?.let {
-                            Spacer(modifier = Modifier.height(10.dp))
-                            it()
-                        }
                     }
 
+                    // An explicit end painter (the banana artwork on the
+                    // working card) replaces the APK icon and may run larger;
+                    // the corner stays a quarter of the icon size.
                     Image(
-                        painter = appIconPainter,
-                        contentDescription = appName,
+                        painter = endIconPainter ?: appIconPainter,
+                        contentDescription = if (endIconPainter != null) null else appName,
                         modifier = Modifier
-                            .size(96.dp)
-                            .clip(RoundedCornerShape(24.dp)),
+                            .size(endIconSize)
+                            .clip(RoundedCornerShape(endIconSize / 4f)),
                     )
                 }
 
+                // The flexible spacer pins every label below the headline to
+                // the bottom of the card and auto-adjusts to the leftover room.
+                Spacer(modifier = Modifier.weight(1f))
+                MiuixText(
+                    text = summary,
+                    style = MiuixTheme.textStyles.footnote1,
+                    color = summaryColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                )
+                badges?.let {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    it()
+                }
                 bottomAction?.let {
-                    Spacer(modifier = Modifier.weight(1f))
+                    Spacer(modifier = Modifier.height(14.dp))
                     it()
                 }
             }
