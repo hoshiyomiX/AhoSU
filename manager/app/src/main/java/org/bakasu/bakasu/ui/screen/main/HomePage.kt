@@ -558,7 +558,9 @@ private fun StatusCard(
                     systemInfo.superuserCount,
                     systemInfo.moduleCount,
                 ),
-                statusIcon = Icons.TwoTone.TaskAlt,
+                // The working title carries the 🍌 emoji from the string resource,
+                // so the vector icon slot stays empty; safe mode keeps TaskAlt.
+                statusIcon = if (systemStatus.isSafeMode) Icons.TwoTone.TaskAlt else null,
                 onClick = onClick,
                 badges = {
                     HeroModeBadges(systemStatus)
@@ -647,7 +649,7 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
 private fun StatusHeroCard(
     title: String,
     summary: String,
-    statusIcon: ImageVector,
+    statusIcon: ImageVector? = null,
     color: Color = MiuixTheme.colorScheme.surfaceContainer,
     contentColor: Color = MiuixTheme.colorScheme.onSurfaceContainer,
     onClick: (() -> Unit)? = null,
@@ -688,12 +690,14 @@ private fun StatusHeroCard(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                 ) {
-                    MiuixIcon(
-                        imageVector = statusIcon,
-                        contentDescription = null,
-                        tint = contentColor,
-                        modifier = Modifier.size(24.dp),
-                    )
+                    statusIcon?.let { icon ->
+                        MiuixIcon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = contentColor,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
                     MiuixText(
                         text = title,
                         style = MiuixTheme.textStyles.title3,
