@@ -58,6 +58,7 @@ import androidx.compose.ui.graphics.Shadow
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.drawscope.ContentDrawScope
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.nativeCanvas
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
@@ -526,14 +527,23 @@ private fun miuixMaterialColorScheme(darkTheme: Boolean, colors: Colors): ColorS
  * card/tertiary accents; neutrals, disabled and error colors keep the miuix
  * defaults so contrast stays predictable for arbitrary picker colors. The m3
  * bridge picks the accent up through [Colors.primary] automatically.
+ *
+ * The ink sitting directly on the accent (button text, badge labels, switch
+ * and slider thumbs) flips with the accent's brightness instead of keeping
+ * the fixed palette white: a bright pick (yellow, light pink) gets black
+ * ink, a dark pick (navy, deep green) keeps white — readable either way.
  */
 private fun withCustomAccent(base: Colors, accent: Color?): Colors = if (accent == null) {
     base
 } else {
+    val onAccent = if (accent.luminance() >= 0.5f) Color.Black else Color.White
     base.copy(
         primary = accent,
+        onPrimary = onAccent,
         primaryVariant = accent,
+        onPrimaryVariant = onAccent,
         primaryContainer = accent,
+        onPrimaryContainer = onAccent,
         onTertiaryContainer = accent,
     )
 }
