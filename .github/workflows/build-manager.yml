@@ -445,11 +445,13 @@ jobs:
 
           # Rolling channel: remove the previous nightly release and its tag
           # so the tag always points at the newest main build.
+          # gh api prints the HTTP error body to stdout on 404, so guard the
+          # captured id against non-numeric payloads before using it.
           OLD_RELEASE_ID=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq '.id' 2>/dev/null || true)
-          if [ -n "$OLD_RELEASE_ID" ]; then
+          if [ -n "$OLD_RELEASE_ID" ] && [ "${OLD_RELEASE_ID//[!0-9]/}" = "$OLD_RELEASE_ID" ]; then
             gh api -X DELETE "repos/${GITHUB_REPOSITORY}/releases/${OLD_RELEASE_ID}"
           fi
-          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" 2>/dev/null || true
+          gh api -X DELETE "repos/${GITHUB_REPOSITORY}/git/refs/tags/${TAG}" >/dev/null 2>&1 || true
 
           gh release create "$TAG" "${APKS[@]}" \
             --target "$GITHUB_SHA" \
