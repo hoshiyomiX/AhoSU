@@ -431,15 +431,38 @@ jobs:
           (
             cd release
             for apk in *.apk; do
-              case "$apk" in
-                *debug*) mv "$apk" "AhoSU-manager-v${VERSION_CODE}-${SHORT_SHA}-debug.apk" ;;
-                *) mv "$apk" "AhoSU-manager-v${VERSION_CODE}-${SHORT_SHA}-release.apk" ;;
+              # Keep the ABI token in the asset name: the manager release build
+              # produces per-ABI split APKs (plus a universal one), and collapsing
+              # them into one name silently overwrites every variant but the last.
+              stem="${apk%.apk}"
+              abi="universal"
+              for a in arm64-v8a armeabi-v7a x86_64 riscv64; do
+                case "$stem" in
+                  *"$a"*) abi="$a" ;;
+                esac
+              done
+              btype="release"
+              case "$stem" in
+                *debug*) btype="debug" ;;
               esac
+              target="AhoSU-manager-v${VERSION_CODE}-${SHORT_SHA}-${abi}-${btype}.apk"
+              if [ -e "$target" ]; then
+                echo "::error::asset name collision: $target"
+                exit 1
+              fi
+              mv "$apk" "$target"
+              echo "asset: $target"
             done
           )
           APKS=(release/*.apk)
           if [ ${#APKS[@]} -eq 0 ]; then
             echo "::error::No APK assets found for the pre-release"
+            exit 1
+          fi
+          # Regression guard: armv8a devices must always have an installable asset.
+          ARM64_ASSETS=(release/*arm64-v8a*.apk release/*universal*.apk)
+          if [ ${#ARM64_ASSETS[@]} -eq 0 ]; then
+            echo "::error::no arm64-v8a or universal APK in the asset set"
             exit 1
           fi
 
@@ -457,7 +480,7 @@ jobs:
             --target "$GITHUB_SHA" \
             --prerelease \
             --title "Manager Nightly v${VERSION_CODE} (${SHORT_SHA})" \
-            --notes "Automated build of main @ ${GITHUB_SHA} (versionCode ${VERSION_CODE}, ${VERSION_NAME}). Uploaded as a pre-release."
+            --notes "Automated build of main @ ${GITHUB_SHA} (versionCode ${VERSION_CODE}, ${VERSION_NAME}). Uploaded as a pre-release. Assets are per-ABI builds plus a universal one: pick arm64-v8a for 64-bit ARM devices, or universal."
 
   telegram-bot-api:
     name: Telegram Bot API
