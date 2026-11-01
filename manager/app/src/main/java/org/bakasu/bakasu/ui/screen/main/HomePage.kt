@@ -129,6 +129,7 @@ import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
+import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
@@ -632,6 +633,8 @@ private fun StatusCard(
  */
 @Composable
 private fun HeroModeBadges(systemStatus: KernelStatus) {
+    // The badge labels scale up from the stock footnote2 face.
+    val badgeFontSize = MiuixTheme.textStyles.footnote2.fontSize * HERO_BOTTOM_TEXT_SCALE
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(6.dp),
@@ -643,12 +646,14 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
                 "Built-in"
             },
             containerColor = MiuixTheme.colorScheme.primary,
+            fontSize = badgeFontSize,
         )
 
         if (systemStatus.isLateLoadMode) {
             LabelText(
                 label = stringResource(id = R.string.jailbreak_mode),
                 containerColor = MiuixTheme.colorScheme.primary,
+                fontSize = badgeFontSize,
             )
         }
 
@@ -656,6 +661,7 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
             LabelText(
                 label = Os.uname().machine,
                 containerColor = MiuixTheme.colorScheme.primary,
+                fontSize = badgeFontSize,
             )
         }
     }
@@ -663,16 +669,23 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
 
 /**
  * The 4:3 landscape status tile: the verdict headline (with an optional
- * status glyph) spans the top - the banana call-out runs at 25% of the card
- * height in a rounded display face, auto-shrinking to keep the line whole -
- * while the summary and mode badges pin to the bottom-left next to the APK
- * icon or the banana artwork on the bottom-right. A flexible spacer between
- * the rows auto-adjusts to the leftover room.
+ * status glyph) spans the top - the banana call-out runs at 22.5% of the card
+ * height (a quarter of the card trimmed by 10%) in a rounded display face,
+ * auto-shrinking to keep the line whole - while the bottom-line texts and
+ * mode badges pin to the bottom-left next to the APK icon or the banana
+ * artwork on the bottom-right, behind a hairline that divides the lines.
+ * A flexible spacer between the rows auto-adjusts to the leftover room.
  */
 private const val HERO_BACKGROUND_SCRIM_ALPHA = 0.55f
 
-/** The banana call-out is sized to 25% of the hero card height. */
-private const val HERO_HEADLINE_CARD_FRACTION = 0.25f
+/** The banana call-out is sized to 22.5% of the hero card height (25% - 10%). */
+private const val HERO_HEADLINE_CARD_FRACTION = 0.225f
+
+/**
+ * The bottom-line summary and badge labels run slightly larger than the
+ * stock footnote faces (feedback: enlarge them by 5-plus percent).
+ */
+private const val HERO_BOTTOM_TEXT_SCALE = 1.08f
 
 /**
  * Rounded display face for the banana call-out. Titan One by Rodrigo
@@ -703,6 +716,10 @@ private fun StatusHeroCard(
     val appName = stringResource(R.string.app_name)
     val summaryColor = contentColor.copy(alpha = 0.75f)
     val textMeasurer = rememberTextMeasurer()
+    // The bottom-line texts scale up from the stock footnote face.
+    val summaryStyle = MiuixTheme.textStyles.footnote1.copy(
+        fontSize = MiuixTheme.textStyles.footnote1.fontSize * HERO_BOTTOM_TEXT_SCALE,
+    )
 
     Card(
         modifier = Modifier
@@ -811,6 +828,9 @@ private fun StatusHeroCard(
                 // The flexible spacer pins every label below the headline to
                 // the bottom of the card and auto-adjusts to the leftover room.
                 Spacer(modifier = Modifier.weight(1f))
+                // A hairline divides the headline line from the bottom line.
+                HorizontalDivider(thickness = Dp.Hairline)
+                Spacer(modifier = Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.Bottom,
@@ -821,7 +841,7 @@ private fun StatusHeroCard(
                     ) {
                         MiuixText(
                             text = summary,
-                            style = MiuixTheme.textStyles.footnote1,
+                            style = summaryStyle,
                             color = summaryColor,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
@@ -909,12 +929,14 @@ private fun InfoCard(
             title = stringResource(R.string.home_device_model),
             summary = systemInfo.deviceModel,
         )
+        HomeDivider()
         HomeInfoRow(
             icon = Icons.TwoTone.DeveloperBoard.takeIf { showHomeCardIcons },
             title = stringResource(R.string.home_kernel),
             summary = systemInfo.kernelRelease,
         )
         if (!isSimpleMode) {
+            HomeDivider()
             HomeInfoRow(
                 icon = Icons.TwoTone.Android.takeIf { showHomeCardIcons },
                 title = stringResource(R.string.home_android_version),
@@ -922,18 +944,21 @@ private fun InfoCard(
             )
         }
         if (systemStatus.isManager) {
+            HomeDivider()
             HomeInfoRow(
                 icon = Icons.TwoTone.Memory.takeIf { showHomeCardIcons },
                 title = stringResource(R.string.home_kernel_version),
                 summary = systemStatus.ksuFullVersion.orEmpty(),
             )
         }
+        HomeDivider()
         HomeInfoRow(
             icon = Icons.TwoTone.Tag.takeIf { showHomeCardIcons },
             title = stringResource(R.string.home_manager_version),
             summary = "${systemInfo.managerVersion.first} (${systemInfo.managerVersion.second}/${systemInfo.managerVersion.third})",
         )
         if (!isSimpleMode && systemInfo.susfsEnabled && systemInfo.susfsVersion.isNotEmpty()) {
+            HomeDivider()
             HomeInfoRow(
                 icon = Icons.TwoTone.Settings.takeIf { showHomeCardIcons },
                 title = stringResource(R.string.home_susfs_version),
@@ -949,6 +974,7 @@ private fun InfoCard(
             title = stringResource(R.string.home_selinux_status),
             summary = systemInfo.selinuxStatus,
         )
+        HomeDivider()
 
         val seccompDisplay = when (systemInfo.seccompStatus) {
             -1 -> stringResource(R.string.seccomp_status_not_supported)
@@ -964,6 +990,7 @@ private fun InfoCard(
         )
 
         if (!isSimpleMode && managersList != null) {
+            HomeDivider()
             val signatureMap =
                 managersList?.managers.orEmpty().groupBy { it.signatureIndex }
             val managersText = buildString {
@@ -1000,6 +1027,7 @@ private fun InfoCard(
         }
 
         if (!isSimpleMode && systemStatus.isFullFeatured) {
+            HomeDivider()
             HomeInfoRow(
                 icon = Icons.TwoTone.Tune.takeIf { showHomeCardIcons },
                 title = stringResource(R.string.home_hook_type),
@@ -1008,6 +1036,7 @@ private fun InfoCard(
         }
 
         if (!isSimpleMode && systemInfo.zygiskImplement.isNotEmpty() && systemInfo.zygiskImplement != "None") {
+            HomeDivider()
             HomeInfoRow(
                 icon = Icons.TwoTone.Extension.takeIf { showHomeCardIcons },
                 title = stringResource(R.string.home_zygisk_implement),
@@ -1016,6 +1045,7 @@ private fun InfoCard(
         }
 
         if (!isSimpleMode && systemInfo.metaModuleImplement.isNotEmpty() && systemInfo.metaModuleImplement != "None") {
+            HomeDivider()
             HomeInfoRow(
                 icon = Icons.TwoTone.Extension.takeIf { showHomeCardIcons },
                 title = stringResource(R.string.home_meta_module_implement),
@@ -1091,6 +1121,14 @@ private fun HomeInfoRow(
         summary = summary,
         startAction = icon?.let { vector -> { HomeCardIcon(vector) } },
     )
+}
+
+/**
+ * The hairline separating each line inside a stacked home card.
+ */
+@Composable
+private fun HomeDivider() {
+    HorizontalDivider(thickness = Dp.Hairline)
 }
 
 /**

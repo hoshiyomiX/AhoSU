@@ -46,7 +46,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isUnspecified
 import androidx.core.content.getSystemService
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.compose.dropUnlessResumed
@@ -400,7 +402,16 @@ fun LabelText(
     label: String,
     containerColor: Color = MiuixTheme.colorScheme.primary,
     contentColor: Color = MiuixTheme.colorScheme.onPrimary,
+    fontSize: TextUnit = TextUnit.Unspecified,
 ) {
+    // Callers may scale the label up from the stock footnote2 face; the
+    // default keeps every other LabelText screen pixel-identical.
+    val baseStyle = MiuixTheme.textStyles.footnote2
+    val labelStyle = if (fontSize.isUnspecified) {
+        baseStyle
+    } else {
+        baseStyle.copy(fontSize = fontSize)
+    }
     MiuixSurface(
         shape = RoundedCornerShape(4.dp),
         color = containerColor,
@@ -408,7 +419,7 @@ fun LabelText(
     ) {
         MiuixText(
             text = label,
-            style = MiuixTheme.textStyles.footnote2,
+            style = labelStyle,
             modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.dp),
             color = contentColor,
             maxLines = 1,
