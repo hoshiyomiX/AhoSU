@@ -14,7 +14,9 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -63,10 +65,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
@@ -561,6 +567,7 @@ private fun StatusCard(
                 // The working title carries the 🍌 emoji from the string resource,
                 // so the vector icon slot stays empty; safe mode keeps TaskAlt.
                 statusIcon = if (systemStatus.isSafeMode) Icons.TwoTone.TaskAlt else null,
+                backgroundPainter = painterResource(R.drawable.hero_card_bg),
                 onClick = onClick,
                 badges = {
                     HeroModeBadges(systemStatus)
@@ -645,11 +652,14 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
  * icon on the right, with an optional action pinned to the bottom by a
  * flexible spacer.
  */
+private const val HERO_BACKGROUND_SCRIM_ALPHA = 0.55f
+
 @Composable
 private fun StatusHeroCard(
     title: String,
     summary: String,
     statusIcon: ImageVector? = null,
+    backgroundPainter: Painter? = null,
     color: Color = MiuixTheme.colorScheme.surfaceContainer,
     contentColor: Color = MiuixTheme.colorScheme.onSurfaceContainer,
     onClick: (() -> Unit)? = null,
@@ -672,66 +682,103 @@ private fun StatusHeroCard(
             // the cap only kicks in there.
             .heightIn(max = 560.dp),
         colors = CardDefaults.defaultColors(
-            color = color.copy(alpha = cardConfig.cardAlpha),
+            color = if (backgroundPainter != null) {
+                // The pattern paints the whole card; the squircle surface mask
+                // still carves the corners (a transparent fill draws nothing).
+                Color.Transparent
+            } else {
+                color.copy(alpha = cardConfig.cardAlpha)
+            },
             contentColor = contentColor,
         ),
-        insideMargin = PaddingValues(24.dp),
+        insideMargin = if (backgroundPainter != null) PaddingValues(0.dp) else PaddingValues(24.dp),
         pressFeedbackType = PressFeedbackType.Sink,
         onClick = onClick,
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
+        Box(
+            modifier = Modifier.fillMaxSize(),
         ) {
-            Column(
-                modifier = Modifier.weight(1f),
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp),
-                ) {
-                    statusIcon?.let { icon ->
-                        MiuixIcon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = contentColor,
-                            modifier = Modifier.size(24.dp),
-                        )
-                    }
-                    MiuixText(
-                        text = title,
-                        style = MiuixTheme.textStyles.title3,
-                        color = contentColor,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+            backgroundPainter?.let { painter ->
+                // Full-bleed default background, cropped to cover; the card's
+                // squircle surface mask clips it to the rounded corners.
+                Image(
+                    painter = painter,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier.matchParentSize(),
+                )
+                // The pattern stays bright in dark mode too; a scrim keeps the
+                // light ink readable over it without hiding the bananas.
+                if (color.luminance() < 0.5f) {
+                    Box(
+                        modifier = Modifier
+                            .matchParentSize()
+                            .background(color.copy(alpha = HERO_BACKGROUND_SCRIM_ALPHA)),
                     )
                 }
-                Spacer(modifier = Modifier.height(6.dp))
-                MiuixText(
-                    text = summary,
-                    style = MiuixTheme.textStyles.footnote1,
-                    color = summaryColor,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                badges?.let {
-                    Spacer(modifier = Modifier.height(10.dp))
+            }
+            Column(
+                modifier = Modifier
+                    .matchParentSize()
+                    .then(
+                        if (backgroundPainter != null) Modifier.padding(24.dp) else Modifier,
+                    ),
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.weight(1f),
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                        ) {
+                            statusIcon?.let { icon ->
+                                MiuixIcon(
+                                    imageVector = icon,
+                                    contentDescription = null,
+                                    tint = contentColor,
+                                    modifier = Modifier.size(24.dp),
+                                )
+                            }
+                            MiuixText(
+                                text = title,
+                                style = MiuixTheme.textStyles.title3,
+                                color = contentColor,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        MiuixText(
+                            text = summary,
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = summaryColor,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        badges?.let {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            it()
+                        }
+                    }
+
+                    Image(
+                        painter = appIconPainter,
+                        contentDescription = appName,
+                        modifier = Modifier
+                            .size(96.dp)
+                            .clip(RoundedCornerShape(24.dp)),
+                    )
+                }
+
+                bottomAction?.let {
+                    Spacer(modifier = Modifier.weight(1f))
                     it()
                 }
             }
-
-            Image(
-                painter = appIconPainter,
-                contentDescription = appName,
-                modifier = Modifier
-                    .size(96.dp)
-                    .clip(RoundedCornerShape(24.dp)),
-            )
-        }
-
-        bottomAction?.let {
-            Spacer(modifier = Modifier.weight(1f))
-            it()
         }
     }
 }
