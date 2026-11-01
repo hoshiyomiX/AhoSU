@@ -17,6 +17,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -71,13 +72,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
@@ -533,10 +539,11 @@ private fun TopBar(
 /**
  * The home status hero card: working / not-installed / unsupported verdicts.
  *
- * Redesigned as a landscape status tile - the APK icon (or the banana
- * artwork that replaces it) anchors the top-right, the verdict headline
- * with its status glyph fills the top-left, and the mode badges pin to the
- * bottom of the card. Pressing the card gets the HyperOS-style sink feedback.
+ * Redesigned as a landscape status tile - the verdict headline spans the
+ * top (the banana call-out on the working card runs at 25% of the card
+ * height in a rounded display face), the mode badges pin to the bottom-left
+ * and the APK icon - or the banana artwork - anchors the bottom-right.
+ * Pressing the card gets the HyperOS-style sink feedback.
  */
 @Composable
 private fun StatusCard(
@@ -656,12 +663,22 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
 
 /**
  * The 4:3 landscape status tile: the verdict headline (with an optional
- * status glyph) fills the top-left, the APK icon - or the banana artwork
- * that replaces it - anchors the top-right, and every label below the
- * headline is pinned to the bottom of the card by a flexible spacer that
- * auto-adjusts to the leftover room.
+ * status glyph) spans the top - the banana call-out runs at 25% of the card
+ * height in a rounded display face, auto-shrinking to keep the line whole -
+ * while the summary and mode badges pin to the bottom-left next to the APK
+ * icon or the banana artwork on the bottom-right. A flexible spacer between
+ * the rows auto-adjusts to the leftover room.
  */
 private const val HERO_BACKGROUND_SCRIM_ALPHA = 0.55f
+
+/** The banana call-out is sized to 25% of the hero card height. */
+private const val HERO_HEADLINE_CARD_FRACTION = 0.25f
+
+/**
+ * Rounded display face for the banana call-out. Titan One by Rodrigo
+ * Fuenzalida, bundled under the SIL Open Font License 1.1.
+ */
+private val BananaDisplayFont = FontFamily(Font(R.font.banana_display))
 
 @Composable
 private fun StatusHeroCard(
@@ -685,12 +702,7 @@ private fun StatusHeroCard(
     )
     val appName = stringResource(R.string.app_name)
     val summaryColor = contentColor.copy(alpha = 0.75f)
-    val headlineStyle = if (emphasizedTitle) {
-        // title3 runs 20 sp; the banana headline is 25% larger.
-        MiuixTheme.textStyles.title3.copy(fontSize = 25.sp)
-    } else {
-        MiuixTheme.textStyles.title3
-    }
+    val textMeasurer = rememberTextMeasurer()
 
     Card(
         modifier = Modifier
@@ -713,9 +725,40 @@ private fun StatusHeroCard(
         pressFeedbackType = PressFeedbackType.Sink,
         onClick = onClick,
     ) {
-        Box(
+        BoxWithConstraints(
             modifier = Modifier.fillMaxSize(),
         ) {
+            // The banana call-out is sized to a fraction of the card itself,
+            // so it scales with the tile instead of a fixed sp value; the
+            // emoji rides the same string and scales with it.
+            val density = LocalDensity.current
+            val headlineCapSize = with(density) {
+                (maxHeight * HERO_HEADLINE_CARD_FRACTION).toSp()
+            }
+            val headlineStyle = if (emphasizedTitle) {
+                MiuixTheme.textStyles.title3.copy(fontFamily = BananaDisplayFont)
+            } else {
+                MiuixTheme.textStyles.title3
+            }
+            val headlineFontSize = if (emphasizedTitle) {
+                // Wide headlines shrink proportionally so the line never
+                // clips; the measurement runs once per size and is remembered.
+                val availableWidth = maxWidth - (if (backgroundPainter != null) 48.dp else 0.dp)
+                remember(title, headlineCapSize, availableWidth, headlineStyle) {
+                    val measured = textMeasurer.measure(
+                        AnnotatedString(title),
+                        headlineStyle.copy(fontSize = headlineCapSize),
+                    )
+                    val availablePx = with(density) { availableWidth.toPx() }
+                    if (measured.size.width <= availablePx) {
+                        headlineCapSize
+                    } else {
+                        headlineCapSize * (availablePx / measured.size.width)
+                    }
+                }
+            } else {
+                TextUnit.Unspecified
+            }
             backgroundPainter?.let { painter ->
                 // Full-bleed default background, cropped to cover; the card's
                 // squircle surface mask clips it to the rounded corners.
@@ -744,28 +787,49 @@ private fun StatusHeroCard(
             ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    statusIcon?.let { icon ->
+                        MiuixIcon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            tint = contentColor,
+                            modifier = Modifier.size(24.dp),
+                        )
+                    }
+                    MiuixText(
+                        text = title,
+                        style = headlineStyle,
+                        color = contentColor,
+                        fontSize = headlineFontSize,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+
+                // The flexible spacer pins every label below the headline to
+                // the bottom of the card and auto-adjusts to the leftover room.
+                Spacer(modifier = Modifier.weight(1f))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Bottom,
                     horizontalArrangement = Arrangement.spacedBy(16.dp),
                 ) {
-                    Row(
+                    Column(
                         modifier = Modifier.weight(1f),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(10.dp),
                     ) {
-                        statusIcon?.let { icon ->
-                            MiuixIcon(
-                                imageVector = icon,
-                                contentDescription = null,
-                                tint = contentColor,
-                                modifier = Modifier.size(24.dp),
-                            )
-                        }
                         MiuixText(
-                            text = title,
-                            style = headlineStyle,
-                            color = contentColor,
-                            maxLines = 1,
+                            text = summary,
+                            style = MiuixTheme.textStyles.footnote1,
+                            color = summaryColor,
+                            maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
                         )
+                        badges?.let {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            it()
+                        }
                     }
 
                     // An explicit end painter (the banana artwork on the
@@ -778,21 +842,6 @@ private fun StatusHeroCard(
                             .size(endIconSize)
                             .clip(RoundedCornerShape(endIconSize / 4f)),
                     )
-                }
-
-                // The flexible spacer pins every label below the headline to
-                // the bottom of the card and auto-adjusts to the leftover room.
-                Spacer(modifier = Modifier.weight(1f))
-                MiuixText(
-                    text = summary,
-                    style = MiuixTheme.textStyles.footnote1,
-                    color = summaryColor,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                badges?.let {
-                    Spacer(modifier = Modifier.height(10.dp))
-                    it()
                 }
                 bottomAction?.let {
                     Spacer(modifier = Modifier.height(14.dp))
