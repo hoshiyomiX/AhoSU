@@ -53,7 +53,7 @@
     <string name="module_uninstall_failed">הסרת התקנת %s נכשלה:</string>
     <string name="superuser">משתמש על</string>
     <string name="settings">הגדרות</string>
-    <string name="home_working">🍌 Banana!</string>
+    <string name="home_working">Banana!</string>
     <string name="module_failed_to_disable">השבתת מודל %s נכשלה:</string>
     <string name="module_empty">אין מודלים מותקנים</string>
     <string name="install">להתקין</string>

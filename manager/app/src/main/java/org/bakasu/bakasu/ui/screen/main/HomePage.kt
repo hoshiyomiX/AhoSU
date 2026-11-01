@@ -564,9 +564,10 @@ private fun StatusCard(
                     systemInfo.superuserCount,
                     systemInfo.moduleCount,
                 ),
-                // The working title carries the 🍌 emoji from the string resource,
-                // so the vector icon slot stays empty; safe mode keeps TaskAlt.
+                // The working state shows the uploaded banana-girl artwork as
+                // its icon; safe mode keeps the TaskAlt vector instead.
                 statusIcon = if (systemStatus.isSafeMode) Icons.TwoTone.TaskAlt else null,
+                statusIconPainter = if (systemStatus.isSafeMode) null else painterResource(R.drawable.hero_card_icon),
                 backgroundPainter = painterResource(R.drawable.hero_card_bg),
                 onClick = onClick,
                 badges = {
@@ -659,6 +660,7 @@ private fun StatusHeroCard(
     title: String,
     summary: String,
     statusIcon: ImageVector? = null,
+    statusIconPainter: Painter? = null,
     backgroundPainter: Painter? = null,
     color: Color = MiuixTheme.colorScheme.surfaceContainer,
     contentColor: Color = MiuixTheme.colorScheme.onSurfaceContainer,
@@ -735,13 +737,26 @@ private fun StatusHeroCard(
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.spacedBy(10.dp),
                         ) {
-                            statusIcon?.let { icon ->
-                                MiuixIcon(
-                                    imageVector = icon,
+                            if (statusIconPainter != null) {
+                                // The uploaded artwork takes over the icon
+                                // slot; vector icons stay for other states.
+                                Image(
+                                    painter = statusIconPainter,
                                     contentDescription = null,
-                                    tint = contentColor,
-                                    modifier = Modifier.size(24.dp),
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .clip(RoundedCornerShape(12.dp)),
                                 )
+                            } else {
+                                statusIcon?.let { icon ->
+                                    MiuixIcon(
+                                        imageVector = icon,
+                                        contentDescription = null,
+                                        tint = contentColor,
+                                        modifier = Modifier.size(24.dp),
+                                    )
+                                }
                             }
                             MiuixText(
                                 text = title,

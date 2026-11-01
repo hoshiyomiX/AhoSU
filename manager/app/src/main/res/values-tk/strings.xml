@@ -4,7 +4,7 @@
     <string name="learn_more">Has giňişleýin öwren</string>
     <string name="home_not_installed">Gurnalan däl</string>
     <string name="home_click_to_install">Gurnamak üçin basyň</string>
-    <string name="home_working">🍌 Banana!</string>
+    <string name="home_working">Banana!</string>
     <string name="home_unsupported">Goldanylmaýan</string>
     <string name="home_unsupported_reason">Ýadronyzda KernelSU draýweri tapylmady, ýadro nädogrymy?</string>
     <string name="home_kernel">Ýadronyň wersiýasy</string>
