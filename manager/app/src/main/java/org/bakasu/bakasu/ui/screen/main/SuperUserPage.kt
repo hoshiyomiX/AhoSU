@@ -17,7 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.twotone.Article
+import androidx.compose.material.icons.twotone.AdminPanelSettings
 import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.MoreVert
@@ -195,15 +195,19 @@ fun SuperUserPage(bottomPadding: Dp) {
                         onRestoreAllowlist = {
                             restoreLauncher.launch(arrayOf("application/octet-stream"))
                         },
+                        onOpenSulog = {
+                            navigator.push(Route.Sulog)
+                        },
                     )
                 },
                 navigationContent = {
-                    MiuixIconButton(onClick = {
-                        navigator.push(Route.Sulog)
-                    }) {
+                    // Page identity glyph — the same AdminPanelSettings mark the
+                    // floating bottom bar uses for the Superuser destination; the
+                    // SU log entry moved into the overflow dropdown.
+                    Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.TwoTone.Article,
-                            contentDescription = stringResource(R.string.sulog),
+                            imageVector = Icons.TwoTone.AdminPanelSettings,
+                            contentDescription = null,
                         )
                     }
                 },
@@ -382,6 +386,7 @@ private fun SuperUserDropdown(
     uiState: SuperUserUiState,
     onBackupAllowlist: () -> Unit,
     onRestoreAllowlist: () -> Unit,
+    onOpenSulog: () -> Unit,
 ) {
     // Strings are hoisted out of the remember block: stringResource is a
     // composable call and may not run inside the calculation lambda.
@@ -392,13 +397,14 @@ private fun SuperUserDropdown(
     val showSystemAppsLabel = stringResource(R.string.show_system_apps)
     val backupLabel = stringResource(R.string.backup_allowlist)
     val restoreLabel = stringResource(R.string.restore_allowlist)
+    val sulogLabel = stringResource(R.string.sulog)
 
     // The app-standard menu family: the popup hangs on the Box that wraps the
     // icon button (same anchoring as OverlayIconDropdownMenu internals), the
     // rows render through the battle-tested DropdownImpl and groups are
     // separated by the built-in entry divider. Selection rows keep the menu
-    // open (collapseOnSelection = false); the backup/restore actions close it
-    // manually before launching the document pickers.
+    // open (collapseOnSelection = false); the backup/restore actions and the
+    // SU log navigation close it manually before launching.
     val entries = remember(
         sortLabels,
         uiState.currentSortType,
@@ -408,6 +414,7 @@ private fun SuperUserDropdown(
         showSystemAppsLabel,
         backupLabel,
         restoreLabel,
+        sulogLabel,
     ) {
         listOf(
             DropdownEntry(
@@ -453,6 +460,17 @@ private fun SuperUserDropdown(
                         onClick = {
                             onExpandedChange(false)
                             onRestoreAllowlist()
+                        },
+                    ),
+                ),
+            ),
+            DropdownEntry(
+                items = listOf(
+                    DropdownItem(
+                        text = sulogLabel,
+                        onClick = {
+                            onExpandedChange(false)
+                            onOpenSulog()
                         },
                     ),
                 ),
