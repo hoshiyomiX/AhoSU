@@ -43,7 +43,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Undo
 import androidx.compose.material.icons.automirrored.twotone.Wysiwyg
 import androidx.compose.material.icons.twotone.ChevronRight
-import androidx.compose.material.icons.twotone.Cloud
 import androidx.compose.material.icons.twotone.Delete
 import androidx.compose.material.icons.twotone.Download
 import androidx.compose.material.icons.twotone.Extension
@@ -147,6 +146,7 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ButtonDefaults
+import top.yukonga.miuix.kmp.basic.DropdownDefaults
 import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
@@ -160,8 +160,8 @@ import top.yukonga.miuix.kmp.basic.SnackbarResult
 import top.yukonga.miuix.kmp.basic.Switch
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.basic.rememberPullToRefreshState
-import top.yukonga.miuix.kmp.menu.OverlayIconDropdownMenu
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
+import top.yukonga.miuix.kmp.popup.OverlayDropdownPopup
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 enum class ShortcutType {
@@ -327,48 +327,87 @@ fun ModulePage(bottomPadding: Dp) {
                     viewModel.dispatch(ModuleUiAction.Search(query))
                 },
                 dropdownContent = {
+                    // Strings are hoisted out of the remember block: stringResource
+                    // is a composable call and may not run inside the calculation
+                    // lambda.
                     val sortActionFirstLabel = stringResource(R.string.module_sort_action_first)
                     val sortEnabledFirstLabel = stringResource(R.string.module_sort_enabled_first)
-                    OverlayIconDropdownMenu(
-                        entry = DropdownEntry(
-                            items = listOf(
-                                DropdownItem(
-                                    text = sortActionFirstLabel,
-                                    selected = uiState.sortActionFirst,
-                                    onClick = {
-                                        viewModel.dispatch(
-                                            ModuleUiAction.Sort(uiState.sortEnabledFirst, !uiState.sortActionFirst),
-                                        )
-                                    },
-                                ),
-                                DropdownItem(
-                                    text = sortEnabledFirstLabel,
-                                    selected = uiState.sortEnabledFirst,
-                                    onClick = {
-                                        viewModel.dispatch(
-                                            ModuleUiAction.Sort(!uiState.sortEnabledFirst, uiState.sortActionFirst),
-                                        )
-                                    },
+                    val moduleRepoLabel = stringResource(R.string.module_repo)
+
+                    // The app-standard menu family (same as the Superuser page):
+                    // the popup hangs on the Box that wraps the icon button; the
+                    // sort rows keep the menu open (collapseOnSelection = false)
+                    // while the module repo navigation closes it manually before
+                    // pushing the route.
+                    var showDropdown by remember { mutableStateOf(false) }
+                    val entries = remember(
+                        sortActionFirstLabel,
+                        sortEnabledFirstLabel,
+                        moduleRepoLabel,
+                        uiState.sortActionFirst,
+                        uiState.sortEnabledFirst,
+                    ) {
+                        listOf(
+                            DropdownEntry(
+                                items = listOf(
+                                    DropdownItem(
+                                        text = sortActionFirstLabel,
+                                        selected = uiState.sortActionFirst,
+                                        onClick = {
+                                            viewModel.dispatch(
+                                                ModuleUiAction.Sort(uiState.sortEnabledFirst, !uiState.sortActionFirst),
+                                            )
+                                        },
+                                    ),
+                                    DropdownItem(
+                                        text = sortEnabledFirstLabel,
+                                        selected = uiState.sortEnabledFirst,
+                                        onClick = {
+                                            viewModel.dispatch(
+                                                ModuleUiAction.Sort(!uiState.sortEnabledFirst, uiState.sortActionFirst),
+                                            )
+                                        },
+                                    ),
+                                    DropdownItem(
+                                        text = moduleRepoLabel,
+                                        onClick = {
+                                            showDropdown = false
+                                            navigator.push(Route.ModuleRepo)
+                                        },
+                                    ),
                                 ),
                             ),
-                        ),
-                        collapseOnSelection = false,
-                    ) {
-                        Icon(
-                            imageVector = Icons.TwoTone.MoreVert,
-                            contentDescription = stringResource(id = R.string.settings),
+                        )
+                    }
+
+                    Box {
+                        MiuixIconButton(onClick = { showDropdown = true }) {
+                            Icon(
+                                imageVector = Icons.TwoTone.MoreVert,
+                                contentDescription = stringResource(id = R.string.settings),
+                            )
+                        }
+
+                        OverlayDropdownPopup(
+                            entries = entries,
+                            show = showDropdown,
+                            onDismiss = { showDropdown = false },
+                            onDismissFinished = {},
+                            maxHeight = null,
+                            dropdownColors = DropdownDefaults.dropdownColors(),
+                            renderInRootScaffold = true,
+                            collapseOnSelection = false,
                         )
                     }
                 },
                 navigationContent = {
-                    MiuixIconButton(
-                        onClick = {
-                            navigator.push(Route.ModuleRepo)
-                        },
-                    ) {
+                    // Page identity glyph — the same Extension mark the floating
+                    // bottom bar uses for the Modules destination; the module
+                    // repo entry moved into the overflow dropdown.
+                    Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
                         Icon(
-                            imageVector = Icons.TwoTone.Cloud,
-                            contentDescription = stringResource(id = R.string.module_repo),
+                            imageVector = Icons.TwoTone.Extension,
+                            contentDescription = null,
                         )
                     }
                 },
