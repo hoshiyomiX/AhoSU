@@ -597,8 +597,11 @@ private fun StatusCard(
                 // resource ("No Banana!?"), so the vector icon slot stays empty
                 // like on the working card; it also runs in the same rounded
                 // display face and card-height fraction as the banana call-out.
+                // The peel-banana install hint below it runs on the card metric
+                // too: bottom-text scale plus 5% of the card height.
                 statusIcon = null,
                 emphasizedTitle = true,
+                enlargedSummary = true,
                 color = MiuixTheme.colorScheme.errorContainer,
                 contentColor = MiuixTheme.colorScheme.onErrorContainer,
                 // The uploaded crying-girl artwork takes over the APK icon
@@ -678,24 +681,30 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
 /**
  * The 4:3 landscape status tile: the verdict headline (with an optional
  * status glyph) spans the top - the emphasized call-outs (the working banana
- * and the not-installed "No Banana!?") run at 20.25% of the card height
- * (22.5% trimmed by another 10%) in a rounded display face, auto-shrinking
- * to keep the line whole - while the bottom-line texts and mode badges pin
- * to the bottom-left next to the APK icon or the end artwork (the banana
- * girl or the crying girl) on the bottom-right, with the rows separated
- * only by whitespace.
+ * and the not-installed "No Banana!?") run at a final 15% of the card height
+ * in a rounded display face, auto-shrinking to keep the line whole - while
+ * the bottom-line texts and mode badges pin to the bottom-left next to the
+ * APK icon or the end artwork (the banana girl or the crying girl) on the
+ * bottom-right, with the rows separated only by whitespace. The not-installed
+ * peel-banana hint additionally grows by 5% of the card height.
  * A flexible spacer between the rows auto-adjusts to the leftover room.
  */
 private const val HERO_BACKGROUND_SCRIM_ALPHA = 0.55f
 
-/** The banana call-out is sized to 20.25% of the hero card height (22.5% - 10%). */
-private const val HERO_HEADLINE_CARD_FRACTION = 0.2025f
+/** The banana call-outs run at a final 15% of the hero card height. */
+private const val HERO_HEADLINE_CARD_FRACTION = 0.15f
 
 /**
  * The bottom-line summary and badge labels run larger than the stock
  * footnote faces (feedback rounds: +5-plus percent, then another +5%).
  */
 private const val HERO_BOTTOM_TEXT_SCALE = 1.134f
+
+/**
+ * The peel-banana install hint grows by an extra 5% of the hero card height
+ * on top of the bottom-text scale (feedback: enlarge it by 5% of the card).
+ */
+private const val HERO_HINT_CARD_FRACTION_BUMP = 0.05f
 
 /**
  * Rounded display face for the banana call-out. Titan One by Rodrigo
@@ -712,6 +721,7 @@ private fun StatusHeroCard(
     endIconPainter: Painter? = null,
     endIconSize: Dp = 96.dp,
     emphasizedTitle: Boolean = false,
+    enlargedSummary: Boolean = false,
     color: Color = MiuixTheme.colorScheme.surfaceContainer,
     contentColor: Color = MiuixTheme.colorScheme.onSurfaceContainer,
     onClick: (() -> Unit)? = null,
@@ -786,6 +796,17 @@ private fun StatusHeroCard(
             } else {
                 TextUnit.Unspecified
             }
+            // The peel-banana install hint runs on the card-height metric like
+            // the headline: the bottom-text size plus 5% of the card height.
+            val effectiveSummaryStyle = if (enlargedSummary) {
+                summaryStyle.copy(
+                    fontSize = summaryStyle.fontSize + with(density) {
+                        (maxHeight * HERO_HINT_CARD_FRACTION_BUMP).toSp()
+                    },
+                )
+            } else {
+                summaryStyle
+            }
             backgroundPainter?.let { painter ->
                 // Full-bleed default background, cropped to cover; the card's
                 // squircle surface mask clips it to the rounded corners.
@@ -849,7 +870,7 @@ private fun StatusHeroCard(
                     ) {
                         MiuixText(
                             text = summary,
-                            style = summaryStyle,
+                            style = effectiveSummaryStyle,
                             color = summaryColor,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
