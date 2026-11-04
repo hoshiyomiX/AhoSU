@@ -595,10 +595,16 @@ private fun StatusCard(
                 summary = stringResource(R.string.home_click_to_install),
                 // The not-installed title carries the 🙊 emoji from the string
                 // resource ("No Banana!?"), so the vector icon slot stays empty
-                // like on the working card.
+                // like on the working card; it also runs in the same rounded
+                // display face and card-height fraction as the banana call-out.
                 statusIcon = null,
+                emphasizedTitle = true,
                 color = MiuixTheme.colorScheme.errorContainer,
                 contentColor = MiuixTheme.colorScheme.onErrorContainer,
+                // The uploaded crying-girl artwork takes over the APK icon
+                // slot on the right, running 40% larger like the banana art.
+                endIconPainter = painterResource(R.drawable.hero_card_icon_crying),
+                endIconSize = 96.dp * 1.4f,
                 onClick = onClick,
                 bottomAction = if (systemStatus.isSELinuxPermissive) {
                     {
@@ -671,11 +677,13 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
 
 /**
  * The 4:3 landscape status tile: the verdict headline (with an optional
- * status glyph) spans the top - the banana call-out runs at 20.25% of the
- * card height (22.5% trimmed by another 10%) in a rounded display face,
- * auto-shrinking to keep the line whole - while the bottom-line texts and
- * mode badges pin to the bottom-left next to the APK icon or the banana
- * artwork on the bottom-right, with the rows separated only by whitespace.
+ * status glyph) spans the top - the emphasized call-outs (the working banana
+ * and the not-installed "No Banana!?") run at 20.25% of the card height
+ * (22.5% trimmed by another 10%) in a rounded display face, auto-shrinking
+ * to keep the line whole - while the bottom-line texts and mode badges pin
+ * to the bottom-left next to the APK icon or the end artwork (the banana
+ * girl or the crying girl) on the bottom-right, with the rows separated
+ * only by whitespace.
  * A flexible spacer between the rows auto-adjusts to the leftover room.
  */
 private const val HERO_BACKGROUND_SCRIM_ALPHA = 0.55f
