@@ -123,6 +123,14 @@ private const val LIGHT_REF_Y = 0.7f
 private const val GRAVITY_DIR_THRESHOLD_SQ = 0.01f // |g_xy| > 0.1, ≈ 6° tilt
 private const val GRAVITY_ANGLE_STEP_RAD = (3.0 * PI / 180.0).toFloat()
 
+/**
+ * Dark-theme glass wash. Behind the bar the page surface is near-black, so a
+ * dark surfaceContainer wash leaves blur/vibrancy/lens nothing to lift and
+ * the pill collapses into a solid black rectangle; a light-neutral tint
+ * keeps it reading as smoked glass instead.
+ */
+private const val GLASS_DARK_WASH_ALPHA = 0.12f
+
 /** Tracks gravity for a `dualPeak` highlight's primary light, with an extra UV-clockwise offset on top. */
 @Composable
 private fun rememberQuantizedGravityAngle(): State<Float> {
@@ -223,7 +231,13 @@ fun FloatingBottomBar(
     val accentColor = MaterialTheme.colorScheme.primary
     val tabContentColor = MaterialTheme.colorScheme.onSurface
     val surfaceContainer = MaterialTheme.colorScheme.surfaceContainer
-    val containerColor = if (isBlurEnabled) surfaceContainer.copy(alpha = 0.4f) else surfaceContainer
+    // Liquid-glass tint: dark theme takes a light-neutral wash (see
+    // GLASS_DARK_WASH_ALPHA); light theme keeps the stock surfaceContainer wash.
+    val containerColor = if (isBlurEnabled) {
+        if (isInDark) Color.White.copy(alpha = GLASS_DARK_WASH_ALPHA) else surfaceContainer.copy(alpha = 0.4f)
+    } else {
+        surfaceContainer
+    }
 
     val backdrop: Backdrop = LocalBlurState.current ?: rememberLayerBackdrop()
     val tabsBackdrop = rememberLayerBackdrop()
@@ -383,7 +397,8 @@ fun FloatingBottomBar(
                                     refractionAmount = 24.dp.toPx(),
                                 )
                             },
-                            highlight = { baseHighlight.value.copy(alpha = 0.75f) },
+                            // The specular rim carries the glass cue on the dark wash.
+                            highlight = { baseHighlight.value.copy(alpha = if (isInDark) 0.9f else 0.75f) },
                             layerBlock = {
                                 val width = size.width.coerceAtLeast(1f)
                                 val s = lerp(
