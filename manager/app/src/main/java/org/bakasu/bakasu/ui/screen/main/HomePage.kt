@@ -83,6 +83,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.google.accompanist.drawablepainter.rememberDrawablePainter
@@ -798,11 +799,11 @@ private fun StatusHeroCard(
             }
             // The peel-banana install hint runs on the card-height metric like
             // the headline: the bottom-text size plus 5% of the card height.
+            // TextUnit has no plus operator, so the bump composes in raw sp.
             val effectiveSummaryStyle = if (enlargedSummary) {
+                val bumpSp = with(density) { (maxHeight * HERO_HINT_CARD_FRACTION_BUMP).toSp() }
                 summaryStyle.copy(
-                    fontSize = summaryStyle.fontSize + with(density) {
-                        (maxHeight * HERO_HINT_CARD_FRACTION_BUMP).toSp()
-                    },
+                    fontSize = (summaryStyle.fontSize.value + bumpSp.value).sp,
                 )
             } else {
                 summaryStyle
