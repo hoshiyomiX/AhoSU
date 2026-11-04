@@ -31,7 +31,7 @@
     <string name="reboot_userspace">רך Reboot</string>
     <string name="home_support_content">KernelSU הוא, ותמיד יהיה, חינמי וקוד פתוח. עם זאת, תוכל להראות לנו שאכפת לך על ידי תרומה.</string>
     <string name="uninstall">הסרה</string>
-    <string name="home_click_to_install">לחץ להתקנה</string>
+    <string name="home_click_to_install">Tap to peel banana 🍌</string>
     <string name="profile_selinux_rules">כללים</string>
     <string name="profile_groups">קבוצה</string>
     <string name="module">מודולים</string>

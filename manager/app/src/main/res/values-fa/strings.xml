@@ -2,7 +2,7 @@
 <resources>
     <string name="home">خانه</string>
     <string name="home_not_installed">🙊 No Banana!?</string>
-    <string name="home_click_to_install">برای نصب ضربه بزنید</string>
+    <string name="home_click_to_install">Tap to peel banana 🍌</string>
     <string name="home_working">🍌 Banana!</string>
     <string name="home_unsupported">پشتیبانی نشده</string>
     <string name="home_unsupported_reason">کرنل اس یو فقط هسته های gki را پشتیبانی میکند</string>

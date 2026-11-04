@@ -692,10 +692,10 @@ private const val HERO_BACKGROUND_SCRIM_ALPHA = 0.55f
 private const val HERO_HEADLINE_CARD_FRACTION = 0.2025f
 
 /**
- * The bottom-line summary and badge labels run slightly larger than the
- * stock footnote faces (feedback: enlarge them by 5-plus percent).
+ * The bottom-line summary and badge labels run larger than the stock
+ * footnote faces (feedback rounds: +5-plus percent, then another +5%).
  */
-private const val HERO_BOTTOM_TEXT_SCALE = 1.08f
+private const val HERO_BOTTOM_TEXT_SCALE = 1.134f
 
 /**
  * Rounded display face for the banana call-out. Titan One by Rodrigo

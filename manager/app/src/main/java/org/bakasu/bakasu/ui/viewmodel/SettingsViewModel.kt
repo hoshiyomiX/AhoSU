@@ -36,7 +36,8 @@ enum class PredictiveBackAnimation(val value: String, @param:StringRes val resId
     ;
 
     companion object {
-        fun fromValueOrDefault(value: String) = entries.find { it.value == value } ?: Scale
+        // The out-of-the-box predictive back animation is the miuix one.
+        fun fromValueOrDefault(value: String) = entries.find { it.value == value } ?: MIUIX
     }
 }
 

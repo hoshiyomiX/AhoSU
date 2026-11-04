@@ -577,7 +577,7 @@ private fun ThemeInitializer(
         settings.preload()
         themeConfig.forceDarkMode = themeRepository.loadThemeMode()
         themeConfig.customAccentColor = themeRepository.loadAccentColor()?.let { raw -> Color(raw) }
-        themeConfig.isEnableBlur = settings.getBoolean("enable_blur", false)
+        themeConfig.isEnableBlur = settings.getBoolean("enable_blur", true)
         themeConfig.bottomBarStyle = BottomBarStyle.fromOrdinal(settings.getInt("bottom_bar_style", 1))
         backgroundManager.loadCustomBackground()
         cardConfig.load()

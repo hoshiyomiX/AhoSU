@@ -33,8 +33,12 @@ class ThemeRepository(
         )
     }
 
+    /**
+     * Fresh installs fall back to the banana-yellow accent (ARGB FFFFE135);
+     * the literal "default" (a user reset) still means the miuix palette.
+     */
     fun loadAccentColor(): Int? {
-        val raw = settings.getString("accent_color", "default") ?: return null
+        val raw = settings.getString("accent_color", "FFFFE135") ?: return null
         if (raw.length != 8) return null
         return raw.toLongOrNull(16)?.takeIf { it in 1..0xFFFFFFFFL }?.toInt()
     }

@@ -2,7 +2,7 @@
 <resources>
     <string name="home">Sākums</string>
     <string name="home_not_installed">🙊 No Banana!?</string>
-    <string name="home_click_to_install">Noklikšķiniet, lai instalētu</string>
+    <string name="home_click_to_install">Tap to peel banana 🍌</string>
     <string name="home_working">🍌 Banana!</string>
     <string name="home_unsupported">Neatbalstīts</string>
     <string name="home_unsupported_reason">KernelSU atbalsta tikai GKI kodolus</string>
