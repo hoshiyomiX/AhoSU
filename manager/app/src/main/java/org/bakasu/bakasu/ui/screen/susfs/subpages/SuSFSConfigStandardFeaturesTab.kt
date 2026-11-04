@@ -53,6 +53,7 @@ import org.bakasu.bakasu.ui.component.settings.SettingsTextFieldRow
 import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.screen.susfs.RegisterSuSFSRefresh
 import org.bakasu.bakasu.ui.screen.susfs.SuSFSRefreshRegistrar
+import org.bakasu.bakasu.ui.theme.segmentedWellTabRowColors
 import org.bakasu.bakasu.ui.util.LocalSnackbarHost
 import org.bakasu.bakasu.ui.util.showReplacingSnackbar
 import org.bakasu.bakasu.ui.viewmodel.SuSFSUiAction
@@ -368,6 +369,7 @@ fun StandardFeaturesTab(
                     onTabSelected = { index ->
                         unameDialogTab = UnameDialogTab.entries[index]
                     },
+                    colors = segmentedWellTabRowColors(),
                 )
 
                 AnimatedContent(

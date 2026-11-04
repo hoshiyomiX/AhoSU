@@ -70,6 +70,7 @@ import org.bakasu.bakasu.ui.rememberMaterial3BlurBackdrop
 import org.bakasu.bakasu.ui.theme.ThemeConfig
 import org.bakasu.bakasu.ui.theme.blurEffect
 import org.bakasu.bakasu.ui.theme.blurSource
+import org.bakasu.bakasu.ui.theme.headerTabRowColors
 import org.bakasu.bakasu.ui.util.LocalBlurState
 import org.bakasu.bakasu.ui.util.adaptiveScaffoldWindowInsets
 import org.bakasu.bakasu.ui.viewmodel.InstallUiEvent
@@ -774,6 +775,7 @@ private fun TopBar(
             selectedTabIndex = selectedTab.coerceAtMost(1),
             onTabSelected = onTabSelected,
             modifier = Modifier.fillMaxWidth(),
+            colors = headerTabRowColors(Color.Transparent),
         )
     }
 }

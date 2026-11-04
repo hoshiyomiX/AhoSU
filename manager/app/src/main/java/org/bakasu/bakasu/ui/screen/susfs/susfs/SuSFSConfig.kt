@@ -36,6 +36,7 @@ import org.bakasu.bakasu.ui.theme.CardConfig
 import org.bakasu.bakasu.ui.theme.ThemeConfig
 import org.bakasu.bakasu.ui.theme.blurEffect
 import org.bakasu.bakasu.ui.theme.blurSource
+import org.bakasu.bakasu.ui.theme.headerTabRowColors
 import org.bakasu.bakasu.ui.util.ActivityResumeEffect
 import org.bakasu.bakasu.ui.util.LocalSnackbarHost
 import org.bakasu.bakasu.ui.util.adaptiveScaffoldWindowInsets
@@ -212,6 +213,11 @@ fun SuSFSConfigScreen() {
 
     MiuixScaffold(
         topBar = {
+            val headerBarColor = if (themeConfig.isEnableBlur) {
+                Color.Transparent
+            } else {
+                MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
+            }
             Column(modifier = Modifier.blurEffect()) {
                 MiuixTopAppBar(
                     title = stringResource(R.string.susfs_config_title),
@@ -223,12 +229,7 @@ fun SuSFSConfigScreen() {
                             },
                         )
                     },
-                    color =
-                        if (themeConfig.isEnableBlur) {
-                            Color.Transparent
-                        } else {
-                            MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-                        },
+                    color = headerBarColor,
                 )
 
                 TabRow(
@@ -240,6 +241,10 @@ fun SuSFSConfigScreen() {
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
+                    // The band takes the app bar's own paint so the header reads
+                    // as one surface instead of a black strip wedged between
+                    // the bar and the content.
+                    colors = headerTabRowColors(headerBarColor),
                     // Wide segments keep the longer titles ("Open Redirect")
                     // on one line; the row scrolls and centers the selection
                     // the way HyperOS tab strips do.

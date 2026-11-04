@@ -94,6 +94,7 @@ import org.bakasu.bakasu.ui.theme.CardConfig
 import org.bakasu.bakasu.ui.theme.ThemeConfig
 import org.bakasu.bakasu.ui.theme.blurEffect
 import org.bakasu.bakasu.ui.theme.blurSource
+import org.bakasu.bakasu.ui.theme.headerTabRowColors
 import org.bakasu.bakasu.ui.util.LocalPermissionRequestInterface
 import org.bakasu.bakasu.ui.util.LocalSnackbarHost
 import org.bakasu.bakasu.ui.util.adaptiveScaffoldWindowInsets
@@ -224,6 +225,7 @@ private fun OnlineModuleDetailContent(module: CatalogModule, viewModel: ModuleDe
                         onTabSelected = { index ->
                             coroutineScope.launch { pagerState.animateScrollToPage(index) }
                         },
+                        colors = headerTabRowColors(barColor),
                     )
                 },
             )

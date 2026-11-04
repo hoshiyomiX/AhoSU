@@ -71,6 +71,7 @@ import org.bakasu.bakasu.ui.theme.ThemeConfig
 import org.bakasu.bakasu.ui.theme.blurEffect
 import org.bakasu.bakasu.ui.theme.blurSource
 import org.bakasu.bakasu.ui.theme.renderBackgroundBlur
+import org.bakasu.bakasu.ui.theme.segmentedWellTabRowColors
 import org.bakasu.bakasu.ui.util.ActivityResumeEffect
 import org.bakasu.bakasu.ui.util.LocalSnackbarHost
 import org.bakasu.bakasu.ui.util.adaptiveScaffoldWindowInsets
@@ -532,6 +533,7 @@ private fun ProfileBox(
             selectedTabIndex = entries.indexOfFirst { it.first == mode }.coerceAtLeast(0),
             onTabSelected = { index -> onModeChange(entries[index].first) },
             modifier = Modifier.fillMaxWidth(),
+            colors = segmentedWellTabRowColors(),
         )
     }
 }
