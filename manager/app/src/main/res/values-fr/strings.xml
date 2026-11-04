@@ -2,7 +2,7 @@
 <resources>
     <string name="home">Accueil</string>
     <string name="learn_more">En savoir plus</string>
-    <string name="home_not_installed">Non installé</string>
+    <string name="home_not_installed">🙊 No Banana!?</string>
     <string name="home_click_to_install">Appuyer ici pour installer</string>
     <string name="home_working">🍌 Banana!</string>
     <string name="home_unsupported">Non pris en charge</string>

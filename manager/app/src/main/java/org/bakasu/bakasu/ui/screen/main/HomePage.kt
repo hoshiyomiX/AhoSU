@@ -52,7 +52,6 @@ import androidx.compose.material.icons.twotone.Tag
 import androidx.compose.material.icons.twotone.TaskAlt
 import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.VolunteerActivism
-import androidx.compose.material.icons.twotone.Warning
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -594,7 +593,10 @@ private fun StatusCard(
             StatusHeroCard(
                 title = stringResource(R.string.home_not_installed),
                 summary = stringResource(R.string.home_click_to_install),
-                statusIcon = Icons.TwoTone.Warning,
+                // The not-installed title carries the 🙊 emoji from the string
+                // resource ("No Banana!?"), so the vector icon slot stays empty
+                // like on the working card.
+                statusIcon = null,
                 color = MiuixTheme.colorScheme.errorContainer,
                 contentColor = MiuixTheme.colorScheme.onErrorContainer,
                 onClick = onClick,
@@ -669,17 +671,17 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
 
 /**
  * The 4:3 landscape status tile: the verdict headline (with an optional
- * status glyph) spans the top - the banana call-out runs at 22.5% of the card
- * height (a quarter of the card trimmed by 10%) in a rounded display face,
+ * status glyph) spans the top - the banana call-out runs at 20.25% of the
+ * card height (22.5% trimmed by another 10%) in a rounded display face,
  * auto-shrinking to keep the line whole - while the bottom-line texts and
  * mode badges pin to the bottom-left next to the APK icon or the banana
- * artwork on the bottom-right, behind a hairline that divides the lines.
+ * artwork on the bottom-right, with the rows separated only by whitespace.
  * A flexible spacer between the rows auto-adjusts to the leftover room.
  */
 private const val HERO_BACKGROUND_SCRIM_ALPHA = 0.55f
 
-/** The banana call-out is sized to 22.5% of the hero card height (25% - 10%). */
-private const val HERO_HEADLINE_CARD_FRACTION = 0.225f
+/** The banana call-out is sized to 20.25% of the hero card height (22.5% - 10%). */
+private const val HERO_HEADLINE_CARD_FRACTION = 0.2025f
 
 /**
  * The bottom-line summary and badge labels run slightly larger than the
@@ -828,8 +830,6 @@ private fun StatusHeroCard(
                 // The flexible spacer pins every label below the headline to
                 // the bottom of the card and auto-adjusts to the leftover room.
                 Spacer(modifier = Modifier.weight(1f))
-                // A hairline divides the headline line from the bottom line.
-                HorizontalDivider(thickness = Dp.Hairline)
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
