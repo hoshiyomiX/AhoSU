@@ -116,13 +116,14 @@ containers.
 #### Fine-grained settings widgets
 
 For switch controls, page-navigation entries, and other individual settings rows, use the
-corresponding `SettingsBaseWidget` wrapper rather than composing an imitation manually.
+corresponding preference row rather than composing an imitation manually.
 
 Examples include:
 
-* `SettingsSwitchWidget` for settings controlled by a switch;
-* `SettingsJumpPageWidget` for settings that open or navigate to another page;
-* the appropriate existing `SettingsBaseWidget` wrapper for comparable settings interactions.
+* `SettingsSwitchRow` for settings controlled by a switch;
+* `SettingsJumpRow` for settings that open or navigate to another page;
+* `SettingsChooseRow` / `SettingsInfoRow` and comparable rows built on `SettingsBaseWidget` for
+  other settings interactions.
 
 Reuse the closest existing wrapper and its API. Do not manually assemble a `Row`, text, click
 handler, divider, shape, and trailing icon/switch just to reproduce a standard settings widget.
