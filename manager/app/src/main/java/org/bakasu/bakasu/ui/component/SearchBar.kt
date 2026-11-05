@@ -77,6 +77,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.Lifecycle
@@ -424,7 +425,7 @@ fun CenteredHeaderTitle(
         return
     }
     val titleStyle = LocalTextStyle.current
-    val iconSize = if (titleStyle.fontSize.isSpecified) {
+    val iconSize = if (titleStyle.fontSize != TextUnit.Unspecified) {
         with(LocalDensity.current) {
             (titleStyle.fontSize * CENTERED_HEADER_ICON_TEXT_SCALE).toDp()
         }
