@@ -15,7 +15,6 @@ import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,6 +36,7 @@ import org.bakasu.bakasu.ui.theme.monospaceFontFamily
 import org.bakasu.bakasu.ui.util.LocalSnackbarHost
 import org.bakasu.bakasu.ui.util.adaptiveScaffoldWindowInsets
 import org.koin.compose.koinInject
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
@@ -72,7 +72,7 @@ fun ModuleActionOutput(
             if (!running) {
                 ExtendedFloatingActionButton(
                     text = { Text(text = stringResource(R.string.close)) },
-                    icon = { Icon(Icons.TwoTone.Close, contentDescription = null) },
+                    icon = { MiuixIcon(Icons.TwoTone.Close, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer) },
                     onClick = onBack,
                 )
             }
@@ -153,7 +153,7 @@ private fun TopBar(
                 onClick = onSave,
                 enabled = !isActionRunning,
             ) {
-                Icon(
+                MiuixIcon(
                     imageVector = Icons.TwoTone.Save,
                     contentDescription = stringResource(id = R.string.save_log),
                 )

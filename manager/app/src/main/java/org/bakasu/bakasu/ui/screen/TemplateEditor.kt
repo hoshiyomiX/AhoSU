@@ -13,7 +13,6 @@ import androidx.compose.material.icons.twotone.DeleteForever
 import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,6 +54,7 @@ import org.bakasu.bakasu.ui.viewmodel.TemplateEditorUiEvent
 import org.bakasu.bakasu.ui.viewmodel.TemplateEditorViewModel
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
@@ -302,13 +302,13 @@ private fun TopBar(
                 return@SmallTopAppBar
             }
             MiuixIconButton(onClick = onDelete) {
-                Icon(
+                MiuixIcon(
                     Icons.TwoTone.DeleteForever,
                     contentDescription = stringResource(id = R.string.app_profile_template_delete),
                 )
             }
             MiuixIconButton(onClick = onSave) {
-                Icon(
+                MiuixIcon(
                     imageVector = Icons.TwoTone.Save,
                     contentDescription = stringResource(id = R.string.app_profile_template_save),
                 )

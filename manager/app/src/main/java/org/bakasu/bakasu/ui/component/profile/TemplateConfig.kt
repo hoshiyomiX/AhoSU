@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.Article
 import androidx.compose.material.icons.automirrored.twotone.ReadMore
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +29,7 @@ import org.bakasu.bakasu.ui.util.ActivityResumeEffect
 import org.bakasu.bakasu.ui.viewmodel.TemplateUiAction
 import org.bakasu.bakasu.ui.viewmodel.TemplateViewModel
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
 /**
@@ -81,7 +81,7 @@ fun TemplateConfig(
         },
         itemEndActions = { index ->
             if (index != 0) {
-                Icon(
+                MiuixIcon(
                     imageVector = Icons.AutoMirrored.TwoTone.ReadMore,
                     contentDescription = null,
                     tint = MiuixTheme.colorScheme.onBackground,

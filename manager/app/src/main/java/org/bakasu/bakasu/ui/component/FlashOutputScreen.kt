@@ -15,7 +15,6 @@ import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -46,6 +45,7 @@ import org.bakasu.bakasu.ui.util.showReplacingSnackbar
 import org.bakasu.bakasu.ui.viewmodel.FlashState
 import org.bakasu.bakasu.ui.viewmodel.FlashingStatus
 import org.koin.compose.koinInject
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
@@ -83,7 +83,7 @@ fun FlashOutputScreen(
         floatingActionButton = {
             if (state.showReboot) {
                 ExtendedFloatingActionButton(onClick = onReboot, icon = {
-                    Icon(Icons.TwoTone.Refresh, contentDescription = stringResource(R.string.reboot))
+                    MiuixIcon(Icons.TwoTone.Refresh, contentDescription = stringResource(R.string.reboot), tint = MaterialTheme.colorScheme.onPrimaryContainer)
                 }, text = { Text(stringResource(R.string.reboot)) })
             }
         },
@@ -130,7 +130,7 @@ private fun FlashOutputTopBar(status: FlashingStatus, onBack: () -> Unit, onSave
         title = stringResource(status.resId),
         titleColor = color,
         navigationIcon = { AppBackButton(onClick = onBack) },
-        actions = { MiuixIconButton(onClick = onSave) { Icon(Icons.TwoTone.Save, stringResource(R.string.save_log)) } },
+        actions = { MiuixIconButton(onClick = onSave) { MiuixIcon(Icons.TwoTone.Save, stringResource(R.string.save_log)) } },
         color = containerColor,
         scrollBehavior = scrollBehavior,
     )

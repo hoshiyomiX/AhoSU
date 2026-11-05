@@ -24,7 +24,6 @@ import androidx.compose.material.icons.twotone.Sync
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -75,6 +74,7 @@ import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
@@ -194,7 +194,7 @@ fun AppProfileTemplateScreen() {
                         "template_edit",
                     )
                 },
-                icon = { Icon(Icons.TwoTone.Add, null) },
+                icon = { MiuixIcon(Icons.TwoTone.Add, null, tint = MaterialTheme.colorScheme.onSecondaryContainer) },
                 text = { Text(stringResource(id = R.string.app_profile_template_create)) },
                 contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
             )
@@ -371,7 +371,7 @@ private fun TopBar(
         },
         actions = {
             MiuixIconButton(onClick = onSync) {
-                Icon(
+                MiuixIcon(
                     Icons.TwoTone.Sync,
                     contentDescription = stringResource(id = R.string.app_profile_template_sync),
                 )
@@ -387,7 +387,7 @@ private fun TopBar(
                     ),
                 ),
             ) {
-                Icon(
+                MiuixIcon(
                     imageVector = Icons.TwoTone.ImportExport,
                     contentDescription = stringResource(id = R.string.app_profile_import_export),
                 )

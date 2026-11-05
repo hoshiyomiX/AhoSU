@@ -21,7 +21,6 @@ import androidx.compose.material.icons.automirrored.twotone.Help
 import androidx.compose.material.icons.twotone.Extension
 import androidx.compose.material.icons.twotone.GetApp
 import androidx.compose.material.icons.twotone.Memory
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -61,6 +60,7 @@ import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
 import top.yukonga.miuix.kmp.basic.CardDefaults
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
 
@@ -313,7 +313,7 @@ fun InstallConfirmationDialog(
                             onClick = onDismiss,
                         )
                         Button(onClick = { onConfirm(zipFiles) }) {
-                            Icon(
+                            MiuixIcon(
                                 imageVector = Icons.TwoTone.GetApp,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
@@ -350,7 +350,7 @@ fun InstallItemCard(zipFile: ZipFileInfo) {
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Icon(
+                MiuixIcon(
                     imageVector = when (zipFile.type) {
                         ZipType.MODULE -> Icons.TwoTone.Extension
                         ZipType.KERNEL -> Icons.TwoTone.Memory
