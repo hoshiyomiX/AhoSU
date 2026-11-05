@@ -54,7 +54,6 @@ import androidx.compose.material.icons.twotone.Tag
 import androidx.compose.material.icons.twotone.TaskAlt
 import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.VolunteerActivism
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -497,7 +496,7 @@ private fun TopBar(
                     MiuixIconButton(onClick = {
                         navigator.push(Route.SuSFSConfig)
                     }) {
-                        Icon(
+                        MiuixIcon(
                             imageVector = Icons.TwoTone.Tune,
                             contentDescription = stringResource(R.string.susfs_config_setting_title),
                             tint = MaterialTheme.colorScheme.onSurface,
@@ -512,7 +511,7 @@ private fun TopBar(
                         MiuixIconButton(onClick = {
                             showDropdown = true
                         }) {
-                            Icon(
+                            MiuixIcon(
                                 imageVector = Icons.TwoTone.PowerSettingsNew,
                                 contentDescription = stringResource(id = R.string.reboot),
                                 tint = MaterialTheme.colorScheme.onSurface,
