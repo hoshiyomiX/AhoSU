@@ -700,14 +700,14 @@ private fun TopBar(
         modifier = Modifier.blurEffect(),
         title = {
             // Page identity glyph - the same Settings mark the floating bottom
-            // bar uses for this destination, riding inline with the centered
-            // page title like on the Superuser and Modules pages.
+            // bar uses for this destination, riding inline with the start-
+            // aligned page title like on the Superuser and Modules pages.
             HeaderTitle(
                 title = stringResource(R.string.settings),
                 icon = Icons.TwoTone.Settings,
             )
         },
-        titleHorizontalAlignment = Alignment.CenterHorizontally,
+        titleHorizontalAlignment = Alignment.Start,
         windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
         colors = TopAppBarDefaults.topAppBarColors(
             containerColor =
