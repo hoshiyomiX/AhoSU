@@ -16,9 +16,11 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.add
@@ -27,6 +29,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.clearText
@@ -38,6 +41,7 @@ import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
+import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -55,6 +59,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
@@ -64,6 +69,7 @@ import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.layout.layout
@@ -397,6 +403,48 @@ private fun CompactSearchBar(
     )
 }
 
+/** The header glyph runs slightly larger than the title's font size. */
+private const val CENTERED_HEADER_ICON_TEXT_SCALE = 1.15f
+
+/**
+ * The centered page-identity header: the destination glyph rides inline with
+ * the page title so the pair centers as one group in the app bar. The glyph
+ * tracks the bar's provided title style - it grows with the expanded large
+ * title and shrinks back with the collapsed small one - and tints along with
+ * the title content color. A null icon degrades to the plain title text.
+ */
+@Composable
+fun CenteredHeaderTitle(
+    title: String,
+    icon: ImageVector?,
+    modifier: Modifier = Modifier,
+) {
+    if (icon == null) {
+        Text(text = title, modifier = modifier)
+        return
+    }
+    val titleStyle = LocalTextStyle.current
+    val iconSize = if (titleStyle.fontSize.isSpecified) {
+        with(LocalDensity.current) {
+            (titleStyle.fontSize * CENTERED_HEADER_ICON_TEXT_SCALE).toDp()
+        }
+    } else {
+        24.dp
+    }
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            modifier = Modifier.size(iconSize),
+        )
+        Text(text = title)
+    }
+}
+
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterial3ExpressiveApi::class)
 @Composable
 fun SearchAppBar(
@@ -405,7 +453,7 @@ fun SearchAppBar(
     onSearchTextChange: (String) -> Unit,
     onBackClick: (() -> Unit)? = null,
     dropdownContent: @Composable (() -> Unit)? = null,
-    navigationContent: @Composable (() -> Unit)? = null,
+    headerIcon: ImageVector? = null,
     scrollBehavior: TopAppBarScrollBehavior? = null,
     searchBarPlaceHolderText: String,
     preserveStateOnNavigation: Boolean = false,
@@ -486,7 +534,12 @@ fun SearchAppBar(
             modifier = Modifier.blurEffect(),
             scrollBehavior = scrollBehavior,
             title = {
-                Text(text = title)
+                CenteredHeaderTitle(title = title, icon = headerIcon)
+            },
+            titleHorizontalAlignment = if (headerIcon != null) {
+                Alignment.CenterHorizontally
+            } else {
+                Alignment.Start
             },
             navigationIcon = {
                 if (onBackClick != null) {
@@ -495,8 +548,6 @@ fun SearchAppBar(
                             onBackClick.invoke()
                         },
                     )
-                } else {
-                    navigationContent?.invoke()
                 }
             },
             actions = {

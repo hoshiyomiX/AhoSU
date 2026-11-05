@@ -400,17 +400,11 @@ fun ModulePage(bottomPadding: Dp) {
                         )
                     }
                 },
-                navigationContent = {
-                    // Page identity glyph — the same Extension mark the floating
-                    // bottom bar uses for the Modules destination; the module
-                    // repo entry moved into the overflow dropdown.
-                    Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.TwoTone.Extension,
-                            contentDescription = null,
-                        )
-                    }
-                },
+                // Page identity glyph — the same Extension mark the floating
+                // bottom bar uses for the Modules destination - now riding
+                // inline with the centered page title. The module repo entry
+                // stays in the overflow dropdown.
+                headerIcon = Icons.TwoTone.Extension,
                 scrollBehavior = scrollBehavior,
                 searchBarPlaceHolderText = stringResource(R.string.search_modules),
             )

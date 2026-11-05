@@ -200,17 +200,11 @@ fun SuperUserPage(bottomPadding: Dp) {
                         },
                     )
                 },
-                navigationContent = {
-                    // Page identity glyph — the same AdminPanelSettings mark the
-                    // floating bottom bar uses for the Superuser destination; the
-                    // SU log entry moved into the overflow dropdown.
-                    Box(modifier = Modifier.size(40.dp), contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.TwoTone.AdminPanelSettings,
-                            contentDescription = null,
-                        )
-                    }
-                },
+                // Page identity glyph — the same AdminPanelSettings mark the
+                // floating bottom bar uses for the Superuser destination -
+                // now riding inline with the centered page title. The SU log
+                // entry stays in the overflow dropdown.
+                headerIcon = Icons.TwoTone.AdminPanelSettings,
                 scrollBehavior = scrollBehavior,
                 searchBarPlaceHolderText = stringResource(R.string.search_apps),
             )
