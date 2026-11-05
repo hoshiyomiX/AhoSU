@@ -414,13 +414,13 @@ jobs:
           name: Manager-debug
           path: dist/manager-debug
 
-      - name: Publish rolling nightly pre-release
+      - name: Publish rolling beta pre-release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -eu
           shopt -s nullglob
-          TAG="nightly"
+          TAG="beta"
           SHORT_SHA="${GITHUB_SHA::7}"
           VERSION_CODE=$((30700 + $(git rev-list --count HEAD)))
           VERSION_NAME=$(git describe --tags --always)
@@ -466,7 +466,7 @@ jobs:
             exit 1
           fi
 
-          # Rolling channel: remove the previous nightly release and its tag
+          # Rolling channel: remove the previous beta release and its tag
           # so the tag always points at the newest main build.
           # gh api prints the HTTP error body to stdout on 404, so guard the
           # captured id against non-numeric payloads before using it.
@@ -479,7 +479,7 @@ jobs:
           gh release create "$TAG" "${APKS[@]}" \
             --target "$GITHUB_SHA" \
             --prerelease \
-            --title "Manager Nightly v${VERSION_CODE} (${SHORT_SHA})" \
+            --title "Manager Beta v${VERSION_CODE} (${SHORT_SHA})" \
             --notes "Automated build of main @ ${GITHUB_SHA} (versionCode ${VERSION_CODE}, ${VERSION_NAME}). Uploaded as a pre-release. Assets are per-ABI builds plus a universal one: pick arm64-v8a for 64-bit ARM devices, or universal."
 
   telegram-bot-api:
