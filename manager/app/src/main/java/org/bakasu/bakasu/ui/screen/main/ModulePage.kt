@@ -217,6 +217,9 @@ fun ModulePage(bottomPadding: Dp) {
         },
     )
 
+    // Hoisted out of the picker callback so the failure message stays configuration-aware.
+    val stageFailedCountFormat = stringResource(R.string.module_stage_failed_count)
+
     val selectZipLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
     ) {
@@ -265,7 +268,7 @@ fun ModulePage(bottomPadding: Dp) {
                 }
                 if (failedCount > 0) {
                     snackBarHost.showReplacingSnackbar(
-                        context.getString(R.string.module_stage_failed_count, failedCount, clipData.itemCount),
+                        stageFailedCountFormat.format(failedCount, clipData.itemCount),
                     )
                 }
                 selectedModules.singleOrNull()?.let { uri ->
