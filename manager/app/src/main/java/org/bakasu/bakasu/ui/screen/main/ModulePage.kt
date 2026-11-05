@@ -51,7 +51,6 @@ import androidx.compose.material.icons.twotone.PlayArrow
 import androidx.compose.material.icons.twotone.Refresh
 import androidx.compose.material.icons.twotone.Warning
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -151,6 +150,7 @@ import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.FloatingActionButton
 import top.yukonga.miuix.kmp.basic.HorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.PullToRefresh
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
@@ -382,7 +382,7 @@ fun ModulePage(bottomPadding: Dp) {
 
                     Box {
                         MiuixIconButton(onClick = { showDropdown = true }) {
-                            Icon(
+                            MiuixIcon(
                                 imageVector = Icons.TwoTone.MoreVert,
                                 contentDescription = stringResource(id = R.string.settings),
                             )
@@ -424,7 +424,7 @@ fun ModulePage(bottomPadding: Dp) {
                     )
                 },
             ) {
-                Icon(
+                MiuixIcon(
                     painter = painterResource(id = R.drawable.package_import),
                     contentDescription = null,
                     tint = MiuixTheme.colorScheme.onPrimary,
@@ -451,7 +451,7 @@ fun ModulePage(bottomPadding: Dp) {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                     ) {
-                        Icon(
+                        MiuixIcon(
                             imageVector = Icons.TwoTone.Warning,
                             contentDescription = null,
                             modifier = Modifier
@@ -478,7 +478,7 @@ fun ModulePage(bottomPadding: Dp) {
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center,
                     ) {
-                        Icon(
+                        MiuixIcon(
                             imageVector = Icons.TwoTone.Extension,
                             contentDescription = null,
                             modifier = Modifier
@@ -1053,7 +1053,7 @@ private fun ModuleList(
                                 shortcutIconUri = defaultShortcutIconUri
                             },
                             endContent = {
-                                Icon(
+                                MiuixIcon(
                                     imageVector = Icons.AutoMirrored.TwoTone.Undo,
                                     contentDescription = null,
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -1420,12 +1420,17 @@ fun ModuleItem(
                             MiuixTheme.colorScheme.disabledOnSecondaryVariant
                         },
                     ) {
-                        Icon(
+                        MiuixIcon(
                             modifier = Modifier
                                 .size(20.dp)
                                 .padding(12.dp, 7.dp, 12.dp, 7.dp),
                             imageVector = Icons.TwoTone.PlayArrow,
                             contentDescription = null,
+                            tint = if (!module.remove && isEnabled) {
+                                MiuixTheme.colorScheme.onSecondaryVariant
+                            } else {
+                                MiuixTheme.colorScheme.disabledOnSecondaryVariant
+                            },
                         )
                     }
                 }
@@ -1454,12 +1459,17 @@ fun ModuleItem(
                             MiuixTheme.colorScheme.disabledOnSecondaryVariant
                         },
                     ) {
-                        Icon(
+                        MiuixIcon(
                             modifier = Modifier
                                 .size(20.dp)
                                 .padding(12.dp, 7.dp, 12.dp, 7.dp),
                             imageVector = Icons.AutoMirrored.TwoTone.Wysiwyg,
                             contentDescription = null,
+                            tint = if (!module.remove && isEnabled) {
+                                MiuixTheme.colorScheme.onSecondaryVariant
+                            } else {
+                                MiuixTheme.colorScheme.disabledOnSecondaryVariant
+                            },
                         )
                     }
                 }
@@ -1487,12 +1497,17 @@ fun ModuleItem(
                             MiuixTheme.colorScheme.disabledOnSecondaryVariant
                         },
                     ) {
-                        Icon(
+                        MiuixIcon(
                             modifier = Modifier
                                 .size(20.dp)
                                 .padding(12.dp, 7.dp, 12.dp, 7.dp),
                             imageVector = Icons.TwoTone.Download,
                             contentDescription = null,
+                            tint = if (!module.remove) {
+                                MiuixTheme.colorScheme.onSecondaryVariant
+                            } else {
+                                MiuixTheme.colorScheme.disabledOnSecondaryVariant
+                            },
                         )
                     }
                 }
@@ -1518,21 +1533,23 @@ fun ModuleItem(
                     },
                 ) {
                     if (!module.remove) {
-                        Icon(
+                        MiuixIcon(
                             modifier = Modifier
                                 .size(20.dp)
                                 .padding(12.dp, 7.dp, 12.dp, 7.dp),
                             imageVector = Icons.TwoTone.Delete,
                             contentDescription = null,
+                            tint = MiuixTheme.colorScheme.onSecondaryVariant,
                         )
                     } else {
-                        Icon(
+                        MiuixIcon(
                             modifier = Modifier
                                 .size(20.dp)
                                 .rotate(180f)
                                 .padding(12.dp, 7.dp, 12.dp, 7.dp),
                             imageVector = Icons.TwoTone.Refresh,
                             contentDescription = null,
+                            tint = MiuixTheme.colorScheme.disabledOnSecondaryVariant,
                         )
                     }
                 }
