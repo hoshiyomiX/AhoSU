@@ -584,7 +584,11 @@ private fun StatusCard(
                 endIconPainter = painterResource(R.drawable.hero_card_icon),
                 endIconSize = 96.dp * 1.4f,
                 emphasizedTitle = !systemStatus.isSafeMode,
-                titleOutlineColor = HeroBananaOutlineColor,
+                // Owner spec: banana-yellow letters with a black outline -
+                // the sticker flips from the Task-53 ink-on-yellow rim to a
+                // comic yellow-on-black look.
+                titleOutlineColor = HeroBananaTitleOutlineColor,
+                titleFillColor = HeroBananaTitleColor,
                 onClick = onClick,
                 badges = {
                     HeroModeBadges(systemStatus)
@@ -687,7 +691,8 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
  * status glyph) spans the top - the emphasized call-outs (the working banana
  * and the not-installed "No Banana!?") run at a final 15% of the card height
  * in a rounded display face, auto-shrinking to keep the line whole (the
- * working call-out additionally wears a banana-yellow outline) - while the
+ * working call-out additionally wears banana-yellow letters with a black
+ * outline) - while the
  * optional bottom-line summary and mode badges pin to the bottom-left next
  * to the APK icon or the end artwork (the banana girl or the crying girl)
  * on the bottom-right, with the rows separated only by whitespace. The
@@ -713,10 +718,15 @@ private const val HERO_BOTTOM_TEXT_SCALE = 1.1907f
 private const val HERO_HINT_CARD_FRACTION_BUMP = 0.05f
 
 /**
- * Banana-yellow rim on the working call-out, matching the manager's default
- * banana accent (ARGB FFFFE135).
+ * Banana-yellow letters on the working call-out (ARGB FFFFE135).
  */
-private val HeroBananaOutlineColor = Color(0xFFFFE135)
+private val HeroBananaTitleColor = Color(0xFFFFE135)
+
+/**
+ * Black rim around the banana-yellow letters (owner spec: yellow banana
+ * letters with a black outline).
+ */
+private val HeroBananaTitleOutlineColor = Color(0xFF000000)
 
 /** The working call-out's outline weight (owner spec: 2 px thick). */
 private val HeroTitleOutlineWidth = 2.dp
@@ -739,6 +749,7 @@ private fun StatusHeroCard(
     enlargedSummary: Boolean = false,
     summaryUnderTitle: Boolean = false,
     titleOutlineColor: Color? = null,
+    titleFillColor: Color? = null,
     color: Color = MiuixTheme.colorScheme.surfaceContainer,
     contentColor: Color = MiuixTheme.colorScheme.onSurfaceContainer,
     onClick: (() -> Unit)? = null,
@@ -871,11 +882,12 @@ private fun StatusHeroCard(
                         )
                     }
                     if (titleOutlineColor != null && emphasizedTitle) {
-                        // The working call-out wears its own outline: a stroke
-                        // layer paints the banana-yellow rim behind the ink
-                        // fill, so the letters read as stickers on the bright
-                        // banana pattern. The stroke layer stays silent for
-                        // TalkBack - the fill layer speaks for the pair.
+                        // The working call-out wears its own sticker look: a
+                        // stroke layer paints the black rim behind the
+                        // banana-yellow letters, so the call-out reads as a
+                        // comic sticker on the bright banana pattern. The
+                        // stroke layer stays silent for TalkBack - the fill
+                        // layer speaks for the pair.
                         Box {
                             MiuixText(
                                 text = title,
@@ -895,7 +907,7 @@ private fun StatusHeroCard(
                             MiuixText(
                                 text = title,
                                 style = headlineStyle,
-                                color = contentColor,
+                                color = titleFillColor ?: contentColor,
                                 fontSize = headlineFontSize,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis,
