@@ -442,7 +442,6 @@
     <string name="manage_managers">Root menedzser applikációk kezelése</string>
     <string name="home_version_info">Komponensverziók</string>
     <string name="home_status_info">Állapotjelzések</string>
-    <string name="home_short_info">SuperUser: %1$d folyamat, Modul aktív: %2$d</string>
     <string name="home_kernel_version">Kernel driver verzió</string>
     <string name="search_no_any_match">Keresés nem talált szűrési paramétereknek megfelelőt</string>
     <string name="beta_version_available">Új %1$d béta verzió érhető el, kattints a frissítéshez</string>

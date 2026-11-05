@@ -511,7 +511,6 @@
     <string name="manage_managers">管理管理器</string>
     <string name="home_version_info">版本資訊</string>
     <string name="home_status_info">狀態資訊</string>
-    <string name="home_short_info">超級使用者：%1$d，模組：%2$d</string>
     <string name="home_kernel_version">核心驅動程式版本</string>
     <string name="search_no_any_match">無符合嘅內容</string>
     <string name="beta_version_available">有新嘅 Beta 版本 %1$d 可用，撳一下去升級</string>

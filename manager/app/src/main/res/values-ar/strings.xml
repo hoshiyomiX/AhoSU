@@ -449,7 +449,6 @@
     <string name="dynamic_manager_manual_config">تكوين توقيع يدوّي</string>
     <string name="dynamic_manager_manual_config_summary">ضبط مخصص لحجم التوقيع والهاش</string>
     <string name="manage_managers">أدر المدراء</string>
-    <string name="home_short_info">المستخدم الخارق او الروت: %1$d، الإضافات: %2$d</string>
     <string name="beta_version_available">نسخة بيتا الجديدة %1$d متوفرة، إضغط للترقية</string>
     <string name="beta_update_check_failed">فشل التحقق من نسخ بيتا جديدة. إسحب لأسفل للتحديث والمحاولة مجدداً.</string>
     <string name="manager_update_details">النسخة: %1$s (%2$d) \nالمعمارية: %3$s</string>

@@ -478,7 +478,6 @@
     <string name="skip_ksud">Không cài đặt ksud</string>
     <string name="skip_ksud_summary">Hủy cài đặt ksud. Không bật cái này trừ khi thực sự cần thiết.</string>
     <string name="install_upload_lkm_file_summary">Sử dụng một tệp .ko tùy chỉnh thay vì LKM được tích hợp</string>
-    <string name="home_short_info">Superuser: %1$d, Mô-đun: %2$d</string>
     <string name="storage_permission_description">Quyền Bộ nhớ Ngoài là cần thiết để ghi tệp.</string>
     <string name="storage_permission_denied">Tải xuống thất bại: quyền Bộ nhớ Ngoài là bắt buộc</string>
     <string name="susfs_tab_status">Trạng thái</string>

@@ -65,6 +65,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -75,6 +78,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
@@ -553,7 +557,6 @@ private fun StatusCard(
     onClickJailbreak: () -> Unit = {},
 ) {
     val systemStatus = uiState.systemStatus
-    val systemInfo = uiState.systemInfo
     val onClick = {
         if (systemStatus.isRootAvailable || systemStatus.kernelVersion.isGKI()) {
             onClickInstall()
@@ -569,11 +572,9 @@ private fun StatusCard(
 
             StatusHeroCard(
                 title = workingModeText,
-                summary = stringResource(
-                    R.string.home_short_info,
-                    systemInfo.superuserCount,
-                    systemInfo.moduleCount,
-                ),
+                // The SuperUser / modules status line is gone by owner order -
+                // the working card speaks through the banana call-out, the
+                // mode badges and the artwork alone.
                 // The working title carries the 🍌 emoji from the string resource,
                 // so the vector icon slot stays empty; safe mode keeps TaskAlt.
                 statusIcon = if (systemStatus.isSafeMode) Icons.TwoTone.TaskAlt else null,
@@ -583,6 +584,7 @@ private fun StatusCard(
                 endIconPainter = painterResource(R.drawable.hero_card_icon),
                 endIconSize = 96.dp * 1.4f,
                 emphasizedTitle = !systemStatus.isSafeMode,
+                titleOutlineColor = HeroBananaOutlineColor,
                 onClick = onClick,
                 badges = {
                     HeroModeBadges(systemStatus)
@@ -683,11 +685,12 @@ private fun HeroModeBadges(systemStatus: KernelStatus) {
  * The 4:3 landscape status tile: the verdict headline (with an optional
  * status glyph) spans the top - the emphasized call-outs (the working banana
  * and the not-installed "No Banana!?") run at a final 15% of the card height
- * in a rounded display face, auto-shrinking to keep the line whole - while
- * the bottom-line texts and mode badges pin to the bottom-left next to the
- * APK icon or the end artwork (the banana girl or the crying girl) on the
- * bottom-right, with the rows separated only by whitespace. The not-installed
- * peel-banana hint additionally grows by 5% of the card height.
+ * in a rounded display face, auto-shrinking to keep the line whole (the
+ * working call-out additionally wears a banana-yellow outline) - while the
+ * optional bottom-line summary and mode badges pin to the bottom-left next
+ * to the APK icon or the end artwork (the banana girl or the crying girl)
+ * on the bottom-right, with the rows separated only by whitespace. The
+ * not-installed peel-banana hint additionally grows by 5% of the card height.
  * A flexible spacer between the rows auto-adjusts to the leftover room.
  */
 private const val HERO_BACKGROUND_SCRIM_ALPHA = 0.55f
@@ -697,15 +700,25 @@ private const val HERO_HEADLINE_CARD_FRACTION = 0.15f
 
 /**
  * The bottom-line summary and badge labels run larger than the stock
- * footnote faces (feedback rounds: +5-plus percent, then another +5%).
+ * footnote faces (feedback rounds: +5-plus percent, then another +5%,
+ * then a third +5% round on the LKM badge and its sibling labels).
  */
-private const val HERO_BOTTOM_TEXT_SCALE = 1.134f
+private const val HERO_BOTTOM_TEXT_SCALE = 1.1907f
 
 /**
  * The peel-banana install hint grows by an extra 5% of the hero card height
  * on top of the bottom-text scale (feedback: enlarge it by 5% of the card).
  */
 private const val HERO_HINT_CARD_FRACTION_BUMP = 0.05f
+
+/**
+ * Banana-yellow rim on the working call-out, matching the manager's default
+ * banana accent (ARGB FFFFE135).
+ */
+private val HeroBananaOutlineColor = Color(0xFFFFE135)
+
+/** The working call-out's outline weight (owner spec: 2 px thick). */
+private val HeroTitleOutlineWidth = 2.dp
 
 /**
  * Rounded display face for the banana call-out. Titan One by Rodrigo
@@ -716,13 +729,14 @@ private val BananaDisplayFont = FontFamily(Font(R.font.banana_display))
 @Composable
 private fun StatusHeroCard(
     title: String,
-    summary: String,
+    summary: String? = null,
     statusIcon: ImageVector? = null,
     backgroundPainter: Painter? = null,
     endIconPainter: Painter? = null,
     endIconSize: Dp = 96.dp,
     emphasizedTitle: Boolean = false,
     enlargedSummary: Boolean = false,
+    titleOutlineColor: Color? = null,
     color: Color = MiuixTheme.colorScheme.surfaceContainer,
     contentColor: Color = MiuixTheme.colorScheme.onSurfaceContainer,
     onClick: (() -> Unit)? = null,
@@ -773,6 +787,13 @@ private fun StatusHeroCard(
             val headlineCapSize = with(density) {
                 (maxHeight * HERO_HEADLINE_CARD_FRACTION).toSp()
             }
+            // The outlined call-out paints past its measured glyph bounds on
+            // both ends, so the shrink budget subtracts the stroke width.
+            val titleOutlineWidthPx = if (titleOutlineColor != null) {
+                with(density) { HeroTitleOutlineWidth.toPx() }
+            } else {
+                0f
+            }
             val headlineStyle = if (emphasizedTitle) {
                 MiuixTheme.textStyles.title3.copy(fontFamily = BananaDisplayFont)
             } else {
@@ -782,12 +803,12 @@ private fun StatusHeroCard(
                 // Wide headlines shrink proportionally so the line never
                 // clips; the measurement runs once per size and is remembered.
                 val availableWidth = maxWidth - (if (backgroundPainter != null) 48.dp else 0.dp)
-                remember(title, headlineCapSize, availableWidth, headlineStyle) {
+                remember(title, headlineCapSize, availableWidth, headlineStyle, titleOutlineWidthPx) {
                     val measured = textMeasurer.measure(
                         AnnotatedString(title),
                         headlineStyle.copy(fontSize = headlineCapSize),
                     )
-                    val availablePx = with(density) { availableWidth.toPx() }
+                    val availablePx = with(density) { availableWidth.toPx() } - titleOutlineWidthPx
                     if (measured.size.width <= availablePx) {
                         headlineCapSize
                     } else {
@@ -847,14 +868,47 @@ private fun StatusHeroCard(
                             modifier = Modifier.size(24.dp),
                         )
                     }
-                    MiuixText(
-                        text = title,
-                        style = headlineStyle,
-                        color = contentColor,
-                        fontSize = headlineFontSize,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                    )
+                    if (titleOutlineColor != null && emphasizedTitle) {
+                        // The working call-out wears its own outline: a stroke
+                        // layer paints the banana-yellow rim behind the ink
+                        // fill, so the letters read as stickers on the bright
+                        // banana pattern. The stroke layer stays silent for
+                        // TalkBack - the fill layer speaks for the pair.
+                        Box {
+                            MiuixText(
+                                text = title,
+                                modifier = Modifier.clearAndSetSemantics { },
+                                style = headlineStyle.copy(
+                                    drawStyle = Stroke(
+                                        width = titleOutlineWidthPx,
+                                        cap = StrokeCap.Round,
+                                        join = StrokeJoin.Round,
+                                    ),
+                                ),
+                                color = titleOutlineColor,
+                                fontSize = headlineFontSize,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                            MiuixText(
+                                text = title,
+                                style = headlineStyle,
+                                color = contentColor,
+                                fontSize = headlineFontSize,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
+                    } else {
+                        MiuixText(
+                            text = title,
+                            style = headlineStyle,
+                            color = contentColor,
+                            fontSize = headlineFontSize,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
                 }
 
                 // The flexible spacer pins every label below the headline to
@@ -869,15 +923,19 @@ private fun StatusHeroCard(
                     Column(
                         modifier = Modifier.weight(1f),
                     ) {
-                        MiuixText(
-                            text = summary,
-                            style = effectiveSummaryStyle,
-                            color = summaryColor,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                        )
+                        summary?.let {
+                            MiuixText(
+                                text = it,
+                                style = effectiveSummaryStyle,
+                                color = summaryColor,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
+                            )
+                        }
                         badges?.let {
-                            Spacer(modifier = Modifier.height(10.dp))
+                            if (summary != null) {
+                                Spacer(modifier = Modifier.height(10.dp))
+                            }
                             it()
                         }
                     }

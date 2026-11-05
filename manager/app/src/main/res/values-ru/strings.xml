@@ -503,7 +503,6 @@
     <string name="manage_managers">Управление менеджерами</string>
     <string name="home_version_info">Сведения</string>
     <string name="home_status_info">Статус</string>
-    <string name="home_short_info">Суперпользователь: %1$d, модули: %2$d</string>
     <string name="home_kernel_version">Версия драйвера ядра</string>
     <string name="search_no_any_match">Контент не найден</string>
     <string name="beta_version_available">Новая бета %1$d доступна, кликните для обновления</string>

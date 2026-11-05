@@ -534,7 +534,6 @@
     <string name="manage_managers">管理管理器</string>
     <string name="home_version_info">版本信息</string>
     <string name="home_status_info">状态信息</string>
-    <string name="home_short_info">%1$d 个超级用户, %2$d 个模块</string>
     <string name="home_kernel_version">内核驱动版本</string>
     <string name="search_no_any_match">未匹配到内容</string>
     <string name="beta_version_available">发现新的测试版 %1$d，点击升级</string>

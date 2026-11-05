@@ -476,7 +476,6 @@
     <string name="manage_managers">Yöneticileri yönet</string>
     <string name="home_version_info">Sürüm Bilgisi</string>
     <string name="home_status_info">Durum Bilgisi</string>
-    <string name="home_short_info">SüperKullanıcı: %1$d, Modüller: %2$d</string>
     <string name="home_kernel_version">Çekirdek sürücüsü sürümü</string>
     <string name="search_no_any_match">Eşleşen içerik bulunamadı</string>
     <string name="beta_version_available">%1$d numaralı yeni beta sürümü kullanıma sunuldu, güncellemek için tıklayın</string>
