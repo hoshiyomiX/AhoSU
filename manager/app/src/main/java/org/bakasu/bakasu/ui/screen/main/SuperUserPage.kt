@@ -23,7 +23,6 @@ import androidx.compose.material.icons.twotone.ChevronRight
 import androidx.compose.material.icons.twotone.MoreVert
 import androidx.compose.material.icons.twotone.SearchOff
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -82,6 +81,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.DropdownDefaults
 import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.PullToRefresh
@@ -306,7 +306,7 @@ private fun SuperUserContent(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center,
                 ) {
-                    Icon(
+                    MiuixIcon(
                         imageVector = Icons.TwoTone.SearchOff,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
@@ -474,7 +474,7 @@ private fun SuperUserDropdown(
 
     Box {
         MiuixIconButton(onClick = { onExpandedChange(true) }) {
-            Icon(
+            MiuixIcon(
                 imageVector = Icons.TwoTone.MoreVert,
                 contentDescription = stringResource(id = R.string.settings),
             )
@@ -576,7 +576,7 @@ private fun AppGroupItem(
             )
         },
         endContent = {
-            Icon(
+            MiuixIcon(
                 imageVector = Icons.TwoTone.ChevronRight,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,

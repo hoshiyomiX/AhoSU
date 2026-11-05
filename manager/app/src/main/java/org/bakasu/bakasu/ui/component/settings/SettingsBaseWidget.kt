@@ -26,7 +26,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CornerBasedShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.ListItemShapes
 import androidx.compose.material3.LocalContentColor
@@ -71,6 +70,7 @@ import org.bakasu.bakasu.ui.theme.ThemeConfig
 import org.bakasu.bakasu.ui.theme.renderBackgroundBlur
 import org.bakasu.bakasu.ui.util.LocalBackgroundBlurProvided
 import org.koin.compose.koinInject
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 
 /**
  * A [CompositionLocal] that provides the dynamically calculated [Shape] for items
@@ -298,7 +298,7 @@ fun SettingsBaseWidget(
                         contentAlignment = Alignment.Center,
                     ) {
                         if (icon != null) {
-                            Icon(
+                            MiuixIcon(
                                 imageVector = icon,
                                 modifier = Modifier.size(iconSize),
                                 contentDescription = null,

@@ -38,8 +38,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
@@ -95,6 +93,8 @@ import org.bakasu.bakasu.ui.theme.renderBackgroundBlur
 import org.bakasu.bakasu.ui.util.LocalPagerPage
 import org.bakasu.bakasu.ui.util.LocalSelectedPage
 import org.koin.compose.koinInject
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.InputField
 import top.yukonga.miuix.kmp.theme.MiuixTheme
 
@@ -438,7 +438,7 @@ fun HeaderTitle(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Icon(
+        MiuixIcon(
             imageVector = icon,
             contentDescription = null,
             modifier = Modifier.size(iconSize),
@@ -554,15 +554,16 @@ fun SearchAppBar(
                     enter = fadeIn(),
                     exit = fadeOut(),
                 ) {
-                    IconButton(
+                    MiuixIconButton(
                         onClick = {
                             searchAppBarScrollBehavior?.expandSearchBar()
                             requestSearchFocus = true
                         },
                     ) {
-                        Icon(
+                        MiuixIcon(
                             imageVector = Icons.TwoTone.Search,
                             contentDescription = searchBarPlaceHolderText,
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
