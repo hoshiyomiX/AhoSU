@@ -35,7 +35,6 @@ import androidx.compose.material.icons.twotone.Warning
 import androidx.compose.material.icons.twotone.WebAsset
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
@@ -119,6 +118,7 @@ import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
 import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
 import top.yukonga.miuix.kmp.basic.HorizontalDivider as MiuixHorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.PullToRefresh
@@ -254,7 +254,7 @@ fun ModuleRepoScreen(repositoryUrl: String? = null) {
                             ),
                         ),
                     ) {
-                        Icon(
+                        MiuixIcon(
                             imageVector = Icons.AutoMirrored.TwoTone.Sort,
                             contentDescription = stringResource(R.string.repo_sort),
                         )
@@ -339,7 +339,7 @@ fun ModuleRepoScreen(repositoryUrl: String? = null) {
                                     .background(MaterialTheme.colorScheme.surfaceVariant),
                                 contentAlignment = Alignment.Center,
                             ) {
-                                Icon(
+                                MiuixIcon(
                                     imageVector = Icons.TwoTone.Warning,
                                     contentDescription = null,
                                     modifier = Modifier.size(32.dp),
@@ -398,7 +398,7 @@ private fun ModuleRepositorySelector(
 ) {
     var showSheet by rememberSaveable { mutableStateOf(false) }
     MiuixIconButton(onClick = { showSheet = true }, modifier = modifier) {
-        Icon(Icons.TwoTone.Settings, contentDescription = stringResource(R.string.repo_manage))
+        MiuixIcon(Icons.TwoTone.Settings, contentDescription = stringResource(R.string.repo_manage))
     }
     OverlayBottomSheet(
         show = showSheet,
@@ -464,7 +464,7 @@ fun OnlineModuleItem(
             )
             if (module.stargazerCount > 0) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(
+                    MiuixIcon(
                         imageVector = Icons.TwoTone.Star,
                         contentDescription = stringResource(R.string.repo_stars),
                         tint = metadataColor,
@@ -524,7 +524,7 @@ fun OnlineModuleItem(
                 minWidth = 52.dp,
                 minHeight = 32.dp,
             ) {
-                Icon(Icons.TwoTone.WebAsset, contentDescription = stringResource(R.string.learn_more), modifier = Modifier.size(20.dp))
+                MiuixIcon(Icons.TwoTone.WebAsset, contentDescription = stringResource(R.string.learn_more), modifier = Modifier.size(20.dp))
             }
             if (onQuickInstall != null && (!module.detailLoaded || module.latestAsset?.assets?.isNotEmpty() == true)) {
                 key(module.latestAsset?.assets) {
@@ -578,7 +578,7 @@ private fun QuickInstallButton(module: CatalogModule, loading: Boolean, enabled:
                 strokeWidth = 2.dp,
             )
 
-            else -> Icon(if (module.isScript) Icons.TwoTone.PlayArrow else Icons.TwoTone.Download, contentDescription = null, modifier = Modifier.size(24.dp))
+            else -> MiuixIcon(if (module.isScript) Icons.TwoTone.PlayArrow else Icons.TwoTone.Download, contentDescription = null, modifier = Modifier.size(24.dp))
         }
     }
 }

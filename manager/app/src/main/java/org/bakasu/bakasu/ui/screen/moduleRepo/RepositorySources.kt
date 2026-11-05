@@ -26,7 +26,6 @@ import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.DeleteOutline
 import androidx.compose.material.icons.twotone.Edit
 import androidx.compose.material.icons.twotone.MoreVert
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -84,6 +83,7 @@ import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.BasicComponentDefaults
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.HorizontalDivider as MiuixHorizontalDivider
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
@@ -250,7 +250,7 @@ fun AddRepositoryScreen() {
                     enabled = !state.busy,
                     modifier = Modifier.fillMaxWidth(),
                 ) {
-                    Icon(Icons.TwoTone.Add, contentDescription = null, modifier = Modifier.size(20.dp))
+                    MiuixIcon(Icons.TwoTone.Add, contentDescription = null, modifier = Modifier.size(20.dp))
                     Text(stringResource(R.string.repo_add_repository), modifier = Modifier.padding(start = 8.dp))
                 }
             }
@@ -390,13 +390,13 @@ private fun RepositoryActions(
         }
     }
     MiuixIconButton(onClick = { expanded = true }, enabled = !busy, modifier = Modifier.size(48.dp)) {
-        Icon(Icons.TwoTone.MoreVert, contentDescription = stringResource(R.string.repo_actions))
+        MiuixIcon(Icons.TwoTone.MoreVert, contentDescription = stringResource(R.string.repo_actions))
         OverlayListPopup(show = expanded, onDismissRequest = { expanded = false }) {
             ListPopupColumn {
                 BasicComponent(
                     title = stringResource(R.string.repo_edit_name),
                     startAction = {
-                        Icon(Icons.TwoTone.Edit, contentDescription = null, modifier = Modifier.size(24.dp))
+                        MiuixIcon(Icons.TwoTone.Edit, contentDescription = null, modifier = Modifier.size(24.dp))
                     },
                     onClick = {
                         expanded = false
@@ -408,7 +408,7 @@ private fun RepositoryActions(
                     title = removeAction,
                     titleColor = BasicComponentDefaults.titleColor(color = MaterialTheme.colorScheme.error),
                     startAction = {
-                        Icon(
+                        MiuixIcon(
                             Icons.TwoTone.DeleteOutline,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.error,

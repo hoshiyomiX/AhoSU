@@ -19,14 +19,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Verified
 import androidx.compose.material.icons.twotone.Download
 import androidx.compose.material.icons.twotone.ExpandLess
 import androidx.compose.material.icons.twotone.ExpandMore
 import androidx.compose.material.icons.twotone.Link
 import androidx.compose.material.icons.twotone.OpenInBrowser
 import androidx.compose.material.icons.twotone.PlayArrow
-import androidx.compose.material3.Icon
+import androidx.compose.material.icons.twotone.Verified
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -107,6 +106,7 @@ import org.koin.compose.koinInject
 import org.koin.core.parameter.parametersOf
 import top.yukonga.miuix.kmp.basic.BasicComponent
 import top.yukonga.miuix.kmp.basic.CircularProgressIndicator
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
@@ -211,7 +211,7 @@ private fun OnlineModuleDetailContent(module: CatalogModule, viewModel: ModuleDe
                 navigationIcon = { AppBackButton(onClick = { navigator.pop() }) },
                 actions = {
                     MiuixIconButton(onClick = { uriHandler.openUri(module.pageUrl) }) {
-                        Icon(
+                        MiuixIcon(
                             imageVector = Icons.TwoTone.OpenInBrowser,
                             contentDescription = stringResource(R.string.open_module_home_page),
                         )
@@ -344,7 +344,7 @@ private fun ModuleInfoLink(title: String, description: String?, url: String?, al
                     minWidth = 52.dp,
                     minHeight = 32.dp,
                 ) {
-                    Icon(
+                    MiuixIcon(
                         Icons.TwoTone.Link,
                         contentDescription = stringResource(R.string.repo_open_link, title),
                         modifier = Modifier.size(20.dp),
@@ -592,7 +592,7 @@ private fun ReleaseAsset(module: CatalogModule, release: ModuleRelease, asset: M
             }
             if (release.immutable) {
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Icon(Icons.Outlined.Verified, contentDescription = null, modifier = Modifier.size(14.dp))
+                    MiuixIcon(Icons.TwoTone.Verified, contentDescription = null, modifier = Modifier.size(14.dp))
                     Text(stringResource(R.string.repo_immutable_release), style = MaterialTheme.typography.bodySmall)
                 }
             }
@@ -613,7 +613,7 @@ private fun ReleaseAsset(module: CatalogModule, release: ModuleRelease, asset: M
                     )
                 } else {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
+                        MiuixIcon(
                             imageVector = if (module.isScript) Icons.TwoTone.PlayArrow else Icons.TwoTone.Download,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.onSurface,
@@ -653,7 +653,7 @@ private fun ReleaseNotes(module: CatalogModule, release: ModuleRelease, state: R
         BasicComponent(
             title = stringResource(R.string.show_detail_or_hide_detail),
             endActions = {
-                Icon(
+                MiuixIcon(
                     imageVector = if (expanded) Icons.TwoTone.ExpandLess else Icons.TwoTone.ExpandMore,
                     contentDescription = stringResource(if (expanded) R.string.repo_collapse_changelog else R.string.repo_expand_changelog),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant,
