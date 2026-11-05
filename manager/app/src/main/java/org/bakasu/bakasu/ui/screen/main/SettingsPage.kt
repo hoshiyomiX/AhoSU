@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -46,8 +47,12 @@ import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.Share
 import androidx.compose.material.icons.twotone.Update
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -75,6 +80,7 @@ import kotlinx.coroutines.withContext
 import org.bakasu.bakasu.BuildConfig
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.usecase.GenerateBugreportUseCase
+import org.bakasu.bakasu.ui.component.CenteredHeaderTitle
 import org.bakasu.bakasu.ui.component.ConfirmResult
 import org.bakasu.bakasu.ui.component.SwipeableSnackbarHost
 import org.bakasu.bakasu.ui.component.rememberConfirmDialog
@@ -97,10 +103,7 @@ import org.bakasu.bakasu.ui.viewmodel.SettingsUiAction
 import org.bakasu.bakasu.ui.viewmodel.SettingsViewModel
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
-import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
-import top.yukonga.miuix.kmp.basic.ScrollBehavior
-import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
 import top.yukonga.miuix.kmp.overlay.OverlayBottomSheet
 
 /**
@@ -114,7 +117,11 @@ private val SPACING_LARGE = 16.dp
 @Composable
 fun SettingsPage(bottomPadding: Dp) {
     val navigator = LocalNavigator.current
-    val scrollBehavior = MiuixScrollBehavior()
+    // The same Material exit-until-collapse family the Superuser and Modules
+    // pages ride - the Settings header centers its glyph + title pair in both
+    // the expanded large row and the collapsed small row.
+    val topAppBarState = rememberTopAppBarState()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
     val snackBarHost = LocalSnackbarHost.current
     val settingsViewModel = koinViewModel<SettingsViewModel>()
     val homeViewModel = koinViewModel<HomeViewModel>()
@@ -684,19 +691,37 @@ enum class UninstallType(@param:StringRes val title: Int, @param:StringRes val m
 
 @Composable
 private fun TopBar(
-    scrollBehavior: ScrollBehavior? = null,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     val themeConfig: ThemeConfig = koinInject()
     val cardConfig: CardConfig = koinInject()
-    MiuixTopAppBar(
+    LargeFlexibleTopAppBar(
         modifier = Modifier.blurEffect(),
-        title = stringResource(R.string.settings),
-        color =
-            if (themeConfig.isEnableBlur) {
-                Color.Transparent
-            } else {
-                MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
-            },
+        title = {
+            // Page identity glyph - the same Settings mark the floating bottom
+            // bar uses for this destination, riding inline with the centered
+            // page title like on the Superuser and Modules pages.
+            CenteredHeaderTitle(
+                title = stringResource(R.string.settings),
+                icon = Icons.TwoTone.Settings,
+            )
+        },
+        titleHorizontalAlignment = Alignment.CenterHorizontally,
+        windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor =
+                if (themeConfig.isEnableBlur) {
+                    Color.Transparent
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
+                },
+            scrolledContainerColor =
+                if (themeConfig.isEnableBlur) {
+                    Color.Transparent
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
+                },
+        ),
         scrollBehavior = scrollBehavior,
     )
 }
