@@ -21,7 +21,6 @@ import androidx.compose.material.icons.twotone.Restore
 import androidx.compose.material.icons.twotone.Save
 import androidx.compose.material.icons.twotone.Settings
 import androidx.compose.material.icons.twotone.TaskAlt
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -57,6 +56,7 @@ import org.bakasu.bakasu.ui.viewmodel.awaitSuSFSStatusInfo
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.SnackbarHostState
 import top.yukonga.miuix.kmp.basic.TextButton
 import top.yukonga.miuix.kmp.overlay.OverlayDialog
@@ -357,7 +357,7 @@ private fun GuardPendingCard(guardLoader: String) {
         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
         message = stringResource(R.string.susfs_guard_pending, guardLoader),
         icon = {
-            Icon(
+            MiuixIcon(
                 imageVector = Icons.TwoTone.RestartAlt,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onErrorContainer,

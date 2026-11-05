@@ -30,7 +30,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Check
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material.icons.twotone.RestartAlt
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -63,6 +62,7 @@ import org.bakasu.bakasu.ui.component.KeyPointSlider
 import org.bakasu.bakasu.ui.theme.AhoSUTheme
 import org.bakasu.bakasu.ui.util.adaptiveScaffoldWindowInsets
 import top.yukonga.miuix.kmp.basic.Button
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton
 import top.yukonga.miuix.kmp.basic.InfiniteProgressIndicator
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
@@ -250,7 +250,7 @@ private fun BackgroundCropScreen(
                         enabled = !isCropping,
                         onClick = onCancel,
                     ) {
-                        Icon(
+                        MiuixIcon(
                             Icons.TwoTone.Close,
                             contentDescription = stringResource(R.string.cancel),
                         )
@@ -268,7 +268,7 @@ private fun BackgroundCropScreen(
                         },
                         enabled = !isLoading && !isCropping && !loadFailed,
                     ) {
-                        Icon(
+                        MiuixIcon(
                             Icons.TwoTone.RestartAlt,
                             contentDescription = stringResource(R.string.background_crop_reset),
                         )
@@ -335,7 +335,7 @@ private fun BackgroundCropScreen(
                             onClick = ::cropCurrentImage,
                             enabled = !isLoading && !isCropping && !loadFailed,
                         ) {
-                            Icon(
+                            MiuixIcon(
                                 imageVector = Icons.TwoTone.Check,
                                 contentDescription = null,
                             )

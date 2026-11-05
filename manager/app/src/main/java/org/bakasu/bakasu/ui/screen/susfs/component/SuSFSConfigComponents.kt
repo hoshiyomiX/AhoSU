@@ -13,7 +13,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Add
 import androidx.compose.material.icons.twotone.Inbox
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,6 +28,7 @@ import org.bakasu.bakasu.ui.component.settings.lazySegmentColumn
 import org.bakasu.bakasu.ui.theme.ThemeConfig
 import org.bakasu.bakasu.ui.theme.renderBackgroundBlur
 import org.koin.compose.koinInject
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 
 private const val ADD_ENTRY_KEY = "susfs_add_entry"
 private const val EMPTY_STATE_KEY = "susfs_empty_state"
@@ -129,7 +129,7 @@ internal fun <T> LazyListScope.susfsEntryList(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
-                    Icon(
+                    MiuixIcon(
                         imageVector = Icons.TwoTone.Inbox,
                         contentDescription = null,
                         modifier = Modifier

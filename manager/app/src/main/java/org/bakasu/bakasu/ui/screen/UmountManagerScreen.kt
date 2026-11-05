@@ -21,8 +21,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -70,6 +68,8 @@ import org.bakasu.bakasu.ui.viewmodel.UmountManagerUiAction
 import org.bakasu.bakasu.ui.viewmodel.UmountManagerUiEvent
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
+import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
@@ -132,7 +132,7 @@ fun UmountManagerScreen() {
             FloatingActionButton(
                 onClick = { showAddDialog = true },
             ) {
-                Icon(Icons.TwoTone.Add, contentDescription = null)
+                MiuixIcon(Icons.TwoTone.Add, contentDescription = null, tint = MaterialTheme.colorScheme.onPrimaryContainer)
             }
         },
         snackbarHost = { SwipeableSnackbarHost(hostState = snackBarHost) },
@@ -234,7 +234,7 @@ fun UmountManagerScreen() {
                                     R.string.confirm_delete_umount_path,
                                     entry.path,
                                 )
-                                IconButton(
+                                MiuixIconButton(
                                     onClick = {
                                         scope.launch {
                                             val confirmResult = confirmDialog.awaitConfirm(
@@ -248,7 +248,7 @@ fun UmountManagerScreen() {
                                         }
                                     },
                                 ) {
-                                    Icon(
+                                    MiuixIcon(
                                         imageVector = Icons.TwoTone.Delete,
                                         contentDescription = null,
                                         tint = MaterialTheme.colorScheme.error,

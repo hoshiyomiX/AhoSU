@@ -17,7 +17,6 @@ import androidx.compose.material.icons.twotone.Code
 import androidx.compose.material.icons.twotone.Copyright
 import androidx.compose.material.icons.twotone.Group
 import androidx.compose.material.icons.twotone.Info
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ProvideTextStyle
@@ -58,6 +57,7 @@ import org.bakasu.bakasu.ui.theme.blurSource
 import org.bakasu.bakasu.ui.theme.renderBackgroundBlur
 import org.bakasu.bakasu.ui.util.adaptiveScaffoldWindowInsets
 import org.koin.compose.koinInject
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
@@ -141,7 +141,7 @@ fun AboutScreen() {
                         ),
                     ),
                     icon = {
-                        Icon(
+                        MiuixIcon(
                             imageVector = Icons.TwoTone.Info,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp),

@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Extension
 import androidx.compose.material3.FilledTonalButton
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -19,6 +18,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.model.RepositoryFailure
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 
 @Composable
 fun repositoryErrorText(failure: RepositoryFailure): String {
@@ -37,7 +37,7 @@ fun RepositoryEmptyContent(
     onAction: () -> Unit = {},
 ) {
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
-        Icon(
+        MiuixIcon(
             Icons.TwoTone.Extension,
             contentDescription = null,
             modifier = Modifier.size(64.dp),

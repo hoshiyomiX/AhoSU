@@ -10,7 +10,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.Close
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.bakasu.bakasu.ui.component.settings.LocalSegmentedItemShape
 import org.bakasu.bakasu.ui.component.settings.SettingsBaseWidget
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -119,7 +119,7 @@ private fun WarningCardInner(
             },
             trailingContent = {
                 onClose?.let {
-                    Icon(
+                    MiuixIcon(
                         imageVector = Icons.TwoTone.Close,
                         contentDescription = stringResource(android.R.string.cancel),
                         modifier = Modifier

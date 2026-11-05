@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.twotone.SignalWifiOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -26,6 +25,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.ui.theme.renderBackgroundBlur
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 @Composable
@@ -53,7 +53,7 @@ fun NetworkRefreshContent(
                         .background(MaterialTheme.colorScheme.surfaceVariant),
                     contentAlignment = Alignment.Center,
                 ) {
-                    Icon(
+                    MiuixIcon(
                         imageVector = Icons.TwoTone.SignalWifiOff,
                         contentDescription = null,
                         modifier = Modifier.size(32.dp),

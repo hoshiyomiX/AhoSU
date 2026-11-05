@@ -15,7 +15,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.twotone.ArrowBack
 import androidx.compose.material.icons.twotone.LocalPolice
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -54,6 +53,7 @@ import org.bakasu.bakasu.ui.util.adaptiveScaffoldWindowInsets
 import org.koin.compose.koinInject
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.Card
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 import top.yukonga.miuix.kmp.basic.SmallTopAppBar
@@ -162,7 +162,7 @@ fun OpenSourceLicenseScreen() {
                             color = MaterialTheme.colorScheme.tertiary,
                             renderBackground = false,
                             icon = {
-                                Icon(
+                                MiuixIcon(
                                     imageVector = Icons.TwoTone.LocalPolice,
                                     contentDescription = null,
                                 )

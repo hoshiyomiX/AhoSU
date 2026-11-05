@@ -50,7 +50,6 @@ import androidx.compose.material.icons.twotone.Swipe
 import androidx.compose.material.icons.twotone.Translate
 import androidx.compose.material.icons.twotone.ViewCarousel
 import androidx.compose.material.icons.twotone.Wallpaper
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -122,6 +121,7 @@ import org.koin.compose.viewmodel.koinViewModel
 import top.yukonga.miuix.kmp.basic.Button
 import top.yukonga.miuix.kmp.basic.ColorPicker
 import top.yukonga.miuix.kmp.basic.ColorSpace
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 import top.yukonga.miuix.kmp.basic.TextButton
@@ -787,7 +787,7 @@ private fun DpiSliderControls(
             .padding(top = 8.dp),
         enabled = state.tempDpi != state.currentDpi,
     ) {
-        Icon(
+        MiuixIcon(
             Icons.TwoTone.Check,
             contentDescription = null,
             modifier = Modifier.size(16.dp),

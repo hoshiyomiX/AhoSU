@@ -21,7 +21,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LoadingIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -83,6 +82,7 @@ import top.yukonga.miuix.kmp.basic.BreadcrumbBar
 import top.yukonga.miuix.kmp.basic.BreadcrumbItem
 import top.yukonga.miuix.kmp.basic.DropdownEntry
 import top.yukonga.miuix.kmp.basic.DropdownItem
+import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.VerticalScrollBar
@@ -176,7 +176,7 @@ private fun SulogScreenContent(
                 onBackClick = actions.onBack,
                 dropdownContent = {
                     MiuixIconButton(onClick = actions.onCleanFile) {
-                        Icon(
+                        MiuixIcon(
                             imageVector = Icons.TwoTone.DeleteSweep,
                             contentDescription = stringResource(R.string.sulog_clean_title),
                         )
@@ -193,7 +193,7 @@ private fun SulogScreenContent(
                         ),
                         collapseOnSelection = false,
                     ) {
-                        Icon(
+                        MiuixIcon(
                             imageVector = Icons.TwoTone.FilterList,
                             contentDescription = stringResource(R.string.sulog_filter_title),
                         )
