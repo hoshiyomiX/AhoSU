@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.UploadFile
+import androidx.compose.material.icons.twotone.UploadFile
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -202,7 +202,7 @@ fun ManualAddDialog(
                     if (showImportFromFile) {
                         item {
                             SettingsJumpRow(
-                                icon = Icons.Default.UploadFile,
+                                icon = Icons.TwoTone.UploadFile,
                                 title = importFromFileLabel,
                                 summary = stringResource(R.string.susfs_entry_import_hint),
                                 onClick = { pickFileLauncher.launch(arrayOf("*/*")) },
