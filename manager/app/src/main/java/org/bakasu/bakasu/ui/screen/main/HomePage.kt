@@ -22,6 +22,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.add
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -53,7 +55,12 @@ import androidx.compose.material.icons.twotone.TaskAlt
 import androidx.compose.material.icons.twotone.Tune
 import androidx.compose.material.icons.twotone.VolunteerActivism
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LargeFlexibleTopAppBar
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.TopAppBarScrollBehavior
+import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -137,12 +144,9 @@ import top.yukonga.miuix.kmp.basic.HorizontalDivider
 import top.yukonga.miuix.kmp.basic.Icon as MiuixIcon
 import top.yukonga.miuix.kmp.basic.IconButton as MiuixIconButton
 import top.yukonga.miuix.kmp.basic.ListPopupColumn
-import top.yukonga.miuix.kmp.basic.MiuixScrollBehavior
 import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
-import top.yukonga.miuix.kmp.basic.ScrollBehavior
 import top.yukonga.miuix.kmp.basic.SmallTitle
 import top.yukonga.miuix.kmp.basic.Text as MiuixText
-import top.yukonga.miuix.kmp.basic.TopAppBar as MiuixTopAppBar
 import top.yukonga.miuix.kmp.icon.MiuixIcons
 import top.yukonga.miuix.kmp.icon.basic.ArrowRight
 import top.yukonga.miuix.kmp.overlay.OverlayListPopup
@@ -178,7 +182,8 @@ fun HomePage(
 
     ReportDrawnWhen { uiState.isInitialDataLoaded }
 
-    val scrollBehavior = MiuixScrollBehavior()
+    val topAppBarState = rememberTopAppBarState()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior(topAppBarState)
     val scrollState = rememberScrollState()
     val navigator = LocalNavigator.current
     val loadingDialog = rememberLoadingDialog()
@@ -464,20 +469,25 @@ fun RebootDropdownItems(
 private fun TopBar(
     uiState: HomeUiState,
     onReboot: (String) -> Unit,
-    scrollBehavior: ScrollBehavior? = null,
+    scrollBehavior: TopAppBarScrollBehavior? = null,
 ) {
     val themeConfig: ThemeConfig = koinInject()
     val cardConfig: CardConfig = koinInject()
     val navigator = LocalNavigator.current
+    val appName = stringResource(R.string.app_name)
 
-    MiuixTopAppBar(
+    // The large flexible bar replaces the miuix TopAppBar whose collapsed
+    // small title is hard-wired to the centered HyperOS slot (miuix 0.9.4
+    // offers no alignment parameter) - the flexible bar aligns the title to
+    // the start in both the expanded and collapsed rows like on the other
+    // three main tabs, and carries over the progressive blur and the
+    // exit-until-collapsed scroll wiring.
+    LargeFlexibleTopAppBar(
         modifier = Modifier.blurEffect(progressive = true),
-        title = stringResource(R.string.app_name),
-        color = if (themeConfig.isEnableBlur) {
-            Color.Transparent
-        } else {
-            MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
+        title = {
+            Text(appName)
         },
+        titleHorizontalAlignment = Alignment.Start,
         actions = {
             if (uiState.isCoreDataLoaded) {
                 // SuSFS config entry — also reachable while the guard is
@@ -537,6 +547,21 @@ private fun TopBar(
                 }
             }
         },
+        windowInsets = TopAppBarDefaults.windowInsets.add(WindowInsets(left = 12.dp)),
+        colors = TopAppBarDefaults.topAppBarColors(
+            containerColor =
+                if (themeConfig.isEnableBlur) {
+                    Color.Transparent
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
+                },
+            scrolledContainerColor =
+                if (themeConfig.isEnableBlur) {
+                    Color.Transparent
+                } else {
+                    MaterialTheme.colorScheme.surfaceContainer.copy(cardConfig.cardAlpha)
+                },
+        ),
         scrollBehavior = scrollBehavior,
     )
 }
