@@ -81,8 +81,8 @@ import kotlinx.coroutines.withContext
 import org.bakasu.bakasu.BuildConfig
 import org.bakasu.bakasu.R
 import org.bakasu.bakasu.domain.usecase.GenerateBugreportUseCase
-import org.bakasu.bakasu.ui.component.CenteredHeaderTitle
 import org.bakasu.bakasu.ui.component.ConfirmResult
+import org.bakasu.bakasu.ui.component.HeaderTitle
 import org.bakasu.bakasu.ui.component.SwipeableSnackbarHost
 import org.bakasu.bakasu.ui.component.rememberConfirmDialog
 import org.bakasu.bakasu.ui.component.rememberLoadingDialog
@@ -702,7 +702,7 @@ private fun TopBar(
             // Page identity glyph - the same Settings mark the floating bottom
             // bar uses for this destination, riding inline with the centered
             // page title like on the Superuser and Modules pages.
-            CenteredHeaderTitle(
+            HeaderTitle(
                 title = stringResource(R.string.settings),
                 icon = Icons.TwoTone.Settings,
             )

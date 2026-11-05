@@ -405,17 +405,18 @@ private fun CompactSearchBar(
 }
 
 /** The header glyph runs slightly larger than the title's font size. */
-private const val CENTERED_HEADER_ICON_TEXT_SCALE = 1.15f
+private const val HEADER_ICON_TEXT_SCALE = 1.15f
 
 /**
- * The centered page-identity header: the destination glyph rides inline with
- * the page title so the pair centers as one group in the app bar. The glyph
+ * The page-identity header: the destination glyph rides inline with the
+ * page title so the pair reads as one group at the start of the app bar
+ * (owner order: headers align to the left like the other pages). The glyph
  * tracks the bar's provided title style - it grows with the expanded large
  * title and shrinks back with the collapsed small one - and tints along with
  * the title content color. A null icon degrades to the plain title text.
  */
 @Composable
-fun CenteredHeaderTitle(
+fun HeaderTitle(
     title: String,
     icon: ImageVector?,
     modifier: Modifier = Modifier,
@@ -427,7 +428,7 @@ fun CenteredHeaderTitle(
     val titleStyle = LocalTextStyle.current
     val iconSize = if (titleStyle.fontSize != TextUnit.Unspecified) {
         with(LocalDensity.current) {
-            (titleStyle.fontSize * CENTERED_HEADER_ICON_TEXT_SCALE).toDp()
+            (titleStyle.fontSize * HEADER_ICON_TEXT_SCALE).toDp()
         }
     } else {
         24.dp
@@ -535,13 +536,9 @@ fun SearchAppBar(
             modifier = Modifier.blurEffect(),
             scrollBehavior = scrollBehavior,
             title = {
-                CenteredHeaderTitle(title = title, icon = headerIcon)
+                HeaderTitle(title = title, icon = headerIcon)
             },
-            titleHorizontalAlignment = if (headerIcon != null) {
-                Alignment.CenterHorizontally
-            } else {
-                Alignment.Start
-            },
+            titleHorizontalAlignment = Alignment.Start,
             navigationIcon = {
                 if (onBackClick != null) {
                     AppBackButton(
