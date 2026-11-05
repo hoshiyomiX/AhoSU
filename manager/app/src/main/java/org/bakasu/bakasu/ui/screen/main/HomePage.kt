@@ -605,6 +605,7 @@ private fun StatusCard(
                 statusIcon = null,
                 emphasizedTitle = true,
                 enlargedSummary = true,
+                summaryUnderTitle = true,
                 color = MiuixTheme.colorScheme.errorContainer,
                 contentColor = MiuixTheme.colorScheme.onErrorContainer,
                 // The uploaded crying-girl artwork takes over the APK icon
@@ -736,6 +737,7 @@ private fun StatusHeroCard(
     endIconSize: Dp = 96.dp,
     emphasizedTitle: Boolean = false,
     enlargedSummary: Boolean = false,
+    summaryUnderTitle: Boolean = false,
     titleOutlineColor: Color? = null,
     color: Color = MiuixTheme.colorScheme.surfaceContainer,
     contentColor: Color = MiuixTheme.colorScheme.onSurfaceContainer,
@@ -911,8 +913,26 @@ private fun StatusHeroCard(
                     }
                 }
 
-                // The flexible spacer pins every label below the headline to
-                // the bottom of the card and auto-adjusts to the leftover room.
+                // The peel-banana install hint rides directly under the
+                // headline on the not-installed card, so the call-out and the
+                // hint read as one block instead of sitting on opposite ends
+                // of the card.
+                if (summaryUnderTitle) {
+                    summary?.let {
+                        Spacer(modifier = Modifier.height(6.dp))
+                        MiuixText(
+                            text = it,
+                            style = effectiveSummaryStyle,
+                            color = summaryColor,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                }
+
+                // The flexible spacer pins every remaining label below the
+                // headline block to the bottom of the card and auto-adjusts
+                // to the leftover room.
                 Spacer(modifier = Modifier.weight(1f))
                 Spacer(modifier = Modifier.height(10.dp))
                 Row(
@@ -923,17 +943,19 @@ private fun StatusHeroCard(
                     Column(
                         modifier = Modifier.weight(1f),
                     ) {
-                        summary?.let {
-                            MiuixText(
-                                text = it,
-                                style = effectiveSummaryStyle,
-                                color = summaryColor,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                            )
+                        if (!summaryUnderTitle) {
+                            summary?.let {
+                                MiuixText(
+                                    text = it,
+                                    style = effectiveSummaryStyle,
+                                    color = summaryColor,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
                         }
                         badges?.let {
-                            if (summary != null) {
+                            if (summary != null && !summaryUnderTitle) {
                                 Spacer(modifier = Modifier.height(10.dp))
                             }
                             it()
