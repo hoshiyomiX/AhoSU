@@ -34,7 +34,6 @@ import org.json.JSONObject
 class KsuCliRepository(context: Context) {
     private companion object {
         const val TAG = "KsuCli"
-        const val STAGE_COPY_MARKER = "KSU_STAGE_COPY_OK"
 
         /**
          * Shell-probe results only change when the module set or a kernel feature
@@ -365,26 +364,6 @@ class KsuCliRepository(context: Context) {
         val result = flashWithIO(command, onStdout, onStderr)
         Log.i(TAG, "AnyKernel3 flash result: ${result.isSuccess}, code: ${result.code}")
         return result.isSuccess
-    }
-
-    /**
-     * Copies [sourcePath] into [targetPath] with a root shell. This is the staging rescue path
-     * that bypasses a per-app FUSE view which stalls on blocking reads: root reads the
-     * `/data/media` backing file (or a plain secondary-volume mount) directly and writes the
-     * archive into the manager cache. Callers still validate the copied bytes afterwards.
-     */
-    fun copyFileAsRoot(sourcePath: String, targetPath: String): Boolean {
-        val stdout = ArrayList<String>()
-        val result = withNewRootShell {
-            newJob()
-                .add(
-                    "dd if=${shellQuote(sourcePath)} of=${shellQuote(targetPath)} bs=4194304 conv=fsync " +
-                        "&& echo $STAGE_COPY_MARKER",
-                )
-                .to(stdout, null)
-                .exec()
-        }
-        return result.isSuccess && stdout.any { it.contains(STAGE_COPY_MARKER) }
     }
 
     fun runModuleAction(

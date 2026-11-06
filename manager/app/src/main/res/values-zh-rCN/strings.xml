@@ -93,7 +93,6 @@
     <string name="settings_selinux_hide_failed">错误： %d</string>
     <string name="reboot_to_apply">重启生效</string>
     <string name="module_magisk_conflict">因与 Magisk 有冲突，所有模块不可用！</string>
-    <string name="module_stage_failed_count">处理 %2$d 个所选文件时 %1$d 个出错</string>
     <string name="home_learn_kernelsu">了解 KernelSU</string>
     <string name="home_learn_kernelsu_url">https://kernelsu.org/zh_CN/guide/what-is-kernelsu.html</string>
     <string name="home_click_to_learn_kernelsu">了解如何安装 KernelSU 以及如何开发模块</string>

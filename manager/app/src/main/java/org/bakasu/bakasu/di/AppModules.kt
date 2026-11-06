@@ -18,7 +18,6 @@ import org.bakasu.bakasu.data.application.DynamicManagerRepository
 import org.bakasu.bakasu.data.count.CountRepository
 import org.bakasu.bakasu.data.download.DownloadRepository
 import org.bakasu.bakasu.data.file.ModuleFileRepository
-import org.bakasu.bakasu.data.file.StagedInstallArchive
 import org.bakasu.bakasu.data.flash.FlashRepository
 import org.bakasu.bakasu.data.kernel.KernelRepository
 import org.bakasu.bakasu.data.kernel.UmountRepository
@@ -161,7 +160,6 @@ import org.bakasu.bakasu.domain.usecase.SetSelinuxHideEnabledUseCase
 import org.bakasu.bakasu.domain.usecase.SetStringPreferenceUseCase
 import org.bakasu.bakasu.domain.usecase.SetStringSetPreferenceUseCase
 import org.bakasu.bakasu.domain.usecase.SetSuEnabledUseCase
-import org.bakasu.bakasu.domain.usecase.StageInstallArchiveUseCase
 import org.bakasu.bakasu.domain.usecase.StartKernelFlashUseCase
 import org.bakasu.bakasu.domain.usecase.SuSFSConfigUseCase
 import org.bakasu.bakasu.domain.usecase.TakeModuleUriPermissionUseCase
@@ -275,7 +273,7 @@ val repositoryModule = module {
     singleOf(::ManagerUpdateRepository)
     singleOf(::ApplicationControlRepository)
     singleOf(::DownloadRepository)
-    single { FlashRepository(get(), get(applicationScopeQualifier), get(), get(), get()) }
+    single { FlashRepository(get(), get(applicationScopeQualifier), get(), get()) }
     singleOf(::KernelRepository)
     singleOf(::HomeRuntimeRepository)
     singleOf(::HomeStateRepository)
@@ -297,7 +295,6 @@ val repositoryModule = module {
     singleOf(::WebResourceRepository)
     singleOf(::WebUiRepository)
     singleOf(::ModuleFileRepository)
-    singleOf(::StagedInstallArchive)
     singleOf(::ProfileRepository)
     singleOf(::ProfileTemplateRepository)
     singleOf(::SuSFSConfigHelper)
@@ -414,7 +411,6 @@ val useCaseModule = module {
     factoryOf(::TakeModuleUriPermissionUseCase)
     factoryOf(::ExtractModuleNameUseCase)
     factoryOf(::ExtractModuleIdUseCase)
-    factoryOf(::StageInstallArchiveUseCase)
     factoryOf(::ObserveInstalledModulesUseCase)
     factoryOf(::RefreshInstalledModulesUseCase)
     factoryOf(::CalculateInstalledModuleSizeUseCase)

@@ -20,7 +20,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import org.bakasu.bakasu.data.file.ModuleFileRepository
-import org.bakasu.bakasu.data.file.StagedInstallArchive
 import org.bakasu.bakasu.data.shell.KsuCliRepository
 import org.bakasu.bakasu.domain.model.FlashOperation
 import org.bakasu.bakasu.domain.model.FlashOperationUpdate
@@ -34,7 +33,6 @@ class FlashRepository(
     private val applicationScope: CoroutineScope,
     private val moduleFileRepository: ModuleFileRepository,
     private val ksuCliRepository: KsuCliRepository,
-    private val stagedInstallArchive: StagedInstallArchive,
 ) {
     private val workerState = HorizonKernelState()
     private val mutableSession = MutableStateFlow(KernelFlashSession())
@@ -136,10 +134,7 @@ class FlashRepository(
 
                     is FlashOperation.Module -> ksuCliRepository.flashModule(
                         application,
-                        // Stage the archive first (a bounded local copy for SAF uris, a
-                        // pass-through for local/registry files) so every install entry point
-                        // reads the zip from cache instead of hanging on a stalling provider.
-                        stagedInstallArchive.stage(operation.uri).toUri(),
+                        operation.uri.toUri(),
                         onFinish,
                         onStdout,
                         onStderr,

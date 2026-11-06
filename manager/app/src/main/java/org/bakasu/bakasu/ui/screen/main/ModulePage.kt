@@ -86,7 +86,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.core.net.toUri
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.kyant.capsule.ContinuousRoundedRectangle
 import kotlinx.coroutines.Dispatchers
@@ -106,7 +105,6 @@ import org.bakasu.bakasu.domain.usecase.ExtractModuleNameUseCase
 import org.bakasu.bakasu.domain.usecase.IsModuleUriAccessibleUseCase
 import org.bakasu.bakasu.domain.usecase.ObserveDownloadUseCase
 import org.bakasu.bakasu.domain.usecase.PeekOneshotScriptUseCase
-import org.bakasu.bakasu.domain.usecase.StageInstallArchiveUseCase
 import org.bakasu.bakasu.domain.usecase.TakeModuleUriPermissionUseCase
 import org.bakasu.bakasu.ui.component.ConfirmResult
 import org.bakasu.bakasu.ui.component.InstallConfirmationDialog
@@ -184,7 +182,6 @@ fun ModulePage(bottomPadding: Dp) {
     val extractModuleName = koinInject<ExtractModuleNameUseCase>()
     val zipFileDetector = koinInject<ZipFileDetector>()
     val peekScript = koinInject<PeekOneshotScriptUseCase>()
-    val stageInstallArchive = koinInject<StageInstallArchiveUseCase>()
     val navigator = LocalNavigator.current
     val context = LocalContext.current
     val viewModel = koinViewModel<ModuleViewModel>()
@@ -217,9 +214,6 @@ fun ModulePage(bottomPadding: Dp) {
         },
     )
 
-    // Hoisted out of the picker callback so the failure message stays configuration-aware.
-    val stageFailedCountFormat = stringResource(R.string.module_stage_failed_count)
-
     val selectZipLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult(),
     ) {
@@ -234,7 +228,6 @@ fun ModulePage(bottomPadding: Dp) {
             if (clipData != null) {
                 val selectedModules = mutableListOf<Uri>()
                 val selectedModuleNames = mutableMapOf<Uri, String>()
-                var failedCount = 0
 
                 suspend fun processUri(uri: Uri) {
                     try {
@@ -243,16 +236,11 @@ fun ModulePage(bottomPadding: Dp) {
                             return
                         }
                         takeModuleUriPermission(uriString)
-                        // Stage the archive once with a bounded copy: a stalling provider read
-                        // surfaces here as an error instead of suspending the wizard silently,
-                        // and every later native step reads a local file.
-                        val stagedUriString = stageInstallArchive(uriString)
                         val moduleName =
-                            withContext(Dispatchers.IO) { extractModuleName(stagedUriString) }
-                        selectedModules.add(stagedUriString.toUri())
-                        selectedModuleNames[stagedUriString.toUri()] = moduleName
+                            withContext(Dispatchers.IO) { extractModuleName(uriString) }
+                        selectedModules.add(uri)
+                        selectedModuleNames[uri] = moduleName
                     } catch (e: Exception) {
-                        failedCount++
                         Log.e("ModuleScreen", "Error while processing URI: $uri, Error: ${e.message}")
                     }
                 }
@@ -265,11 +253,6 @@ fun ModulePage(bottomPadding: Dp) {
                 if (selectedModules.isEmpty()) {
                     snackBarHost.showReplacingSnackbar("Unable to access selected module files")
                     return@launch
-                }
-                if (failedCount > 0) {
-                    snackBarHost.showReplacingSnackbar(
-                        stageFailedCountFormat.format(failedCount, clipData.itemCount),
-                    )
                 }
                 selectedModules.singleOrNull()?.let { uri ->
                     peekScript(uri.toString())?.let { manifest ->
@@ -297,20 +280,15 @@ fun ModulePage(bottomPadding: Dp) {
 
                     takeModuleUriPermission(uriString)
 
-                    // Same single bounded staging copy as the multi-select path: the native
-                    // sequence below reads the local file, never the SAF uri again.
-                    val stagedUriString = stageInstallArchive(uriString)
-                    val stagedUri = stagedUriString.toUri()
-
-                    peekScript(stagedUriString)?.let { manifest ->
-                        navigator.push(Route.ScriptRun(stagedUriString, offerInstall = true, displayName = manifest.name))
+                    peekScript(uriString)?.let { manifest ->
+                        navigator.push(Route.ScriptRun(uriString, offerInstall = true, displayName = manifest.name))
                         return@launch
                     }
 
                     val info = withContext(Dispatchers.IO) {
                         zipFileDetector.parseModuleInfo(
                             context,
-                            stagedUri,
+                            uri,
                         )
                     }
                     zipFiles.add(info)

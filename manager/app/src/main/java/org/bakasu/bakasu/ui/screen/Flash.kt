@@ -70,7 +70,6 @@ import org.bakasu.bakasu.domain.usecase.ExecuteFlashOperationUseCase
 import org.bakasu.bakasu.domain.usecase.ExtractModuleNameUseCase
 import org.bakasu.bakasu.domain.usecase.IsLateLoadModeUseCase
 import org.bakasu.bakasu.domain.usecase.IsModuleUriAccessibleUseCase
-import org.bakasu.bakasu.domain.usecase.StageInstallArchiveUseCase
 import org.bakasu.bakasu.ui.component.FlashOutputScreen
 import org.bakasu.bakasu.ui.component.rememberCustomDialog
 import org.bakasu.bakasu.ui.navigation.LocalNavigator
@@ -97,7 +96,6 @@ fun FlashScreen(flashIt: FlashIt) {
     val isModuleUriAccessible = koinInject<IsModuleUriAccessibleUseCase>()
     val checkFlashModuleMount = koinInject<CheckFlashModuleMountUseCase>()
     val executeFlashOperation = koinInject<ExecuteFlashOperationUseCase>()
-    val stageInstallArchive = koinInject<StageInstallArchiveUseCase>()
     val context = LocalContext.current
 
     val isExternalInstall = remember {
@@ -300,13 +298,9 @@ fun FlashScreen(flashIt: FlashIt) {
             if (flashIt is FlashIt.FlashModules) {
                 try {
                     val currentUri = flashIt.uris[flashIt.currentIndex]
-                    // Stage the current archive before the name read so external
-                    // ACTION_VIEW/ACTION_SEND installs read a bounded local copy here
-                    // too; pickers already hand over staged file uris (instant pass-through).
-                    val stagedCurrentUri = stageInstallArchive(currentUri)
                     val moduleName = getModuleNameFromUri(
                         context,
-                        stagedCurrentUri,
+                        currentUri,
                         extractModuleName,
                         isModuleUriAccessible,
                     )
