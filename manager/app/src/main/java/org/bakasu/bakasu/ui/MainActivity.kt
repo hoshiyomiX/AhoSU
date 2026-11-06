@@ -10,9 +10,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
@@ -34,6 +37,7 @@ import org.bakasu.bakasu.ui.viewmodel.SettingsUiEvent
 import org.bakasu.bakasu.ui.viewmodel.SettingsViewModel
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import top.yukonga.miuix.kmp.basic.Scaffold as MiuixScaffold
 
 class MainActivity : ComponentActivity() {
     private val homeViewModel: HomeViewModel by viewModel()
@@ -112,7 +116,10 @@ class MainActivity : ComponentActivity() {
                 AhoSUTheme {
                     when (val state = startupState.collectAsStateWithLifecycle().value) {
                         is StartupState.Failed -> StartupFailureContent(state.message)
-                        else -> NavContainer(settingsViewModel, intentChannel)
+
+                        else -> RootDialogHost {
+                            NavContainer(settingsViewModel, intentChannel)
+                        }
                     }
                 }
             }
@@ -167,7 +174,28 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@androidx.compose.runtime.Composable
+/**
+ * Transparent root scaffold hosting the app-wide miuix dialog/popup layer.
+ *
+ * miuix overlay components (OverlayDialog, OverlayBottomSheet, dropdown popups) render only
+ * through the popup host of an enclosing miuix Scaffold: they register into the dialog list
+ * published through CompositionLocal, and that Scaffold draws them. The main tab pages live
+ * under MainScreen's Material3 Scaffold, so dialogs invoked at page level - the module
+ * install confirmation above all - resolved the locals to an orphan default list that
+ * nothing ever renders, and the wizard silently never appeared. Wrapping the app here gives
+ * every screen a real host while the pages keep their own scaffolds for local popups.
+ */
+@Composable
+private fun RootDialogHost(content: @Composable () -> Unit) {
+    MiuixScaffold(
+        containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
+    ) { _ ->
+        content()
+    }
+}
+
+@Composable
 private fun StartupFailureContent(reason: String) {
     Column(
         modifier = androidx.compose.ui.Modifier.fillMaxSize(),
